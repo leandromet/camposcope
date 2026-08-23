@@ -19,12 +19,14 @@ rather than a matter of remembering. Calls serialise through ``_LOCK``.
 from __future__ import annotations
 
 import logging
+import ssl
 import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from ..config import sicar as vocab
 from ..config.settings import (
@@ -48,6 +50,26 @@ _LOCK = threading.Lock()
 
 _session: Optional[requests.Session] = None
 _session_lock = threading.Lock()
+
+
+class _Tls12Adapter(HTTPAdapter):
+    """Use the protocol level accepted reliably by the public GeoServer."""
+
+    def __init__(self, verify_tls: bool) -> None:
+        self._verify_tls = verify_tls
+        super().__init__()
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        context = ssl.create_default_context()
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        context.maximum_version = ssl.TLSVersion.TLSv1_2
+        if not self._verify_tls:
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        pool_kwargs["ssl_context"] = context
+        return super().init_poolmanager(
+            connections, maxsize, block=block, **pool_kwargs
+        )
 
 
 class SicarError(RuntimeError):
@@ -78,6 +100,9 @@ def get_session() -> requests.Session:
                     "Accept": "application/json, application/xml;q=0.8",
                 })
                 s.verify = SICAR_VERIFY_TLS
+                adapter = _Tls12Adapter(SICAR_VERIFY_TLS)
+                s.mount("http://", adapter)
+                s.mount("https://", adapter)
                 _session = s
     return _session
 

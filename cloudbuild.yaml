@@ -142,4 +142,4 @@ steps:
       # unlicensed `mt1.google.com` endpoints — fine for local development, not
       # for a public deployment (doc/04-data-sources.md §11). Esri World Imagery
       # is licensed for this use and needs no key.
-      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=false
+      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=false,CS_SICAR_BASE=https://geoserver.car.gov.br/geoserver/sicar/ows,CS_SICAR_WMS=https://geoserver.car.gov.br/geoserver/sicar/wms,CS_SICAR_VERIFY_TLS=true

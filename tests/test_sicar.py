@@ -38,6 +38,16 @@ def test_geometry_column_is_the_published_name():
     assert vocab.GEOM_COLUMN == "geo_area_imovel"
 
 
+def test_geoserver_session_uses_tls_12():
+    from camposcope.services import sicar
+
+    session = sicar.get_session()
+    context = session.get_adapter("https://").poolmanager.connection_pool_kw[
+        "ssl_context"
+    ]
+    assert context.minimum_version == context.maximum_version
+
+
 @pytest.mark.live
 def test_live_lookup():
     from camposcope.services import sicar
