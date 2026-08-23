@@ -1,0 +1,145 @@
+# Cloud Build → Artifact Registry → Cloud Run, triggered from GitHub `main`.
+# Modelled on naturametrics/cloudbuild.yaml — same project, same region, same
+# reasoning. See that file's comments for the full rationale; only what
+# differs for Camposcope is called out below.
+#
+# ── The logging option is NOT optional ──────────────────────────────────────
+# When a build runs under a user-specified service account (which Cloud Build now
+# requires — the legacy per-project Cloud Build SA is deprecated), it may no
+# longer write logs to Google's own bucket. Omitting `options.logging` fails the
+# trigger before the build even starts, with:
+#
+#   invalid argument: if 'build.service_account' is specified, the build must
+#   either (a) specify 'build.logs_bucket', (b) use the
+#   REGIONAL_USER_OWNED_BUCKET build.options.default_logs_bucket_behavior
+#   option, or (c) use either CLOUD_LOGGING_ONLY / NONE logging options
+#
+# CLOUD_LOGGING_ONLY is the simplest of the three: logs go to Cloud Logging and
+# no bucket is needed.
+#
+# ── Before this trigger can serve real traffic (doc/10-open-decisions.md O2) ─
+# Camposcope's SICAR client rate-limits ITSELF to one request in flight, cached
+# (doc/05-sicar-geoserver.md §6) — but that lock is per-CONTAINER, not global.
+# Cloud Run can and will run several instances at once, each with its own lock,
+# so at real traffic this multiplies the load on geoserver.car.gov.br and
+# Nominatim beyond what either service's usage policy allows for. This trigger
+# is fine for development/staging traffic; do not open it to real public load
+# until that is addressed (a shared cache, a proxy, or --max-instances held low
+# enough that the aggregate stays defensible).
+
+substitutions:
+  _REGION: us-west1                      # matches yvynation-reflex and naturametrics
+  _SERVICE: camposcope
+  _IMAGE: gcr.io/ee-leandromet/camposcope
+  # Runtime identity — verified against the actual trigger (camposcope-trigg),
+  # not just copied from a sibling. `gcloud builds triggers describe
+  # camposcope-trigg` shows Cloud Build runs this trigger AS
+  # streamlit-ee-service@ee-leandromet.iam.gserviceaccount.com, and deploying a
+  # Cloud Run revision with `--service-account=X` requires the BUILD identity to
+  # hold `roles/iam.serviceAccountUser` ON X — a principal always has that on
+  # itself, but streamlit-ee-service does NOT have it on the compute default SA
+  # (checked: `gcloud iam service-accounts get-iam-policy
+  # 652582010777-compute@developer.gserviceaccount.com` lists only the compute
+  # SA itself as a principal, with tokenCreator, not streamlit-ee-service).
+  # Naturametrics/yvynation use the compute default SA because THEIR triggers
+  # run as that SA already; matching that convention here would need one more
+  # IAM grant this session did not make (see the note below the deploy step).
+  # streamlit-ee-service is also independently confirmed to carry
+  # `roles/earthengine.admin` + `roles/earthengine.viewer` on this project, so
+  # nothing about Earth Engine access is being traded away by this choice.
+  #
+  # streamlit-ee-service's project role is `roles/editor`, not an explicit
+  # `roles/run.admin` — Editor has historically covered basic Cloud Run
+  # deploys, and this is the same role the compute default SA ALSO carries
+  # (redundantly, alongside its own explicit run.admin) in the yvynation
+  # trigger. If the `deploy` step below fails on a Cloud Run permission rather
+  # than the actAs error this comment already rules out, granting
+  # `roles/run.admin` to streamlit-ee-service is the next thing to check —
+  # again an IAM grant to make deliberately, not a Camposcope code change.
+  _RUNTIME_SA: streamlit-ee-service@ee-leandromet.iam.gserviceaccount.com
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8      # the Reflex/bun frontend build is the slow part
+
+# Registry. Uses the project's existing `gcr.io` Artifact Registry repo, which is
+# already present — no new repository to create. To move to a dedicated regional
+# repo instead:
+#   gcloud artifacts repositories create camposcope \
+#     --repository-format=docker --location=us-west1 --project=ee-leandromet
+# and set _IMAGE to us-west1-docker.pkg.dev/${PROJECT_ID}/camposcope/camposcope
+
+timeout: 1800s
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --tag=${_IMAGE}:${SHORT_SHA}
+      - --tag=${_IMAGE}:latest
+      - .
+
+  # The push MUST be its own step, before deploy.
+  #
+  # The top-level `images:` field also pushes, but only AFTER every step has
+  # finished — so a deploy step that references the tag runs while it does not
+  # yet exist, and Cloud Run fails the revision with "Image ... not found".
+  # Pushing explicitly here fixes the ordering; `images:` is deliberately not used.
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, '${_IMAGE}']
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_IMAGE}:${SHORT_SHA}
+      - --region=${_REGION}
+      - --service-account=${_RUNTIME_SA}
+      - --cpu=2
+      - --memory=4Gi
+      - --concurrency=40
+      - --timeout=300
+      - --min-instances=0
+      - --max-instances=4
+      - --cpu-boost
+      # `--allow-unauthenticated` is NOT set here: it makes gcloud set an IAM
+      # policy binding (allUsers → run.invoker), which the build service account
+      # can only do with roles/run.admin. With roles/editor it fails the deploy.
+      # Grant public access once, out of band:
+      #   gcloud run services add-iam-policy-binding camposcope \
+      #     --region=us-west1 --member=allUsers --role=roles/run.invoker
+      # It persists across revisions, so it is a one-off rather than per-deploy.
+      #
+      # No EE credentials: Cloud Run supplies ADC for the attached service
+      # account via the metadata server (services/ee_client.py, source 2), same
+      # as naturametrics. PORT is injected by Cloud Run — never set.
+      #
+      # To switch the runtime SA to the compute default one instead (for family
+      # consistency with naturametrics/yvynation), grant the actAs permission
+      # first or the deploy step fails on an IAM error, not a Camposcope bug:
+      #   gcloud iam service-accounts add-iam-policy-binding \
+      #     652582010777-compute@developer.gserviceaccount.com \
+      #     --member=serviceAccount:streamlit-ee-service@ee-leandromet.iam.gserviceaccount.com \
+      #     --role=roles/iam.serviceAccountUser
+      # then change _RUNTIME_SA above. Not done in this session — an IAM policy
+      # change on a service account other than this app's own is exactly the
+      # kind of shared-infrastructure edit that needs an explicit go-ahead.
+      #
+      # CS_SPOT_ENABLED=false: SPOT 2008 (doc/12-spot-2008.md) was verified
+      # working under the developer's own ADC, not under _RUNTIME_SA — the
+      # "Brazil Forest Imagery Dataset 2008" licence is accepted per PRINCIPAL,
+      # and earthengine.admin/viewer roles do not imply that acceptance. Fails
+      # closed until it is checked; flip to true once confirmed
+      # (config/settings.py::SPOT_ENABLED drops the layers from the panel
+      # entirely rather than offering something that 403s).
+      #
+      # CS_BASEMAP=esri_imagery: the default (google_hybrid) hits undocumented,
+      # unlicensed `mt1.google.com` endpoints — fine for local development, not
+      # for a public deployment (doc/04-data-sources.md §11). Esri World Imagery
+      # is licensed for this use and needs no key.
+      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=false

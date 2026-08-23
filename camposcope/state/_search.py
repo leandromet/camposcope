@@ -92,18 +92,18 @@ class SearchMixin(rx.State, mixin=True):
         if kind == "codigo":
             async with self:
                 self.code_input = resolution.payload
-            return type(self).search_by_code
+            return self.__class__.search_by_code
 
         if kind == "coordenada":
             coord = resolution.payload
-            return type(self).select_at_point(coord.lat, coord.lon)
+            return self.__class__.select_at_point(coord.lat, coord.lon)
 
         if kind == "municipio":
             async with self:
                 self.municipio_hits = resolution.payload
             # A single unambiguous hit goes straight there; several are offered.
             if len(resolution.payload) == 1:
-                return type(self).choose_municipio(
+                return self.__class__.choose_municipio(
                     resolution.payload[0]["cod_municipio_ibge"]
                 )
             return
@@ -164,7 +164,7 @@ class SearchMixin(rx.State, mixin=True):
             if box:
                 self.fit_bounds = box
 
-        return type(self).load_municipio_list
+        return self.__class__.load_municipio_list
 
     @rx.event
     def choose_place(self, index: int) -> None:

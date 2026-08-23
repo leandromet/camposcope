@@ -27,3 +27,29 @@ def test_index_renders():
     from camposcope.pages.index import index
 
     assert index() is not None
+
+
+def test_background_handlers_never_reference_type_self():
+    """Regression test for a real bug: inside an `@rx.event(background=True)`
+    handler, `self` is a `StateProxy` (a wrapt object proxy). `type(self)`
+    returns the proxy's own class, so `return type(self).other_handler` raises
+    `AttributeError: 'StateProxy' has no attribute ...` at runtime — a failure
+    this repo's default test suite (no live server) cannot otherwise catch,
+    since it only shows up when a background handler actually chains to
+    another event. `self.__class__` is proxied through to the real composed
+    state and is the correct spelling. See camposcope/state/_imovel.py and
+    _search.py for the fix and its explanation.
+    """
+    import pathlib
+    import re
+
+    state_dir = pathlib.Path(__file__).resolve().parent.parent / "camposcope" / "state"
+    offenders = []
+    for path in state_dir.glob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), start=1):
+            code = line.split("#", 1)[0]        # ignore comments and docstrings
+            if re.search(r"\btype\(self\)\.", code):
+                offenders.append(f"{path.name}:{i}: {line.strip()}")
+
+    assert not offenders, "found `type(self).<handler>` — use `self.__class__` instead:\n" + "\n".join(offenders)

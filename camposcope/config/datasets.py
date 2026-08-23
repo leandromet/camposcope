@@ -36,6 +36,13 @@ BASEMAPS: Dict[str, Dict[str, Any]] = {
         "attribution": "© Google",
         "max_native_zoom": 20,
     },
+    "esri_imagery": {
+        "label_pt": "Esri — Satélite",
+        "label_en": "Esri — Imagery",
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles © Esri",
+        "max_native_zoom": 19,
+    },
     "osm": {
         "label_pt": "OpenStreetMap",
         "label_en": "OpenStreetMap",

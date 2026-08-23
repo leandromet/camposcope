@@ -106,6 +106,7 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
+        return self.__class__.run_history
 
     @rx.event(background=True)
     async def select_at_point(self, lat: float, lon: float):
@@ -167,6 +168,7 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
+        return self.__class__.run_history
 
     @rx.var
     def municipio_pages(self) -> int:
@@ -220,13 +222,13 @@ class ImovelMixin(rx.State, mixin=True):
     def next_municipio_page(self):
         if self.municipio_page + 1 < self.municipio_pages:
             self.municipio_page += 1
-            return type(self).load_municipio_list
+            return self.__class__.load_municipio_list
 
     @rx.event
     def prev_municipio_page(self):
         if self.municipio_page > 0:
             self.municipio_page -= 1
-            return type(self).load_municipio_list
+            return self.__class__.load_municipio_list
 
     @rx.event
     def adopt_car_param(self) -> None:
@@ -234,10 +236,14 @@ class ImovelMixin(rx.State, mixin=True):
         code = self.router.url.query_parameters.get("car", "")
         if code:
             self.code_input = code
-            # `type(self)` — the composed AppState — not the mixin. Reflex
-            # resolves returned events by class reference, and a mixin
-            # attribute is a plain function to it.
-            return type(self).search_by_code
+            # `self.__class__` — the composed AppState — not the mixin, and not
+            # `type(self)`. Inside a background handler `self` is a `StateProxy`
+            # (a wrapt object proxy): `type(self)` returns the proxy's own
+            # class, but `self.__class__` is proxied through to the real state
+            # — which is what Reflex needs to resolve a returned event by class
+            # reference (`type(self).search_by_code` raised `AttributeError:
+            # 'StateProxy' has no attribute 'search_by_code'` here in testing).
+            return self.__class__.search_by_code
 
     # --- internals -------------------------------------------------------
     @staticmethod
@@ -280,3 +286,4 @@ class ImovelMixin(rx.State, mixin=True):
         # Constraint C1 forbids the map moving for a layer toggle or a year
         # change — not for this.
         self.frame_geometry(self.imovel_geojson)
+        self.active_zone = "imovel"

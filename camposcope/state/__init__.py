@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import reflex as rx
 
+from ._analysis import AnalysisMixin
 from ._imovel import ImovelMixin
 from ._layers import LayersMixin
 from ._search import SearchMixin
@@ -20,8 +21,8 @@ from ._ui import UIMixin
 from ._zones import ZonesMixin
 
 
-class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, UIMixin,
-               rx.State):
+class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, AnalysisMixin,
+               UIMixin, rx.State):
     """Root application state."""
 
     @rx.event

@@ -6,9 +6,9 @@ from the browser. A phase is not done because its code exists.
 | Phase | Theme | Status |
 |---|---|---|
 | 0 | Skeleton, SICAR service, map | ✅ done |
-| 1 | Find a property → boundary + cadastral record | 🚧 code + map click done; município browser pending |
-| 2 | Zones: rings, areas, overlaps | 🚧 services done; UI partial |
-| 3 | MapBiomas trajectory | planned |
+| 1 | Find a property → boundary + cadastral record | ✅ all four resolvers + município browser done |
+| 2 | Zones: rings, areas, overlaps | ✅ done, incl. biome overlay (D13) |
+| 3 | MapBiomas trajectory | ✅ done — batched reducer, chart, registration-date marker |
 | 4 | Transitions & Sankey | planned |
 | 5 | Hansen, biomass, satellite context | planned |
 | 6 | Export & provenance | planned |

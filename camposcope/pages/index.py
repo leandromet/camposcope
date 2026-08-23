@@ -7,6 +7,7 @@ import reflex as rx
 from ..components.cadastro import cadastral_card, zones_panel
 from ..components.layout import BORDER, MUTED, header, section
 from ..components.map.leaflet_map import leaflet_map
+from ..components.results import results_panel
 from ..components.search import municipio_browser, search_panel
 from ..config.datasets import BASEMAPS
 from ..state import AppState
@@ -63,6 +64,13 @@ def _sidebar() -> rx.Component:
 
 
 def _map() -> rx.Component:
+    """The map, filling its box, with the results drawer overlaid on top of it
+    rather than sharing flex space with it (doc/08-ui-ux.md §1: the drawer
+    "rises from the bottom" of the map area, it does not shrink it). Kept as a
+    single box with exactly the props Leaflet has always been given here —
+    ``flex="1", height="100%", position="relative"`` — so the map's own layout
+    is never at the mercy of a sibling's height.
+    """
     return rx.box(
         leaflet_map(
             id="camposcope-map",
@@ -75,6 +83,20 @@ def _map() -> rx.Component:
             on_map_click=AppState.select_at_point,
             width="100%",
             height="100%",
+        ),
+        rx.box(
+            results_panel(),
+            position="absolute",
+            bottom="0",
+            left="0",
+            right="0",
+            max_height="42vh",
+            overflow_y="auto",
+            # Leaflet's own panes (tile/overlay/marker/popup) use z-index up to
+            # ~700 internally; anything lower than that sits UNDER the map and
+            # is invisible except for whatever sliver Leaflet doesn't paint —
+            # exactly the bug this value fixes.
+            z_index="1000",
         ),
         flex="1",
         height="100%",

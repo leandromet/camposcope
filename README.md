@@ -43,9 +43,9 @@ them, and issues **no compliance verdict of any kind**. See
 | Phase | | |
 |---|---|---|
 | 0 | Skeleton, SICAR service, persistent map | ✅ working |
-| 1 | Find a property → boundary + cadastral record | 🚧 code, coordinate, município and place resolvers done; UI pending |
-| 2 | Zones: rings, areas, overlaps | 🚧 rings, areas and overlap computation work; UI partial |
-| 3 | MapBiomas trajectory | planned |
+| 1 | Find a property → boundary + cadastral record | ✅ done |
+| 2 | Zones: rings, areas, overlaps, biome overlay | ✅ done |
+| 3 | MapBiomas trajectory | ✅ done |
 | 4 | Transitions & Sankey | planned |
 | 5 | Hansen, biomass, satellite context, SPOT 2008 | 🚧 SPOT date/coverage service done |
 | 6 | Export & provenance | planned |
