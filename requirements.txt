@@ -1,0 +1,31 @@
+# Camposcope — runtime dependencies
+# What is deliberately absent, and why, is in doc/09-dev-environment.md §5.
+
+# Core
+reflex==0.8.27              # same minor as Yvynation and Naturametrics, so the
+                            # ported components compile unchanged
+python-dotenv>=1.2.2        # >=1.2.2 fixes CVE-2026-28684 (set_key symlink handling)
+
+# Earth Engine
+earthengine-api>=1.7.4
+google-auth>=2.27.0
+google-auth-oauthlib>=1.2.1
+
+# The CAR GeoServer — four URLs, not a capabilities-parsing library.
+# See doc/09-dev-environment.md §5 for why OWSLib is not here.
+requests>=2.31.0
+
+# Data
+pandas>=2.2.0
+numpy>=2.0.0
+
+# Viz
+plotly>=6.1.1
+
+# Geometry — rings, areas, overlaps. All local; none of it needs Earth Engine.
+# geopandas/fiona/gdal are deliberately absent: shapely + pyproj cover it.
+shapely>=2.0.2
+pyproj>=3.6.0
+
+# Utilities
+pydantic>=2.5.0
