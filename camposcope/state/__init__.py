@@ -17,12 +17,13 @@ from ._analysis import AnalysisMixin
 from ._imovel import ImovelMixin
 from ._layers import LayersMixin
 from ._search import SearchMixin
+from ._transitions import TransitionsMixin
 from ._ui import UIMixin
 from ._zones import ZonesMixin
 
 
 class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, AnalysisMixin,
-               UIMixin, rx.State):
+               TransitionsMixin, UIMixin, rx.State):
     """Root application state."""
 
     @rx.event

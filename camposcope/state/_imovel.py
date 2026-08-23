@@ -139,18 +139,22 @@ class ImovelMixin(rx.State, mixin=True):
                 self.sicar_error = str(exc)
             return
 
+        single_match = len(found) == 1
         async with self:
             self.searching = False
             if not found:
                 self.sicar_error = (
                     f"Nenhum imóvel registrado no CAR neste ponto ({uf})."
                 )
-            elif len(found) == 1:
+            elif single_match:
                 self._adopt(found[0])
             else:
                 # More than one registration covers this point. Present them
                 # all; never take the first (decision D7).
                 self.candidates = [self._summary(i) for i in found]
+
+        if single_match:
+            return self.__class__.run_history
 
     @rx.event(background=True)
     async def choose_candidate(self, cod_imovel: str):

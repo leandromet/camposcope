@@ -1,18 +1,21 @@
-"""Map layers: basemap, the CAR context layer, and (later) Earth Engine tiles.
+"""Map layers: basemaps (XYZ and Earth Engine), the CAR context layer, the
+biome overlay.
 
-Trimmed from Naturametrics' ``state/_layers.py`` (decision D2). The Earth Engine
-half arrives in Phase 3; what is here now is what Phase 0 needs.
+Trimmed from Naturametrics' ``state/_layers.py`` (decision D2).
 """
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Sequence
 
 import reflex as rx
 
-from ..config.datasets import BASEMAPS
+from ..config.datasets import ALL_BASEMAPS, BASEMAPS, is_ee_basemap
 from ..config.settings import DEFAULT_BASEMAP, DEFAULT_CENTER, DEFAULT_ZOOM
 from ..services import sicar
+
+logger = logging.getLogger(__name__)
 
 
 class LayersMixin(rx.State, mixin=True):
@@ -21,6 +24,17 @@ class LayersMixin(rx.State, mixin=True):
     basemap: str = DEFAULT_BASEMAP
     center: List[float] = list(DEFAULT_CENTER)
     zoom: int = DEFAULT_ZOOM
+
+    #: Tile URLs minted from Earth Engine (the SPOT 2008 mosaics — everything
+    #: else is a plain XYZ template with no round trip). Cached for the process
+    #: lifetime like every other tile URL (services/tiles.py): switching back
+    #: and forth costs one round trip in total.
+    ee_basemap_urls: Dict[str, str] = {}
+    basemap_busy: bool = False
+    #: Fail-closed message (doc/12-spot-2008.md §2): a licence-gated basemap
+    #: that cannot mint a tile URL reverts to the default rather than showing a
+    #: broken layer, and says why.
+    basemap_error: str = ""
 
     #: Draw every CAR registration in the current UF as a WMS overlay. This is
     #: how 218 000 polygons get on screen without any of them travelling to the
@@ -43,10 +57,53 @@ class LayersMixin(rx.State, mixin=True):
     show_biome_labels: bool = True
     biome_opacity: float = 0.45
 
-    @rx.event
-    def set_basemap(self, name: str) -> None:
-        if name in BASEMAPS:
-            self.basemap = name
+    @rx.event(background=True)
+    async def set_basemap(self, name: str):
+        """Switch basemap. XYZ is instant; an Earth Engine basemap (SPOT 2008)
+        mints a tile URL first, off the event loop, and fails closed
+        (doc/12-spot-2008.md §2) — a licence-gated layer that cannot mint a URL
+        must not silently show as broken.
+        """
+        if name not in ALL_BASEMAPS:
+            return
+
+        async with self:
+            self.basemap_error = ""
+            if not is_ee_basemap(name):
+                self.basemap = name
+                return
+            if name in self.ee_basemap_urls:
+                self.basemap = name
+                return
+            self.basemap_busy = True
+
+        import asyncio
+
+        from ..services import layers as layer_service
+
+        loop = asyncio.get_running_loop()
+        try:
+            spec = await loop.run_in_executor(
+                None, layer_service.ee_basemap_spec, name
+            )
+        except Exception as exc:                      # noqa: BLE001
+            logger.warning("Basemap %s failed: %s", name, exc)
+            spec = None
+
+        async with self:
+            self.basemap_busy = False
+            if spec:
+                self.ee_basemap_urls[name] = spec["url"]
+                self.basemap = name
+            else:
+                # Stay on the previous basemap and say why, rather than
+                # reverting silently — a silent revert would look like the
+                # select control is broken, not like a permission gap.
+                self.basemap_error = (
+                    f"Não foi possível carregar a camada '{name}'. Ela pode "
+                    "exigir uma licença que esta instalação não tem "
+                    "(CS_SPOT_ENABLED)."
+                )
 
     @rx.event
     def toggle_car_layer(self) -> None:
@@ -81,15 +138,31 @@ class LayersMixin(rx.State, mixin=True):
     @rx.var
     def map_layers(self) -> List[Dict[str, Any]]:
         """The ordered layer spec the Leaflet component diffs against."""
-        base = BASEMAPS.get(self.basemap, BASEMAPS[DEFAULT_BASEMAP])
-        layers: List[Dict[str, Any]] = [{
-            "id": f"basemap:{self.basemap}",
-            "url": base["url"],
-            "attribution": base["attribution"],
-            "max_native_zoom": base.get("max_native_zoom", 19),
-            "opacity": 1.0,
-            "z_index": 0,
-        }]
+        layers: List[Dict[str, Any]] = []
+
+        if is_ee_basemap(self.basemap) and self.basemap in self.ee_basemap_urls:
+            conf = ALL_BASEMAPS[self.basemap]
+            layers.append({
+                "id": f"basemap:{self.basemap}",
+                "url": self.ee_basemap_urls[self.basemap],
+                "attribution": conf["attribution"],
+                "max_native_zoom": conf.get("max_native_zoom", 16),
+                "opacity": 1.0,
+                "z_index": 1,
+            })
+        else:
+            # While an EE basemap is minting (or failed), the XYZ default
+            # keeps the map non-empty — never a blank tile layer underneath.
+            key = self.basemap if self.basemap in BASEMAPS else DEFAULT_BASEMAP
+            base = BASEMAPS[key]
+            layers.append({
+                "id": f"basemap:{key}",
+                "url": base["url"],
+                "attribution": base["attribution"],
+                "max_native_zoom": base.get("max_native_zoom", 19),
+                "opacity": 1.0,
+                "z_index": 0,
+            })
 
         uf = getattr(self, "imovel", {}).get("uf") or getattr(self, "search_uf", "")
         if self.show_car_layer and uf:
