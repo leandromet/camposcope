@@ -726,9 +726,14 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
           // of analysis. Rings are context, so they are outline-only and cooler,
           // and they fade outward so the eye reads distance rather than ranking.
           if (props.role === "property") {
+            // Darker than the amber used for UI chips elsewhere (layout.py's
+            // PROPERTY_COLOR): against satellite imagery and the MapBiomas
+            // overlay, #f5a524 read as too light to find at a glance. No
+            // fill — this boundary sits on top of whichever land-cover layer
+            // is active, and a wash would dull it (doc/08-ui-ux.md §5).
             return {
-              color: "#f5a524", weight: 3, opacity: 1,
-              fill: true, fillColor: "#f5a524", fillOpacity: 0.12,
+              color: "#c2410c", weight: 5, opacity: 1,
+              fill: false,
             };
           }
           if (props.role === "ring") {
@@ -738,7 +743,7 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
             const idx = RING_ORDER.indexOf(props.zone_key);
             return {
               color: ringColors[Math.min(Math.max(idx, 0), ringColors.length - 1)],
-              weight: 1.6,
+              weight: 2,
               opacity: 0.9,
               fill: false,
               dashArray: "5,4",
@@ -747,8 +752,8 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
           if (props.role !== "buffer") return {};
           return {
             color: "#ffffff",
-            weight: 2,
-            opacity: 0.95,
+            weight: 4,
+            opacity: 0.8,
             fill: false,
             dashArray: props.radius_km <= 1 ? null : "5,4",
           };
