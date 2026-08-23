@@ -130,16 +130,19 @@ steps:
       # change on a service account other than this app's own is exactly the
       # kind of shared-infrastructure edit that needs an explicit go-ahead.
       #
-      # CS_SPOT_ENABLED=false: SPOT 2008 (doc/12-spot-2008.md) was verified
-      # working under the developer's own ADC, not under _RUNTIME_SA — the
-      # "Brazil Forest Imagery Dataset 2008" licence is accepted per PRINCIPAL,
-      # and earthengine.admin/viewer roles do not imply that acceptance. Fails
-      # closed until it is checked; flip to true once confirmed
-      # (config/settings.py::SPOT_ENABLED drops the layers from the panel
-      # entirely rather than offering something that 403s).
+      # CS_SPOT_ENABLED=true: originally shipped `false` here out of caution —
+      # the assumption was that the "Brazil Forest Imagery Dataset 2008"
+      # needed a licence accepted per PRINCIPAL, unverified for
+      # streamlit-ee-service specifically. That assumption was wrong: this
+      # dataset is a standard public Earth Engine catalog asset, not a gated
+      # commercial one, and naturametrics — same GCP project, DIFFERENT
+      # runtime SA (the compute default one) — already serves it live. Access
+      # is project-level (ee-leandromet), not per-account, so there was
+      # nothing to gate. Flipped true 2026-08 after confirming this against
+      # naturametrics' working deployment; see doc/12-spot-2008.md.
       #
       # CS_BASEMAP=esri_imagery: the default (google_hybrid) hits undocumented,
       # unlicensed `mt1.google.com` endpoints — fine for local development, not
       # for a public deployment (doc/04-data-sources.md §11). Esri World Imagery
       # is licensed for this use and needs no key.
-      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=false,CS_SICAR_BASE=https://geoserver.car.gov.br/geoserver/sicar/ows,CS_SICAR_WMS=https://geoserver.car.gov.br/geoserver/sicar/wms,CS_SICAR_VERIFY_TLS=true
+      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=true,CS_SICAR_BASE=https://geoserver.car.gov.br/geoserver/sicar/ows,CS_SICAR_WMS=https://geoserver.car.gov.br/geoserver/sicar/wms,CS_SICAR_VERIFY_TLS=true
