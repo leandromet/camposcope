@@ -53,9 +53,23 @@ class TransitionsMixin(rx.State, mixin=True):
         rows.sort(key=lambda r: r["area_ha"], reverse=True)
         return rows
 
+    @rx.var
+    def sankey_year_left(self) -> int:
+        """Older of the two selected years — the map's swipe legend reads
+        this rather than doing min/max in the component, since Var has
+        neither method."""
+        return min(self.sankey_year_a, self.sankey_year_b)
+
+    @rx.var
+    def sankey_year_right(self) -> int:
+        return max(self.sankey_year_a, self.sankey_year_b)
+
     @rx.event
     def set_sankey_years(self, year_a: int, year_b: int) -> None:
         self.sankey_year_a, self.sankey_year_b = int(year_a), int(year_b)
+        # Keeps the map's swipe comparison in step with the Sankey year
+        # picker — one control, not two that could disagree.
+        return self.__class__.mint_analysis_layer
 
     @rx.event(background=True)
     async def run_sankey(self):

@@ -71,62 +71,6 @@ def _drag_handle() -> rx.Component:
     )
 
 
-def _spot_summary() -> rx.Component:
-    """Acquisition dates + pre-cutoff share for the SPOT 2008 mosaic
-    (doc/12-spot-2008.md §3) — never shown without these numbers, and never a
-    classification of the land (constraint C4/D9)."""
-    return rx.cond(
-        AppState.basemap.contains("spot"),
-        rx.vstack(
-            rx.cond(
-                AppState.has_imovel,
-                rx.button(
-                    rx.cond(AppState.spot_running, "Verificando…",
-                           "Verificar cobertura SPOT"),
-                    on_click=AppState.run_spot_coverage,
-                    disabled=AppState.spot_running,
-                    size="1", width="100%",
-                ),
-            ),
-            rx.cond(
-                AppState.spot_error,
-                rx.callout(AppState.spot_error, icon="triangle-alert",
-                          color_scheme="amber", size="1"),
-            ),
-            rx.cond(
-                AppState.spot_summary,
-                rx.cond(
-                    AppState.spot_summary["has_coverage"].to(bool),
-                    rx.vstack(
-                        rx.text(
-                            f"Imagens de {AppState.spot_summary['date_min']} a "
-                            f"{AppState.spot_summary['date_max']}",
-                            size="1",
-                        ),
-                        rx.text(
-                            f"{AppState.spot_summary['pre_cutoff_pct']}% dos "
-                            "pixels foram fotografados antes de 22/07/2008",
-                            size="1", weight="medium",
-                        ),
-                        spacing="1",
-                    ),
-                    rx.text(
-                        "Sem cobertura SPOT 2008 nesta zona — o mosaico cobre "
-                        "apenas áreas florestais do Brasil.",
-                        size="1", color=MUTED,
-                    ),
-                ),
-            ),
-            rx.text(
-                "Camposcope não classifica área consolidada nem avalia "
-                "regularidade.",
-                size="1", color=MUTED,
-            ),
-            spacing="2", width="100%", padding_top="1",
-        ),
-    )
-
-
 def _layers_panel() -> rx.Component:
     return section(
         "Camadas",
@@ -147,7 +91,13 @@ def _layers_panel() -> rx.Component:
             rx.callout(AppState.basemap_error, icon="triangle-alert",
                       color_scheme="amber", size="1"),
         ),
-        _spot_summary(),
+        rx.cond(
+            AppState.basemap.contains("spot"),
+            rx.text(
+                "Verificação de cobertura e datas: aba Floresta.",
+                size="1", color=MUTED,
+            ),
+        ),
         rx.hstack(
             rx.switch(checked=AppState.show_car_layer,
                       on_change=AppState.toggle_car_layer, size="1"),
@@ -233,6 +183,11 @@ def _map() -> rx.Component:
             vectors=AppState.biome_vectors,
             fit_bounds=AppState.fit_bounds,
             on_map_click=AppState.select_at_point,
+            # Transições: two MapBiomas years at once, older left / newer
+            # right, dragged apart with the divider this turns on
+            # (leaflet_map.js's existing swipe machinery — ported, previously
+            # unused in this app).
+            swipe=AppState.map_swipe_enabled,
             width="100%",
             height="100%",
         ),

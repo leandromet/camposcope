@@ -68,8 +68,18 @@ class LayersMixin(rx.State, mixin=True):
     #: just looks this key up — it never decides which layer belongs to which
     #: tab itself, so that decision lives in exactly one place.
     active_analysis_layer_key: str = ""
+    #: Transições is the one tab with TWO layers at once — the older year on
+    #: the left of a swipe divider, the newer on the right, so the transition
+    #: is something you can literally drag across rather than only read off a
+    #: Sankey. ``[left_key, right_key]``, both into `analysis_layer_specs`;
+    #: empty whenever the active tab isn't Transições.
+    swipe_layer_keys: List[str] = []
     analysis_layer_busy: bool = False
     analysis_layer_error: str = ""
+
+    @rx.var
+    def map_swipe_enabled(self) -> bool:
+        return len(self.swipe_layer_keys) == 2
 
     @rx.event
     def toggle_analysis_layer(self) -> None:
@@ -79,10 +89,10 @@ class LayersMixin(rx.State, mixin=True):
     async def mint_analysis_layer(self):
         """Mint (or reuse) the map layer for the currently active results tab.
 
-        A no-op for Transições, which has no single map layer of its own, and
-        for anything already cached. Every mint is independent and the cache
-        never evicts, so revisiting a tab is always free after the first
-        visit — the same guarantee the SPOT basemap gives.
+        Every mint is independent and the cache never evicts, so revisiting a
+        tab is always free after the first visit — the same guarantee the
+        SPOT basemap gives. Transições is the one tab with TWO layers instead
+        of one — see `_mint_swipe_layers`.
         """
         async with self:
             tab = self.results_tab
@@ -92,6 +102,15 @@ class LayersMixin(rx.State, mixin=True):
             hansen_mode = getattr(self, "hansen_layer_mode", "2008")
             year_biomass = getattr(self, "biomass_layer_year", None)
             registration_year = getattr(self, "imovel", {}).get("ano_criacao") or None
+
+        if tab != "transicoes":
+            async with self:
+                self.swipe_layer_keys = []
+
+        if tab == "transicoes":
+            if has_property and enabled:
+                await self._mint_swipe_layers()
+            return
 
         if not has_property or not enabled:
             return
@@ -155,6 +174,67 @@ class LayersMixin(rx.State, mixin=True):
                     "Não foi possível carregar a camada desta aba no mapa."
                 )
 
+    async def _mint_swipe_layers(self) -> None:
+        """The Transições tab's map layer: the two selected Sankey years,
+        older on the left of the swipe divider and newer on the right — the
+        same `sankey_year_a`/`sankey_year_b` the two-stage diagram already
+        uses, so there is exactly one place a user sets "which two years",
+        not a second pair of controls that could disagree with the first.
+
+        Both mints run concurrently (they are independent Earth Engine calls)
+        and share the same cache as Cobertura's own MapBiomas layer — picking
+        a year already viewed there costs nothing here.
+        """
+        async with self:
+            year_a = getattr(self, "sankey_year_a", None)
+            year_b = getattr(self, "sankey_year_b", None)
+
+        if not year_a or not year_b:
+            return
+        left_year, right_year = sorted((int(year_a), int(year_b)))
+        left_key = f"mapbiomas:v10_1:{left_year}"
+        right_key = f"mapbiomas:v10_1:{right_year}"
+
+        async with self:
+            cached = self.analysis_layer_specs
+            if left_key in cached and right_key in cached:
+                self.swipe_layer_keys = [left_key, right_key]
+                return
+            self.analysis_layer_busy = True
+            self.analysis_layer_error = ""
+
+        import asyncio
+
+        from ..services import layers as layer_service
+
+        loop = asyncio.get_running_loop()
+        try:
+            spec_left, spec_right = await asyncio.gather(
+                loop.run_in_executor(None, layer_service.mapbiomas_year_spec,
+                                     left_year),
+                loop.run_in_executor(None, layer_service.mapbiomas_year_spec,
+                                     right_year),
+            )
+        except Exception as exc:                      # noqa: BLE001
+            logger.warning("Swipe layers %s/%s failed: %s",
+                           left_year, right_year, exc)
+            spec_left = spec_right = None
+
+        async with self:
+            self.analysis_layer_busy = False
+            if spec_left and spec_right:
+                # `clip` marks each half of the divider — set here rather than
+                # in the service layer, since services/layers.py has no
+                # notion of "which side" and shouldn't need one for a single
+                # tab's presentation choice.
+                self.analysis_layer_specs[left_key] = {**spec_left, "clip": "left"}
+                self.analysis_layer_specs[right_key] = {**spec_right, "clip": "right"}
+                self.swipe_layer_keys = [left_key, right_key]
+            else:
+                self.analysis_layer_error = (
+                    "Não foi possível carregar as camadas de comparação."
+                )
+
     @rx.event(background=True)
     async def set_basemap(self, name: str):
         """Switch basemap. XYZ is instant; an Earth Engine basemap (SPOT 2008)
@@ -202,6 +282,24 @@ class LayersMixin(rx.State, mixin=True):
                     "exigir uma licença que esta instalação não tem "
                     "(CS_SPOT_ENABLED)."
                 )
+
+    @rx.event(background=True)
+    async def toggle_spot_basemap(self):
+        """Switch to the SPOT 2008 mosaic, or back off it.
+
+        SPOT is a *basemap* (real imagery replacing the tile underneath
+        everything else), not an overlay like Hansen/MapBiomas/AGB — but it
+        belongs to the Floresta tab's on-map legend all the same, since the
+        Forest Code's 2008 reference date is exactly what that tab is about
+        (doc/12-spot-2008.md). This is the toggle that legend uses, so the
+        control there does not need to know SPOT's asset key or reimplement
+        the licence-gated fail-closed handling in `set_basemap`.
+        """
+        async with self:
+            current = self.basemap
+        if is_ee_basemap(current) and current.startswith("spot"):
+            return self.__class__.set_basemap(DEFAULT_BASEMAP)
+        return self.__class__.set_basemap("spot_2008_visual")
 
     @rx.event
     def toggle_car_layer(self) -> None:
@@ -262,9 +360,20 @@ class LayersMixin(rx.State, mixin=True):
                 "z_index": 0,
             })
 
-        active = self.active_analysis_layer_key
-        if self.analysis_layer_enabled and active in self.analysis_layer_specs:
-            layers.append(self.analysis_layer_specs[active])
+        if self.analysis_layer_enabled and len(self.swipe_layer_keys) == 2:
+            # Transições: two layers at once, each clipped to its side of the
+            # divider by leaflet_map.js — z_index must differ or Leaflet's
+            # own pane ordering (both "overlayPane") leaves the paint order
+            # to insertion order, which is fragile once either layer refreshes.
+            left_key, right_key = self.swipe_layer_keys
+            for i, key in enumerate((left_key, right_key)):
+                spec = self.analysis_layer_specs.get(key)
+                if spec:
+                    layers.append({**spec, "id": f"swipe:{key}", "z_index": 10 + i})
+        else:
+            active = self.active_analysis_layer_key
+            if self.analysis_layer_enabled and active in self.analysis_layer_specs:
+                layers.append(self.analysis_layer_specs[active])
 
         uf = getattr(self, "imovel", {}).get("uf") or getattr(self, "search_uf", "")
         if self.show_car_layer and uf:

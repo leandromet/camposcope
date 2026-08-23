@@ -65,6 +65,77 @@ def _cobertura_legend() -> rx.Component:
     )
 
 
+def _spot_section() -> rx.Component:
+    """SPOT 2008 belongs here, not the generic basemap dropdown: this tab IS
+    the Forest Code's 2008 reference date (doc/12-spot-2008.md). Toggling it
+    on switches the map's actual imagery, not an overlay — see
+    LayersMixin.toggle_spot_basemap."""
+    is_spot = AppState.basemap.contains("spot")
+    return rx.vstack(
+        rx.divider(),
+        rx.hstack(
+            rx.text("Imagem SPOT 2008", size="1", weight="medium"),
+            rx.spacer(),
+            rx.switch(checked=is_spot, on_change=AppState.toggle_spot_basemap,
+                     size="1"),
+            width="100%", align="center",
+        ),
+        rx.cond(
+            AppState.basemap_busy,
+            rx.hstack(rx.spinner(size="1"), rx.text("Carregando…", size="1"),
+                     spacing="2", align="center"),
+        ),
+        rx.cond(
+            AppState.basemap_error,
+            rx.callout(AppState.basemap_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            is_spot,
+            rx.vstack(
+                rx.button(
+                    rx.cond(AppState.spot_running, "Verificando…",
+                           "Verificar cobertura"),
+                    on_click=AppState.run_spot_coverage,
+                    disabled=AppState.spot_running, size="1", width="100%",
+                ),
+                rx.cond(
+                    AppState.spot_error,
+                    rx.callout(AppState.spot_error, icon="triangle-alert",
+                              color_scheme="amber", size="1"),
+                ),
+                rx.cond(
+                    AppState.spot_summary,
+                    rx.cond(
+                        AppState.spot_summary["has_coverage"].to(bool),
+                        rx.vstack(
+                            rx.text(
+                                f"{AppState.spot_summary['date_min']} a "
+                                f"{AppState.spot_summary['date_max']}",
+                                size="1",
+                            ),
+                            rx.text(
+                                f"{AppState.spot_summary['pre_cutoff_pct']}% "
+                                "antes de 22/07/2008",
+                                size="1", weight="medium",
+                            ),
+                            spacing="1",
+                        ),
+                        rx.text("Sem cobertura SPOT nesta zona.", size="1",
+                               color="var(--gray-11)"),
+                    ),
+                ),
+                rx.text(
+                    "Não classifica área consolidada.", size="1",
+                    color="var(--gray-11)",
+                ),
+                spacing="2", width="100%",
+            ),
+        ),
+        spacing="2", width="100%",
+    )
+
+
 def _floresta_legend() -> rx.Component:
     return rx.vstack(
         _header("Floresta — Hansen"),
@@ -77,6 +148,7 @@ def _floresta_legend() -> rx.Component:
         ),
         _swatch_row("#d4271e", "Perda"),
         _swatch_row("#02d659", "Ganho (sem data)"),
+        _spot_section(),
         spacing="2", width="100%",
     )
 
@@ -105,16 +177,39 @@ def _biomassa_legend() -> rx.Component:
     )
 
 
+def _transicoes_legend() -> rx.Component:
+    """Older year on the left of the swipe divider, newer on the right — the
+    same `sankey_year_a`/`sankey_year_b` the two-stage Sankey uses, so this
+    legend has nothing of its own to set, only to say what is showing."""
+    return rx.vstack(
+        _header("MapBiomas — comparação"),
+        rx.cond(
+            AppState.map_swipe_enabled,
+            rx.hstack(
+                rx.text(AppState.sankey_year_left, size="1", weight="medium"),
+                rx.icon("move-horizontal", size=12),
+                rx.text(AppState.sankey_year_right, size="1", weight="medium"),
+                spacing="2", align="center",
+            ),
+            rx.text("Escolha os anos na aba Transições.", size="1",
+                   color="var(--gray-11)"),
+        ),
+        rx.text("Arraste a barra no mapa para comparar.", size="1",
+               color="var(--gray-11)"),
+        spacing="2", width="100%",
+    )
+
+
 def map_legend() -> rx.Component:
     """Shown only once a property is selected and the active tab has a map
-    layer of its own — Transições has none (doc/07 §4: it is a diagram, not
-    a single raster)."""
+    layer of its own."""
     return rx.cond(
         AppState.has_imovel,
         rx.box(
             rx.match(
                 AppState.results_tab,
                 ("cobertura", _cobertura_legend()),
+                ("transicoes", _transicoes_legend()),
                 ("floresta", _floresta_legend()),
                 ("biomassa", _biomassa_legend()),
                 rx.fragment(),
