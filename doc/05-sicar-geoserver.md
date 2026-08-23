@@ -204,6 +204,16 @@ endpoint exists, and it enforces:
 3. **`geo_area_imovel` is the geometry column name**, referenced through one constant.
 4. **Explicit TLS handling.** The chain issue is handled once, in one place, with the
    decision written down next to it — not with a scattered `verify=False`.
+   **Cloud Run gotcha, hit in production 2026-08:** `requests`' default SSL context works
+   fine on a typical dev machine but fails with `SSLV3_ALERT_HANDSHAKE_FAILURE` from inside
+   `python:3.12-slim` (Debian) — reproduced by running that exact image and hitting the
+   GeoServer from it. Debian's OpenSSL 3.x ships `CipherString = DEFAULT@SECLEVEL=2`, which
+   refuses the legacy DH/RSA parameters this GeoServer's older Java/Tomcat stack offers.
+   Pinning the TLS **version** alone does not fix this — it is a cipher/key-size floor, a
+   different axis entirely. The fix is `context.set_ciphers("DEFAULT@SECLEVEL=1")` in
+   `services/sicar.py::_Tls12Adapter`, which narrowly tolerates that one class of legacy
+   parameter rather than disabling verification or widening anything else. Verified in the
+   real container: HTTP 200 with a valid GeoJSON body.
 5. **Explicit timeouts** (connect 10 s, read 60 s) — the default of *forever* would hang a
    Reflex background handler with no way out.
 6. **Areas are computed from the geometry**, in an equal-area projection, and reported

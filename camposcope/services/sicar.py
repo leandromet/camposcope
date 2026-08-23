@@ -53,7 +53,29 @@ _session_lock = threading.Lock()
 
 
 class _Tls12Adapter(HTTPAdapter):
-    """Use the protocol level accepted reliably by the public GeoServer."""
+    """TLS parameters the public GeoServer actually accepts.
+
+    Two independent things had to be fixed here, and pinning the protocol
+    alone (the first attempt) fixed neither of them:
+
+    **The real blocker is OpenSSL's cipher security level, not the TLS
+    version.** Reproduced 2026-08 by running the exact `python:3.12-slim`
+    image Cloud Run deploys and hitting the GeoServer from inside it: a plain
+    ``ssl.create_default_context()`` — no protocol pinning at all — fails with
+    `SSLV3_ALERT_HANDSHAKE_FAILURE`. Debian's OpenSSL 3.x ships
+    ``CipherString = DEFAULT@SECLEVEL=2`` as the system default, which refuses
+    a server offering weak-by-2026-standards but not actually broken DH/RSA
+    parameters — exactly what a Java/Tomcat-era government GeoServer offers.
+    ``set_ciphers("DEFAULT@SECLEVEL=1")`` is the standard, narrowly-scoped fix
+    for this — it does not disable certificate verification or widen anything
+    else, it only tolerates the specific legacy key sizes SECLEVEL=2 rejects.
+    Verified fixed in the same container: HTTP 200 with a valid GeoJSON body.
+
+    The TLS 1.2 pin is kept from the first attempt — harmless, and the
+    GeoServer's own behaviour suggests an older stack that is unlikely to
+    prefer 1.3 anyway — but on its own it changed nothing, which is why the
+    error persisted in production after that fix shipped.
+    """
 
     def __init__(self, verify_tls: bool) -> None:
         self._verify_tls = verify_tls
@@ -63,6 +85,7 @@ class _Tls12Adapter(HTTPAdapter):
         context = ssl.create_default_context()
         context.minimum_version = ssl.TLSVersion.TLSv1_2
         context.maximum_version = ssl.TLSVersion.TLSv1_2
+        context.set_ciphers("DEFAULT@SECLEVEL=1")
         if not self._verify_tls:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
