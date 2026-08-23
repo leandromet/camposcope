@@ -7,7 +7,7 @@ Trimmed from Naturametrics' ``state/_layers.py`` (decision D2).
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import reflex as rx
 
@@ -56,6 +56,104 @@ class LayersMixin(rx.State, mixin=True):
     show_biomes: bool = False
     show_biome_labels: bool = True
     biome_opacity: float = 0.45
+
+    #: The map layer that matches the active results tab (doc/08-ui-ux.md §1:
+    #: "show the map layer related to each tab as we switch them"). Cached by
+    #: spec id like every other tile — switching tabs back and forth after the
+    #: first visit costs nothing. On by default; the on-map legend control
+    #: (components/map_legend.py) is where a user turns it off.
+    analysis_layer_enabled: bool = True
+    analysis_layer_specs: Dict[str, Dict[str, Any]] = {}
+    #: Which cached spec is current. Set by `mint_analysis_layer`; `map_layers`
+    #: just looks this key up — it never decides which layer belongs to which
+    #: tab itself, so that decision lives in exactly one place.
+    active_analysis_layer_key: str = ""
+    analysis_layer_busy: bool = False
+    analysis_layer_error: str = ""
+
+    @rx.event
+    def toggle_analysis_layer(self) -> None:
+        self.analysis_layer_enabled = not self.analysis_layer_enabled
+
+    @rx.event(background=True)
+    async def mint_analysis_layer(self):
+        """Mint (or reuse) the map layer for the currently active results tab.
+
+        A no-op for Transições, which has no single map layer of its own, and
+        for anything already cached. Every mint is independent and the cache
+        never evicts, so revisiting a tab is always free after the first
+        visit — the same guarantee the SPOT basemap gives.
+        """
+        async with self:
+            tab = self.results_tab
+            has_property = self.has_imovel
+            enabled = self.analysis_layer_enabled
+            year_mb = getattr(self, "mapbiomas_layer_year", None)
+            hansen_mode = getattr(self, "hansen_layer_mode", "2008")
+            year_biomass = getattr(self, "biomass_layer_year", None)
+            registration_year = getattr(self, "imovel", {}).get("ano_criacao") or None
+
+        if not has_property or not enabled:
+            return
+
+        from ..config.settings import HANSEN_TREECOVER_THRESHOLD
+
+        cache_key: Optional[str] = None
+        mint_fn = None
+
+        if tab == "cobertura" and year_mb:
+            cache_key = f"mapbiomas:v10_1:{year_mb}"
+
+            def mint_fn():
+                from ..services import layers as layer_service
+                return layer_service.mapbiomas_year_spec(year_mb)
+
+        elif tab == "floresta":
+            from_year = (
+                registration_year if hansen_mode == "registro"
+                else 2008
+            )
+            cache_key = f"hansen_change:{from_year}:{HANSEN_TREECOVER_THRESHOLD}"
+
+            def mint_fn():
+                from ..services import layers as layer_service
+                return layer_service.hansen_change_spec(from_year)
+
+        elif tab == "biomassa" and year_biomass:
+            cache_key = f"biomass:{year_biomass}"
+
+            def mint_fn():
+                from ..services import layers as layer_service
+                return layer_service.biomass_year_spec(year_biomass)
+
+        else:
+            return
+
+        async with self:
+            if cache_key in self.analysis_layer_specs:
+                self.active_analysis_layer_key = cache_key
+                return
+            self.analysis_layer_busy = True
+            self.analysis_layer_error = ""
+
+        import asyncio
+
+        loop = asyncio.get_running_loop()
+        try:
+            spec = await loop.run_in_executor(None, mint_fn)
+        except Exception as exc:                      # noqa: BLE001
+            logger.warning("Analysis layer %s failed: %s", cache_key, exc)
+            spec = None
+
+        async with self:
+            self.analysis_layer_busy = False
+            if spec:
+                self.analysis_layer_specs[cache_key] = spec
+                self.active_analysis_layer_key = cache_key
+            else:
+                self.analysis_layer_error = (
+                    "Não foi possível carregar a camada desta aba no mapa."
+                )
 
     @rx.event(background=True)
     async def set_basemap(self, name: str):
@@ -163,6 +261,10 @@ class LayersMixin(rx.State, mixin=True):
                 "opacity": 1.0,
                 "z_index": 0,
             })
+
+        active = self.active_analysis_layer_key
+        if self.analysis_layer_enabled and active in self.analysis_layer_specs:
+            layers.append(self.analysis_layer_specs[active])
 
         uf = getattr(self, "imovel", {}).get("uf") or getattr(self, "search_uf", "")
         if self.show_car_layer and uf:

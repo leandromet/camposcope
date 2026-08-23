@@ -104,7 +104,7 @@ def _radii(name: str, default: str) -> List[int]:
 
 #: Rings are measured **outward from the property boundary**, not from a
 #: centroid (D3). Metres.
-RING_RADII_M: List[int] = _radii("CS_RING_RADII_M", "500,1000,2000,5000")
+RING_RADII_M: List[int] = _radii("CS_RING_RADII_M", "500,2000,5000")
 
 #: Above this, ring construction is scaled back with a visible notice rather
 #: than producing a slow, meaningless answer (doc/06-ee-layers.md §7).
@@ -165,3 +165,11 @@ BRAZIL_BBOX = (-74.0, -34.0, -28.0, 6.0)   # west, south, east, north
 #: gaps most "transitions" are classification flicker in mixed pixels, not
 #: events on the ground.
 SANKEY_MIN_YEAR_GAP = _int("CS_SANKEY_MIN_YEAR_GAP", 5)
+
+# --------------------------------------------------------------------------- #
+# Hansen map layer  (services/layers.py, Floresta tab)
+# --------------------------------------------------------------------------- #
+#: Minimum canopy cover (%) for a pixel to count as "forest" for the tree-cover
+#: and loss/gain map layers — a pixel below this was never forest, so it
+#: cannot show loss. Ported from Naturametrics' default.
+HANSEN_TREECOVER_THRESHOLD = _int("CS_HANSEN_TREECOVER_THRESHOLD", 30)

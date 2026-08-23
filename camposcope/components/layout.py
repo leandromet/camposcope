@@ -20,6 +20,25 @@ MUTED = "var(--gray-11)"
 BORDER = "1px solid var(--gray-5)"
 
 
+def split_panel(chart: rx.Component, table: rx.Component,
+                *, chart_width: str = "50%") -> rx.Component:
+    """Chart and data table side by side — the layout every results tab uses
+    (Cobertura, Transições, Floresta, Biomassa) so a full-width chart never
+    dominates the results drawer, and the numbers behind it are always one
+    glance away rather than a hover-tooltip away.
+
+    Stacks vertically below ~640px (a narrow drawer/phone) rather than
+    squeezing two illegible columns.
+    """
+    return rx.flex(
+        rx.box(chart, width=["100%", "100%", chart_width], flex_shrink="0"),
+        rx.box(table, flex="1", min_width="0", overflow_y="auto",
+              max_height="300px"),
+        direction=rx.breakpoints(initial="column", md="row"),
+        spacing="4", width="100%", align="start",
+    )
+
+
 def section(title: str, *children, **props) -> rx.Component:
     """A titled sidebar block."""
     return rx.vstack(

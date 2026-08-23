@@ -176,6 +176,12 @@ SPOT_META_BANDS = ["date", "scale", "satellite"]
 #: it, and classifies NOTHING (doc/12 §4, decision D9).
 FOREST_CODE_CUTOFF_EPOCH = 1_216_684_800      # 2008-07-22T00:00:00Z
 FOREST_CODE_CUTOFF_ISO = "2008-07-22"
+#: The calendar year alone — Hansen's ``lossyear`` band has no sub-annual
+#: precision, so a year-granular split (services/hansen.py) can only place the
+#: cutoff on a year boundary, not the exact July date. Loss recorded in 2008
+#: itself is grouped with "up to 2008" rather than split further, since there
+#: is no month field to split it by.
+FOREST_CODE_CUTOFF_YEAR = 2008
 
 #: Every basemap the panel offers, XYZ and Earth Engine alike, in display order.
 #: The SPOT entries are dropped entirely when the licence flag is off, rather

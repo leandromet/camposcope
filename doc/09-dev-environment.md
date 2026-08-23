@@ -53,7 +53,7 @@ All settings are environment variables with working defaults, prefix `CS_`:
 | `CS_SICAR_BASE` | `https://geoserver.car.gov.br/geoserver/sicar/ows` | The CAR GeoServer ([05](05-sicar-geoserver.md) §1) |
 | `CS_SICAR_TIMEOUT_READ` | `60` | Read timeout, seconds. Never unset — the default is *forever* and it hangs a background handler |
 | `CS_SICAR_CACHE_TTL` | `3600` | Municipality-page cache, seconds. Code lookups are cached for the process lifetime |
-| `CS_RING_RADII_M` | `500,1000,2000,5000` | Default neighbourhood rings |
+| `CS_RING_RADII_M` | `500,2000,5000` | Default neighbourhood rings |
 | `CS_EE_SCALE_M` | `30` | Reducer scale for MapBiomas/Hansen |
 | `CS_EE_TILE_SCALE` | `4` | EE `tileScale`; raise for very large properties |
 | `CS_BASEMAP` | `google_hybrid` | See [04](04-data-sources.md) §7 for the licensing caveat |

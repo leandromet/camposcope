@@ -1,5 +1,23 @@
-"""Hansen Global Forest Change — dated loss, split at the property's own
-registration date; undated gain, kept separate (doc/04-data-sources.md §3).
+"""Hansen Global Forest Change — dated loss, split into three periods anchored
+on the two dates that actually govern a CAR property; undated gain, kept
+separate (doc/04-data-sources.md §3).
+
+**Three periods, not two.** The Código Florestal (Lei 12.651/2012) uses
+**22 July 2008** as its reference date for *área rural consolidada*; the
+property's own **CAR registration date** is a second, independent turning
+point. Loss is bucketed against both:
+
+======================  =========================================
+``ate_2008``            loss year ≤ 2008 (Hansen has no month field,
+                        so the cutoff falls on the year boundary —
+                        see ``config.datasets.FOREST_CODE_CUTOFF_YEAR``)
+``2008_ate_registro``   2008 < loss year < registration year
+``apos_registro``       loss year ≥ registration year
+======================  =========================================
+
+If a property was registered before or during 2008, the middle bucket is
+simply empty — the split degrades gracefully rather than producing an
+inverted range.
 
 One batched call covers every zone: ``lossyear`` and ``gain`` are two bands of
 the same image, so ``reduceRegions`` with ``frequencyHistogram`` returns both
@@ -18,7 +36,7 @@ from typing import Any, Dict, List, Sequence, Tuple
 
 import pandas as pd
 
-from ..config.datasets import HANSEN_GFC
+from ..config.datasets import FOREST_CODE_CUTOFF_YEAR, HANSEN_GFC
 from ..config.settings import EE_MAX_PIXELS, EE_TILE_SCALE
 from .ee_client import get_ee
 from .mapbiomas_history import _zone_feature_collection
@@ -33,16 +51,29 @@ LOSS_YEAR_END = HANSEN_GFC["loss_year_end"]
 #: `treecover2000` scale — Hansen's own native resolution.
 HANSEN_SCALE_M = 30
 
+PERIOD_UP_TO_2008 = "ate_2008"
+PERIOD_TO_REGISTRATION = "2008_ate_registro"
+PERIOD_AFTER_REGISTRATION = "apos_registro"
+
+
+def _period(year: int, registration_year: "int | None") -> str:
+    if year <= FOREST_CODE_CUTOFF_YEAR:
+        return PERIOD_UP_TO_2008
+    if registration_year and year < registration_year:
+        return PERIOD_TO_REGISTRATION
+    return PERIOD_AFTER_REGISTRATION
+
 
 def forest_change(
     zones: Sequence[Zone], *, registration_year: "int | None" = None,
 ) -> Tuple[pd.DataFrame, float, Provenance]:
-    """Loss by year (split at ``registration_year``) and gain, per zone.
+    """Loss by year, bucketed into three periods, and gain, per zone.
 
     Returns ``(loss_df, gain_total_ha, provenance)``. ``loss_df`` columns:
-    ``zone_key, zone_label, year, area_ha, before_registration`` — long format,
-    one row per zone per loss year, so the chart can colour before/after
-    without a second query.
+    ``zone_key, zone_label, year, area_ha, period`` — long format, one row per
+    zone per loss year, so the chart can colour by period without a second
+    query. ``period`` is one of ``PERIOD_UP_TO_2008``,
+    ``PERIOD_TO_REGISTRATION``, ``PERIOD_AFTER_REGISTRATION``.
     """
     if not zones:
         raise ValueError("Nenhuma zona para analisar.")
@@ -103,9 +134,7 @@ def forest_change(
                 "zone_label": zone_labels.get(zone_key, zone_key),
                 "year": year,
                 "area_ha": area_ha,
-                "before_registration": (
-                    bool(registration_year) and year < registration_year
-                ),
+                "period": _period(year, registration_year),
             })
 
         gain_hist: Dict[str, float] = props.get("gain") or {}
@@ -115,7 +144,7 @@ def forest_change(
 
     loss_df = pd.DataFrame.from_records(
         loss_records,
-        columns=["zone_key", "zone_label", "year", "area_ha", "before_registration"],
+        columns=["zone_key", "zone_label", "year", "area_ha", "period"],
     )
     if not loss_df.empty:
         order = {z.key: i for i, z in enumerate(zones)}
@@ -137,6 +166,7 @@ def forest_change(
         extra={
             "zones": [z.key for z in zones],
             "loss_year_range": [LOSS_YEAR_START, LOSS_YEAR_END],
+            "forest_code_cutoff_year": FOREST_CODE_CUTOFF_YEAR,
             "registration_year": registration_year,
             "gain_note": (
                 "gain é uma camada única e SEM DATA (2000-2012); nunca somada "
@@ -147,4 +177,7 @@ def forest_change(
     return loss_df, gain_total_ha, prov
 
 
-__all__ = ["forest_change", "HANSEN_ASSET"]
+__all__ = [
+    "forest_change", "HANSEN_ASSET",
+    "PERIOD_UP_TO_2008", "PERIOD_TO_REGISTRATION", "PERIOD_AFTER_REGISTRATION",
+]

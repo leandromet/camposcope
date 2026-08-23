@@ -59,8 +59,12 @@ one is what makes the charts recognisable to anyone who has seen a MapBiomas map
 | **Resolution** | ~30 m |
 | **Licence** | CC BY 4.0 — Hansen/UMD/Google/USGS/NASA |
 
-Used for one thing Camposcope specifically needs: **dated** loss, which splits cleanly at
-the property's `dat_criacao`.
+Used for one thing Camposcope specifically needs: **dated** loss, bucketed into three
+periods anchored on the two dates that actually govern a CAR property — **até 2008** (the
+Forest Code's own reference year for *área rural consolidada*), **2008 até o registro**, and
+**depois do registro** (the property's own `dat_criacao`). See `services/hansen.py` for the
+exact boundary rule (Hansen's `lossyear` has no month, so the cutoff falls on the year, not
+the 22 July date).
 
 **Three traps.** (1) `gain` is **undated** — it is a single 2000–2012 layer and cannot be
 placed on a timeline or summed with loss; it is drawn as its own layer and never enters an

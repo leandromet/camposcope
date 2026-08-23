@@ -106,7 +106,7 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
-        return self.__class__.run_history
+        return [self.__class__.run_history, self.__class__.mint_analysis_layer]
 
     @rx.event(background=True)
     async def select_at_point(self, lat: float, lon: float):
@@ -154,7 +154,7 @@ class ImovelMixin(rx.State, mixin=True):
                 self.candidates = [self._summary(i) for i in found]
 
         if single_match:
-            return self.__class__.run_history
+            return [self.__class__.run_history, self.__class__.mint_analysis_layer]
 
     @rx.event(background=True)
     async def choose_candidate(self, cod_imovel: str):
@@ -172,7 +172,7 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
-        return self.__class__.run_history
+        return [self.__class__.run_history, self.__class__.mint_analysis_layer]
 
     @rx.var
     def municipio_pages(self) -> int:

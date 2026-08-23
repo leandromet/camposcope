@@ -41,6 +41,11 @@ class AnalysisMixin(rx.State, mixin=True):
     active_zone: str = "imovel"
     #: Hectares vs. percentage share — the toggle the chart reads.
     history_normalise: bool = False
+    #: Which year's class breakdown the Cobertura table shows, and — via
+    #: LayersMixin.mapbiomas_map_layers — which year's MapBiomas tile draws on
+    #: the map while this tab is active. One selector drives both, so the
+    #: table and the map never show two different years at once.
+    mapbiomas_layer_year: int = mb.MAPBIOMAS_YEAR_END
 
     @rx.var
     def has_history(self) -> bool:
@@ -50,6 +55,32 @@ class AnalysisMixin(rx.State, mixin=True):
     def history_rows_for_zone(self) -> List[Dict[str, Any]]:
         zone = self.active_zone
         return [r for r in self.history_rows if r["zone_key"] == zone]
+
+    @rx.var
+    def history_table_rows(self) -> List[Dict[str, Any]]:
+        """The active zone's class breakdown for ``mapbiomas_layer_year``,
+        largest first — the compact table shown beside the trajectory chart
+        (not one row per year: forty years of every class would not fit)."""
+        year = self.mapbiomas_layer_year
+        rows = [r for r in self.history_rows_for_zone if r["year"] == year]
+        total = sum(r["area_ha"] for r in rows) or 1.0
+        out = [
+            {
+                "class_pt": r["class_pt"], "color": r["color"],
+                "area_ha": round(r["area_ha"], 2),
+                "area_pct": round(100.0 * r["area_ha"] / total, 1),
+            }
+            for r in rows
+        ]
+        out.sort(key=lambda r: r["area_ha"], reverse=True)
+        return out
+
+    @rx.event
+    def set_mapbiomas_layer_year(self, year: str) -> None:
+        # rx.select always passes a string (see UIMixin.set_lang for the same
+        # rule applied to rx.segmented_control).
+        self.mapbiomas_layer_year = int(year)
+        return self.__class__.mint_analysis_layer
 
     @rx.var(cache=True)
     def history_figure(self) -> go.Figure:
@@ -142,25 +173,67 @@ class ForestChangeMixin(rx.State, mixin=True):
     """Hansen forest change: dated loss split at registration, undated gain
     kept separate (doc/04-data-sources.md §3)."""
 
+    #: Which turning point the Floresta map layer shows loss *since* —
+    #: "2008" (the Forest Code's own reference year) or "registro" (this
+    #: property's CAR registration). Not an arbitrary year picker: these two
+    #: dates are the ones that actually matter here (doc/04 §3).
+    hansen_layer_mode: str = "2008"
+
+    @rx.event
+    def set_hansen_layer_mode(self, mode: str | list[str]) -> None:
+        # rx.segmented_control passes str | list[str] (see UIMixin.set_lang).
+        value = mode[0] if isinstance(mode, list) else mode
+        self.hansen_layer_mode = value if value in ("2008", "registro") else "2008"
+        return self.__class__.mint_analysis_layer
+
     hansen_running: bool = False
     hansen_error: str = ""
     hansen_loss_rows: List[Dict[str, Any]] = []
     hansen_gain_ha: float = 0.0
     hansen_has_run: bool = False
 
-    @rx.var
-    def hansen_loss_before_ha(self) -> float:
+    #: One colour per period — amber/red/dark-red reading as "further from
+    #: today", not a severity scale (loss before 2008 is not "worse").
+    _PERIOD_COLOR = {
+        "ate_2008": "#f5a524",
+        "2008_ate_registro": "#e5484d",
+        "apos_registro": "#8b1a1a",
+    }
+    _PERIOD_LABEL = {
+        "ate_2008": "Até 2008",
+        "2008_ate_registro": "2008 até o registro",
+        "apos_registro": "Depois do registro",
+    }
+
+    def _hansen_period_total(self, period: str) -> float:
         return round(sum(
             r["area_ha"] for r in self.hansen_loss_rows
-            if r["zone_key"] == self.active_zone and r["before_registration"]
+            if r["zone_key"] == self.active_zone and r["period"] == period
         ), 2)
 
     @rx.var
-    def hansen_loss_after_ha(self) -> float:
-        return round(sum(
-            r["area_ha"] for r in self.hansen_loss_rows
-            if r["zone_key"] == self.active_zone and not r["before_registration"]
-        ), 2)
+    def hansen_loss_up_to_2008_ha(self) -> float:
+        return self._hansen_period_total("ate_2008")
+
+    @rx.var
+    def hansen_loss_2008_to_registration_ha(self) -> float:
+        return self._hansen_period_total("2008_ate_registro")
+
+    @rx.var
+    def hansen_loss_after_registration_ha(self) -> float:
+        return self._hansen_period_total("apos_registro")
+
+    @rx.var
+    def hansen_table_rows(self) -> List[Dict[str, Any]]:
+        rows = sorted(
+            (r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone),
+            key=lambda r: r["year"],
+        )
+        return [
+            {"year": r["year"], "area_ha": round(r["area_ha"], 2),
+             "period_label": self._PERIOD_LABEL.get(r["period"], r["period"])}
+            for r in rows
+        ]
 
     @rx.var(cache=True)
     def hansen_figure(self) -> go.Figure:
@@ -170,21 +243,20 @@ class ForestChangeMixin(rx.State, mixin=True):
             fig.add_annotation(text="Sem dados", showarrow=False,
                               font=dict(size=13, color="#888"))
         else:
-            before = [r for r in rows if r["before_registration"]]
-            after = [r for r in rows if not r["before_registration"]]
-            if before:
-                fig.add_bar(x=[r["year"] for r in before],
-                           y=[r["area_ha"] for r in before],
-                           name="Antes do registro", marker_color="#f5a524")
-            if after:
-                fig.add_bar(x=[r["year"] for r in after],
-                           y=[r["area_ha"] for r in after],
-                           name="Depois do registro", marker_color="#d4271e")
+            for period in ("ate_2008", "2008_ate_registro", "apos_registro"):
+                bucket = [r for r in rows if r["period"] == period]
+                if not bucket:
+                    continue
+                fig.add_bar(
+                    x=[r["year"] for r in bucket], y=[r["area_ha"] for r in bucket],
+                    name=self._PERIOD_LABEL[period],
+                    marker_color=self._PERIOD_COLOR[period],
+                )
         fig.update_layout(
             barmode="stack", template="plotly_white",
-            margin=dict(l=48, r=8, t=8, b=36), height=300,
-            legend=dict(orientation="h", yanchor="top", y=-0.2, x=0,
-                       font=dict(size=10)),
+            margin=dict(l=48, r=8, t=8, b=36), height=260,
+            legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
+                       font=dict(size=9)),
             xaxis=dict(title=None, tickmode="linear", dtick=2),
             yaxis=dict(title="Perda (ha)"),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
@@ -237,9 +309,33 @@ class ForestChangeMixin(rx.State, mixin=True):
 class BiomassMixin(rx.State, mixin=True):
     """ESA CCI Above-Ground Biomass — ten snapshots, gaps drawn as gaps."""
 
+    #: Which snapshot the Biomassa map layer shows. Defaults to the most
+    #: recent — the "current state" reading is usually the one someone wants
+    #: first; the on-map control offers the other nine.
+    biomass_layer_year: int = 2022
+
     biomass_running: bool = False
     biomass_error: str = ""
     biomass_rows: List[Dict[str, Any]] = []
+
+    @rx.event
+    def set_biomass_layer_year(self, year: str) -> None:
+        self.biomass_layer_year = int(year)
+        return self.__class__.mint_analysis_layer
+
+    @rx.var
+    def biomass_table_rows(self) -> List[Dict[str, Any]]:
+        """All ten snapshots for the active zone — compact enough (unlike
+        Cobertura's per-class table) to list in full rather than one year."""
+        rows = sorted(
+            (r for r in self.biomass_rows if r["zone_key"] == self.active_zone),
+            key=lambda r: r["year"],
+        )
+        return [
+            {"year": r["year"], "agb_mean_mgha": round(r["agb_mean_mgha"], 1),
+             "total_biomass_mg": round(r["total_biomass_mg"], 0)}
+            for r in rows
+        ]
 
     @rx.var(cache=True)
     def biomass_figure(self) -> go.Figure:

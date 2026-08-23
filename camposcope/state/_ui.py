@@ -27,6 +27,10 @@ class UIMixin(rx.State, mixin=True):
     @rx.event
     def set_results_tab(self, tab: str) -> None:
         self.results_tab = tab
+        # Show the map layer this tab is about (doc/08-ui-ux.md §1) — a no-op
+        # via LayersMixin.mint_analysis_layer if nothing is selected yet, or
+        # if that tab's layer is already cached from an earlier visit.
+        return self.__class__.mint_analysis_layer
 
     @rx.event
     def toggle_sidebar(self) -> None:

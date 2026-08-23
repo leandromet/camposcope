@@ -53,7 +53,7 @@ The first shippable version does exactly this:
    **geometry-derived area**, `m_fiscal` (módulos fiscais), `tipo_imovel`, `municipio`.
    Where declared and computed area disagree, say so with the delta.
 3. **Build the study geometry.** The property polygon itself, plus **neighbourhood rings**
-   at 500 m / 1 km / 2 km / 5 km measured outward from the boundary (not from a centroid —
+   at 500 m / 2 km / 5 km measured outward from the boundary (not from a centroid —
    see **D3**). Rings are true rings: each excludes the property and every smaller ring.
 4. **MapBiomas trajectory 1985–2024** for the property and for each ring, as a stacked
    column chart with the official palette, and as a map layer with a year control.

@@ -97,24 +97,37 @@ Selecting a zone highlights it on the map; hovering a chart series highlights th
 corresponding class on the map layer. **The viewport does not move** (C1), ever, for any of
 this.
 
-Ring radii are editable (default 500 m / 1 km / 2 km / 5 km). Large properties get reduced
+Ring radii are editable (default 500 m / 2 km / 5 km — three rings, not four; a fourth ring added little and cost an extra Earth Engine feature per analysis). Large properties get reduced
 radii automatically with a visible notice explaining why ([06](06-ee-layers.md) §7).
 
 ## 5. Results tabs
 
-| Tab | Content |
-|---|---|
-| **Cobertura** | Stacked columns 1985–2024 for the selected zone, official palette, `dat_criacao` marked on the axis |
-| **Transições** | Two-stage and multi-stage Sankey, plus the transition table ([07](07-transitions.md)) |
-| **Floresta** | Hansen loss year, split before/after registration; gain as its own separate figure |
-| **Biomassa** | ESA CCI series, gaps drawn as gaps |
-| **⇩** | Export panel |
+| Tab | Content | Map layer while active |
+|---|---|---|
+| **Cobertura** | Chart + class-breakdown table side by side, `dat_criacao` marked on the axis | MapBiomas, selected year |
+| **Transições** | Two-stage Sankey + table side by side, plus the multi-stage diagram ([07](07-transitions.md)) | none — a diagram, not a single raster |
+| **Floresta** | Three period stats (até 2008 / 2008 até o registro / depois do registro) + chart + table | Hansen loss/gain since 2008 or since registration |
+| **Biomassa** | Chart + snapshot table side by side, gaps drawn as gaps | ESA CCI, selected snapshot |
+| **⇩** | Export panel | — |
 
-Each figure carries a one-line provenance strip underneath — dataset, scale, date computed —
-not in a tooltip, not behind an info icon. If a claim can be screenshotted, its sources go
-in the screenshot.
+Chart and table are always side by side (`components/layout.py::split_panel`), stacking only
+on a narrow drawer — a full-width chart with the numbers behind it a tooltip away was the
+wrong trade once every tab needed a table.
 
-Two layers carry a permanent note in the layer panel for the same reason:
+**The map shows whatever the active tab is about.** Switching tabs mints (or reuses) that
+tab's tile layer — never a fresh Earth Engine call on a tab already visited this session — and
+an **on-map legend control**, not a sidebar section, carries its on/off switch and the one
+control specific to that layer: a year for Cobertura and Biomassa, "desde 2008" / "desde o
+registro" for Floresta. It sits where a native Leaflet control would, in the map's corner,
+above Leaflet's own panes and below the results drawer in z-order.
+
+Each figure also carries a one-line provenance strip underneath — dataset, scale, date
+computed — not in a tooltip, not behind an info icon. If a claim can be screenshotted, its
+sources go in the screenshot.
+
+Two layers carry a permanent note in the sidebar layer panel for the same reason — they are
+orientation/context layers, not tied to a results tab, so they stay in the sidebar rather
+than the on-map legend:
 
 - **SPOT 2008** — the acquisition date range of the pixels under *this* property, the
   fraction imaged before 2008-07-22, the fraction not covered at all, and the statement that

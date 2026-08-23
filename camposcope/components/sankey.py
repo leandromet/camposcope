@@ -14,7 +14,7 @@ import reflex as rx
 from ..config import mapbiomas as mb
 from ..config.settings import SANKEY_MIN_YEAR_GAP
 from ..state import AppState
-from .layout import BORDER, MUTED
+from .layout import BORDER, MUTED, split_panel
 
 
 def _year_select(value, on_change, label: str) -> rx.Component:
@@ -57,7 +57,7 @@ def _multi_stage_section() -> rx.Component:
                     data=AppState.multi_stage_figure,
                     config={"displayModeBar": False, "displaylogo": False,
                            "responsive": True},
-                    width="100%", height="460px",
+                    width="100%", height="320px",
                 ),
             ),
         ),
@@ -95,21 +95,21 @@ def _two_stage_section() -> rx.Component:
             ),
             rx.cond(
                 AppState.sankey_transitions,
-                rx.vstack(
+                # The table stays available alongside every Sankey — the
+                # figure is for seeing the shape, the table is for making a
+                # claim (doc/07-transitions.md §5).
+                split_panel(
                     rx.plotly(
                         data=AppState.sankey_figure,
                         config={"displayModeBar": False, "displaylogo": False,
                                "responsive": True},
-                        width="100%", height="420px",
+                        width="100%", height="280px",
                     ),
-                    # The table stays available alongside every Sankey — the
-                    # figure is for seeing the shape, the table is for making
-                    # a claim (doc/07-transitions.md §5).
                     rx.vstack(
                         rx.text("Maiores transições", size="1", weight="medium",
                                color=MUTED),
                         rx.foreach(
-                            AppState.sankey_table_rows[:8],
+                            AppState.sankey_table_rows[:10],
                             lambda r: rx.hstack(
                                 rx.text(f"{r['src']} → {r['tgt']}", size="1"),
                                 rx.spacer(),
@@ -119,7 +119,6 @@ def _two_stage_section() -> rx.Component:
                         ),
                         spacing="1", width="100%",
                     ),
-                    spacing="3", width="100%",
                 ),
             ),
         ),
