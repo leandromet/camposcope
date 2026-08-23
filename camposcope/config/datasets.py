@@ -7,7 +7,11 @@ with its licence and its caveat.
 
 from __future__ import annotations
 
+import os
+
 from typing import Any, Dict
+
+from .settings import SPOT_ENABLED
 
 # --------------------------------------------------------------------------- #
 # Basemaps — plain XYZ, no Earth Engine involved
@@ -110,4 +114,141 @@ LANDSAT = {
     },
     "year_start": 1984,
     "attribution": "USGS Landsat Collection 2 Level-2",
+}
+
+
+# --------------------------------------------------------------------------- #
+# SPOT 2008 — doc/12-spot-2008.md
+# --------------------------------------------------------------------------- #
+# ⚠️ Licence-gated: requires accepting the "Brazil Forest Imagery Dataset 2008"
+# agreement, granted per service account. Verified accessible from
+# ee-leandromet on 2026-08-23.
+#
+# This is NOT just a basemap. The Código Florestal's *área rural consolidada*
+# turns on 22 July 2008, and this is the only 5-10 m imagery near that date.
+# The `date` band carries per-pixel acquisition time as Unix epoch seconds, and
+# the layer is never shown without reporting the dates actually under the
+# property — see services/spot.py and doc/12 §3.
+EE_BASEMAPS: Dict[str, Dict[str, Any]] = {
+    "spot_2008_visual": {
+        "label_pt": "SPOT 2008 — Visual (Brasil)",
+        "label_en": "SPOT 2008 — Visual (Brazil)",
+        "asset": "GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL",
+        "vis": {"bands": ["R", "G", "B"], "min": 0, "max": 255},
+        "attribution": (
+            "Google LLC, Brazil Forest Imagery Dataset 2008 created from circa "
+            "2008 SPOT images"
+        ),
+        "max_native_zoom": 16,
+        "note_pt": "Mosaico SPOT ~2008, só sobre áreas florestais do Brasil.",
+        "note_en": "SPOT mosaic, ~2008, covering only Brazil's forest areas.",
+    },
+    "spot_2008_analytic": {
+        "label_pt": "SPOT 2008 — Falsa-cor (NIR)",
+        "label_en": "SPOT 2008 — False colour (NIR)",
+        "asset": "GOOGLE/BRAZIL_FOREST_2008/V1/ANALYTIC",
+        # N,R,G puts near-infrared in the red channel: 2008 vegetation reads
+        # bright red, which is what makes it legible against pasture.
+        "vis": {"bands": ["N", "R", "G"], "min": [156, 62, 53],
+                "max": [6408, 2584, 2211], "gamma": 0.9},
+        "attribution": (
+            "Google LLC, Brazil Forest Imagery Dataset 2008 created from circa "
+            "2008 SPOT images"
+        ),
+        "max_native_zoom": 16,
+        "note_pt": "Infravermelho em vermelho: vegetação de 2008 aparece realçada.",
+        "note_en": "Near-infrared shown in red: 2008 vegetation appears highlighted.",
+    },
+}
+
+#: Bands carried into provenance alongside the imagery (doc/12 §3).
+SPOT_META_BANDS = ["date", "scale", "satellite"]
+
+#: Lei 12.651/2012 art. 3º IV — *área rural consolidada* is occupation preexisting
+#: this date. Camposcope reports how each property's SPOT pixels fall relative to
+#: it, and classifies NOTHING (doc/12 §4, decision D9).
+FOREST_CODE_CUTOFF_EPOCH = 1_216_684_800      # 2008-07-22T00:00:00Z
+FOREST_CODE_CUTOFF_ISO = "2008-07-22"
+
+#: Every basemap the panel offers, XYZ and Earth Engine alike, in display order.
+#: The SPOT entries are dropped entirely when the licence flag is off, rather
+#: than offered and then failing.
+ALL_BASEMAPS: Dict[str, Dict[str, Any]] = {
+    **BASEMAPS,
+    **(EE_BASEMAPS if SPOT_ENABLED else {}),
+}
+
+
+def is_ee_basemap(key: str) -> bool:
+    """EE basemaps need a tile URL minted per session, so they are switched on by
+    a background event rather than a plain state write."""
+    return key in EE_BASEMAPS
+
+
+# --------------------------------------------------------------------------- #
+# IBGE biomes, domains and natural regions — doc/11 §6, decision D13
+# --------------------------------------------------------------------------- #
+#: 271 polygons, verified accessible 2026-08-23. Delivered to the browser as a
+#: SIMPLIFIED vector (~1.5 km) because it must name itself on hover, which a tile
+#: cannot do. Orientation only: boundaries from this layer are approximate to
+#: roughly a kilometre and must never decide which biome a property falls in.
+IBGE_BIOME_DOMAIN = {
+    "asset": "projects/ee-leandromet/assets/ibge_biome_domain_250k",
+    "attribution": "IBGE — Biomas e domínios morfoclimáticos 1:250.000",
+    "fields": {
+        "biome": "nm_bm",
+        "phyto_domain": "nm_dm_fito",
+        "natural_region": "nm_reg_nat",
+        "vegetation": "vg_dom",
+    },
+    #: The seven values in `nm_bm`, verified against the asset. Order is the
+    #: legend order.
+    "biomes": [
+        "Amazônia", "Cerrado", "Mata Atlântica", "Caatinga",
+        "Pampa", "Pantanal", "Ilhas Oceânicas",
+    ],
+    #: Roughly IBGE's own biome cartography, ported verbatim from Naturametrics.
+    "palette": {
+        "Amazônia": "1a7f37",
+        "Cerrado": "d9a441",
+        "Mata Atlântica": "2f6f4e",
+        "Caatinga": "c96a3a",
+        "Pampa": "8fbf5a",
+        "Pantanal": "3f8fbf",
+        "Ilhas Oceânicas": "8a6fbf",
+    },
+    "fill_alpha": "59",     # ~35% — a wash, not a mask
+    "outline_alpha": "ff",
+    "outline_width": 1.5,
+    "simplify_m": 1500,
+    "coord_decimals": 2,
+}
+
+# --------------------------------------------------------------------------- #
+# IBGE municípios — doc/11 §4, decision D12
+# --------------------------------------------------------------------------- #
+#: The *list* comes from the committed CSV (services/municipios.py); this asset
+#: supplies the *geometry*, for framing and clipping. `cod_municipio_ibge` joins
+#: them. A dropdown must not wait on an Earth Engine round trip, and a boundary
+#: must not be approximated by a bounding box.
+#:
+#: 5 573 features, verified 2026-08-23. `CD_MUN` is the 7-digit IBGE code **as a
+#: string** — the join to data/municipios.csv's integer `cod_municipio_ibge`, so
+#: every filter casts explicitly rather than relying on EE's coercion.
+IBGE_MUNICIPIOS = {
+    "asset": os.environ.get(
+        "CS_MUNICIPIOS_ASSET",
+        "projects/ee-leandromet/assets/br_municipios_2025",
+    ),
+    "attribution": "IBGE — Malhas territoriais municipais 2025",
+    "fields": {
+        "code": "CD_MUN",          # string, 7 digits
+        "name": "NM_MUN",
+        "uf": "SIGLA_UF",
+        "uf_name": "NM_UF",
+        "area_km2": "AREA_KM2",
+        "region": "NM_REGIAO",
+        "immediate_region": "NM_RGI",
+        "intermediate_region": "NM_RGINT",
+    },
 }

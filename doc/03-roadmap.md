@@ -37,20 +37,33 @@ overlay, and `python -c "from camposcope.services import sicar; print(sicar.by_c
 
 ## Phase 1 — Find a property
 
-The three entry gestures of [01](01-premises.md) §2, and the cadastral record.
+The entry gestures of [01](01-premises.md) §2 and [11](11-search-and-navigation.md), and the
+cadastral record.
 
+- **One search box, four resolvers** ([11](11-search-and-navigation.md) §2): `cod_imovel` →
+  coordinates → município → place name. Tried in that order, stopping at the first match, so
+  the common cases never touch a geocoder. The box **states how it read the input** before
+  acting on it.
 - Search by `cod_imovel`, with validation of the `UF-<ibge>-<32hex>` shape before any
   network call, and UF extracted from the prefix.
+- Coordinate parsing — decimal, DMS, Google Maps URLs, pt-BR decimal commas — with a
+  transposed pair refused by name rather than resolved into the South Atlantic
+  ([11](11-search-and-navigation.md) §3).
 - Click-to-select: UF routing from the local boundary file (**D5**), `INTERSECTS` query,
   and **the chooser when more than one property is returned** — this is the normal case,
   not an edge case ([05](05-sicar-geoserver.md) §5.2).
-- Municipality browser: UF select → município select → paged, sorted, geometry-less list.
+- Municipality browser off the committed IBGE table (**D12**): UF → município → paged,
+  sorted, geometry-less list.
+- Place-name search via Nominatim (**D11**), debounced and serialised, which **frames the
+  map and selects no property**.
 - The cadastral card: every attribute of [05](05-sicar-geoserver.md) §3 verbatim, the
   permanent C4 disclosure line, and a deep link (`/?car=<cod_imovel>`).
 
-**Done test:** all three gestures land on the same screen for the same property; a point
-covered by two overlapping registrations offers both; a bad code fails before any request
-leaves the machine.
+**Done test:** each of the four input kinds resolves to the right thing; all gestures land on
+the same screen for the same property; a point covered by two overlapping registrations
+offers both; a bad code fails before any request leaves the machine; a transposed coordinate
+pair is refused with a message naming the problem; and no geocoder request is made for an
+input the first three resolvers could handle.
 
 ## Phase 2 — Zones
 
@@ -61,9 +74,13 @@ leaves the machine.
   predicate, listing other CAR registrations that overlap it and by how much. Surfaced,
   never dissolved (C4).
 - Ring radii configurable; the zone list is what every later phase consumes.
+- **Biome / domain overlay** ported from Naturametrics ([11](11-search-and-navigation.md) §6)
+  — the one browser-side vector layer, with its hover naming and its permanent
+  "approximate to ~1 km, orientation only" caveat.
 
 **Done test:** a property with a known overlap lists it; ring areas sum correctly; the
-rings redraw without moving the viewport (C1).
+rings redraw without moving the viewport (C1); the biome layer names itself on hover and
+carries its accuracy caveat.
 
 ## Phase 3 — MapBiomas trajectory
 
@@ -102,9 +119,17 @@ years and zone, to within pixel rounding.
 - `services/biomass.py` ported: ESA CCI Biomass_cci v6.0, its ten snapshots, per zone, with
   the gaps drawn as gaps.
 - Sentinel-2 and Landsat composites, selectable by year, clipped to the study area.
+- **SPOT 2008** ([12](12-spot-2008.md)) — the visual and false-colour mosaics, licence-gated
+  on `CS_SPOT_ENABLED`, and with them the coverage/date reducer: acquisition date range under
+  the property, fraction of pixels imaged before 2008-07-22, fraction with no coverage. This
+  is the imagery at the Forest Code's own reference date, and it is the place where the app
+  is most tempted to cross the line D9 draws.
 
 **Done test:** loss-before / loss-after figures for a property with known post-2020
-clearing; the biomass chart shows 2007 and 2010 as isolated points, not interpolated.
+clearing; the biomass chart shows 2007 and 2010 as isolated points, not interpolated; the
+SPOT panel reports its three date/coverage numbers, a property outside the mosaic's footprint
+says so rather than showing an empty map, and the word "consolidada" appears nowhere as a
+classification of area.
 
 ## Phase 6 — Export & provenance
 

@@ -29,9 +29,25 @@ results drawer that rises from the bottom when there is something to show.
 └────────────────┴─────────────────────────────────────────────────────┘
 ```
 
-## 2. The three gestures
+## 2. The search box and the gestures
 
-All three produce the same state; none is privileged.
+One box resolves four kinds of input in a fixed order — code, coordinate, município, place
+name — and **says how it read what you typed** before acting on it
+([11-search-and-navigation.md](11-search-and-navigation.md) §2):
+
+```
+┌──────────────────────────────────────────┐
+│ 🔍  código CAR, coordenada ou lugar…     │
+└──────────────────────────────────────────┘
+   ↳ lido como: coordenada -12.4979, -55.4977
+```
+
+That echo line is not decoration. It is what stops a transposed coordinate pair or a
+mistyped code from quietly resolving somewhere plausible and wrong.
+
+A place-name result **frames the map and selects no property**. Finding a place and
+identifying a registration are different acts, and a fuzzy address match must never become
+an implied claim about who holds what.
 
 **Paste a code.** The `UF-<ibge>-<32hex>` shape is validated locally first — a malformed
 code fails instantly with a message about its shape, and no request leaves the machine. The
@@ -45,6 +61,10 @@ under the cursor. Never auto-select the first ([05](05-sicar-geoserver.md) §5.2
 **Browse a município.** UF select → município select → a paged, sortable list showing code,
 area and `condicao`. Geometry is not requested for the list, only for the row that is
 clicked — the difference between kilobytes and megabytes.
+
+**Type a place.** Last resort, and deliberately so: rural properties largely do not have
+street addresses ([11](11-search-and-navigation.md) §1). The result is a framed map plus the
+OpenStreetMap attribution shown *with the result*, not buried in an About page.
 
 A property is also addressable: `/?car=MT-5108501-CBE0…` loads straight into it, which is
 the whole persistence model ([01](01-premises.md) §4).
@@ -93,6 +113,16 @@ radii automatically with a visible notice explaining why ([06](06-ee-layers.md) 
 Each figure carries a one-line provenance strip underneath — dataset, scale, date computed —
 not in a tooltip, not behind an info icon. If a claim can be screenshotted, its sources go
 in the screenshot.
+
+Two layers carry a permanent note in the layer panel for the same reason:
+
+- **SPOT 2008** — the acquisition date range of the pixels under *this* property, the
+  fraction imaged before 2008-07-22, the fraction not covered at all, and the statement that
+  Camposcope does not classify área consolidada ([12](12-spot-2008.md) §4). The mosaic is
+  *circa* 2008; a screenshot without its dates implies a date it may not have.
+- **Biomas e domínios** — approximate to roughly a kilometre, for orientation only
+  ([11](11-search-and-navigation.md) §6). It names itself on hover, which is why it is the
+  one vector layer in an app of tiles.
 
 ## 6. Loading and failure
 

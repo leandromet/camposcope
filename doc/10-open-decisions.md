@@ -14,9 +14,13 @@ alternatives stay.
 | D7 | Overlapping registrations | **Show all, choose explicitly, never dissolve** | 1–2 |
 | D8 | Sankey persistence | **`include_unchanged=True` for Sankey, `False` for matrices** | 4 |
 | D9 | Compliance verdict | **Never** | — |
+| D10 | SPOT 2008 | **Ship it — as imagery + its dates, never as a classification** | 5 |
+| D11 | Geocoding provider | **Nominatim, sparingly; last of four resolvers** | 1 |
+| D12 | Municípios | **Local IBGE table for the list, EE asset for the geometry** | 1 |
+| D13 | Biome / domain overlay | **Port it, as navigation — not as an input** | 2 |
 | **O1** | Minimum year gap for a Sankey pair | *open* — 5 years proposed | 4 |
 | **O2** | Deployment target | *open* | 7 |
-| **O3** | Municipality list source | *open* | 1 |
+| ~~O3~~ | ~~Municipality list source~~ | **settled by D12** | — |
 
 ---
 
@@ -143,8 +147,74 @@ extra consideration: a public deployment multiplies SICAR traffic by the user co
 is a promise made to someone else's server. The rate-limit and caching design has to be
 settled *before* the app is public, not after.
 
-**O3 — Municipality list.** The UF → município select needs a list. Options: derive it from
-distinct `cod_municipio_ibge` in the layer (a query per UF over hundreds of thousands of
-rows — bad); ship the IBGE municipality table locally (5 570 rows, ~200 kB, static, offline
-— probably right); or query lazily and cache. Leaning local table, for the same reason as
-D5.
+**O3 — Municipality list.** *Settled 2026-08-23 by D12: ship the IBGE table locally.*
+
+
+---
+
+## D10 — SPOT 2008: ship it, as imagery and its dates
+**Chosen.** Both `GOOGLE/BRAZIL_FOREST_2008/V1/{VISUAL,ANALYTIC}` mosaics, ported from
+Naturametrics, licence-gated on `CS_SPOT_ENABLED`, and always accompanied by the
+per-property acquisition-date summary ([12](12-spot-2008.md) §3).
+
+This dataset is not a basemap in this app. The Código Florestal's *área rural consolidada*
+turns on **22 July 2008**, and this is the only 5–10 m imagery Camposcope has near that date
+— which makes it the most useful layer here and the most dangerous.
+
+*Rejected:* shipping the mosaic as a plain basemap with no date reporting. The mosaic is
+*circa* 2008 and its `date` band varies per pixel; over the test property the imagery is
+from 22 May and 11 June 2008, but that is a fact about that property, not about the dataset.
+A SPOT screenshot without its dates is a picture implying a date it may not have.
+
+*Also rejected, firmly:* computing an *área consolidada* figure. Showing what the land looked
+like around the reference date is data. Classifying an area as consolidated is a legal
+determination that depends on facts no imagery contains, and D9 forbids it. The line, with
+the permitted and forbidden lists, is [12](12-spot-2008.md) §4.
+
+## D11 — Geocoding: Nominatim, sparingly, last
+**Chosen.** Verified working 2026-08-23 (~1 s, returns a `boundingbox`, good coverage of
+Brazilian places). Same courtesy posture as the SICAR client: identifiable User-Agent,
+debounced, submit-only, one in flight, cached, `countrycodes=br`, and **never called when a
+code, coordinate or município name would have answered** ([11](11-search-and-navigation.md)
+§5).
+
+*Rejected:* Google Geocoding (needs a key and a bill — revisit only if a deployment already
+carries Maps Platform credentials); self-hosted Nominatim (the honest answer at scale,
+disproportionate now); **no geocoder at all** (considered seriously — resolvers 1–3 cover the
+expert user, but "where is Sinop" is a fair thing to ask a map of Brazil). Photon is the
+documented fallback if the public instance rate-limits us.
+
+**The framing that matters more than the provider:** a geocode result **frames the map and
+selects no property**. Rural Brazil largely has no street addresses, and letting a fuzzy
+address match select a registration would turn a guess into an implied claim about who holds
+what.
+
+## D12 — Municípios: local table for the list, EE asset for the geometry
+**Chosen**, and it settles **O3**.
+
+`data/municipios.csv` (5 570 rows, ~200 kB, committed, from the IBGE localidades API) drives
+the cascading selector and the type-ahead — instant, offline, free. The Earth Engine
+município asset under `ee-leandromet` supplies boundary geometry for framing and clipping.
+`cod_municipio_ibge` joins them.
+
+*Rejected:* deriving the list from distinct `cod_municipio_ibge` in a CAR UF layer — a query
+over hundreds of thousands of rows to populate a dropdown, which is exactly what C5 exists to
+prevent. *Also rejected:* using the EE asset for the list too. A dropdown must not wait on an
+Earth Engine round trip, and a boundary must not be approximated by a bounding box; each
+representation does what it is good at.
+
+## D13 — Biome / domain overlay: navigation, not input
+**Chosen.** Ported from Naturametrics with its delivery mechanism intact: the only
+browser-side vector layer in the app, because a tile is pixels and cannot answer "what is
+under the cursor". Served as a cacheable HTTP GET rather than pushed through the WebSocket.
+
+**The inherited constraint is restated rather than quietly dropped**: the delivered geometry
+is simplified to ~1.5 km, so boundaries drawn from it are approximate to roughly a kilometre.
+It orients the user — *"I am in the Cerrado, near the Amazônia transition"* — and it must
+never decide which biome a property falls in. If Camposcope ever needs a property's biome, it
+is a separate full-resolution question answered once and stored, exactly as Naturametrics did
+for its IFN points.
+
+That is why the layer is documented under [11 — search and navigation](11-search-and-navigation.md)
+rather than under data sources: it helps people find where they are, and it is not an input
+to any number the app reports.

@@ -35,11 +35,16 @@ camposcope/
 │  │  ├─ _layers.py             # visible layers, tile URLs, active year   [ported, trimmed]
 │  │  ├─ _analysis.py           # MapBiomas / Hansen / biomass jobs        [ported, reshaped]
 │  │  ├─ _transitions.py        # ← the new one: Sankey year selection + figures
+│  │  ├─ _search.py             # ← the new one: the unified resolver (doc/11)
 │  │  ├─ _export.py             # export selection + download handlers     [ported]
 │  │  └─ _ui.py                 # panels, tabs, language, toasts           [ported]
 │  ├─ services/
 │  │  ├─ sicar.py               # ← the new one: the only module that knows the GeoServer
 │  │  ├─ zones.py               # ← the new one: property polygon → rings, areas, overlaps
+│  │  ├─ geocode.py             # ← the new one: coordinate parsing + Nominatim (doc/11)
+│  │  ├─ municipios.py          # ← the new one: local IBGE table, cascade, type-ahead
+│  │  ├─ spot.py                # ← the new one: SPOT coverage + date reducer (doc/12)
+│  │  ├─ biomes.py              # IBGE biome vector layer               [ported from Naturametrics]
 │  │  ├─ ee_client.py           # EE init + auth                           [ported verbatim]
 │  │  ├─ ee_concurrency.py      # sized EE thread pool + HTTP pool fix     [ported verbatim]
 │  │  ├─ tiles.py               # getMapId + tile-URL cache                [ported verbatim]
@@ -54,7 +59,7 @@ camposcope/
 │  │  └─ ods.py                 # streaming ODS writer                     [ported verbatim]
 │  ├─ components/
 │  │  ├─ map/leaflet_map.py     # persistent Leaflet component + .js       [ported verbatim]
-│  │  ├─ search.py              # ← the new one: the three entry gestures
+│  │  ├─ search.py              # ← the new one: the unified search box (doc/11 §7)
 │  │  ├─ cadastro.py            # ← the new one: the cadastral record card
 │  │  ├─ charts.py              # stacked columns, biomass series          [ported]
 │  │  ├─ sankey.py              # ← two-stage + multi-stage Sankey
@@ -62,10 +67,11 @@ camposcope/
 │  │  ├─ results.py             # result tabs                              [ported, reshaped]
 │  │  ├─ exports.py             # export panel                             [ported]
 │  │  └─ layout.py              # shell, sidebar, header                   [ported]
-│  ├─ api/__init__.py           # extra FastAPI routes (downloads, healthz, UF geojson)
+│  ├─ api/__init__.py           # HTTP routes: downloads, healthz, biome GeoJSON (doc/11 §6)
 │  └─ assets/                   # leaflet_map.js, css, logo
 ├─ data/
 │  ├─ uf_boundaries.simplified.geojson   # committed — click → UF routing (D5)
+│  ├─ municipios.csv            # committed — the selector and type-ahead (D12)
 │  └─ cache/                    # gitignored
 ├─ scripts/                     # offline prep, not imported by the app
 ├─ tests/
@@ -75,9 +81,10 @@ camposcope/
 **Selective port, fresh package (D2).** Nothing is copied wholesale. Each ported module is
 brought over one at a time, its Naturametrics-specific assumptions stripped, and its
 docstring updated to say where it came from and what changed. What is explicitly *not*
-ported: `ifn.py`, `conglomerado.py`, `user_points.py`, `region_geometry.py`, `biomes.py`,
+ported: `ifn.py`, `conglomerado.py`, `user_points.py`, `region_geometry.py`,
 `ibge_vegetation.py`, `vegetation_age.py`, `landscape_metrics.py`, `abuse_control.py`, the
-whole `canada/` subpackage. Several of those are good and may come back later (vegetation
+whole `canada/` subpackage. (`biomes.py` was on that list until the biome overlay earned its
+place as a navigation aid — see [11](11-search-and-navigation.md) §6.) Several of those are good and may come back later (vegetation
 age and landscape metrics are obvious Phase 5 candidates); carrying them in on day one
 would mean maintaining code no screen calls.
 

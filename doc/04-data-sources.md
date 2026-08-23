@@ -100,7 +100,68 @@ study area.
 **The trap:** `S2_SR_HARMONIZED` handles the 2022 processing-baseline offset; the
 unharmonised collection does not. Use the harmonised one and nothing else.
 
-## 6. IBGE UF boundaries — local, committed
+## 6. Google Brazil Forest Imagery Dataset 2008 (SPOT)
+
+| | |
+|---|---|
+| **Assets** | `GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL` and `.../ANALYTIC` |
+| **Resolution** | 5 m (visual) / 10 m (analytic) |
+| **Coverage** | Brazil's **forest areas only** — partial by design |
+| **Licence** | ⚠️ Gated: requires accepting the dataset agreement, granted per service account |
+| **Attribution** | Google LLC, Brazil Forest Imagery Dataset 2008, created from circa 2008 SPOT images |
+
+Not just another basemap. The Código Florestal's *área rural consolidada* hinges on
+**22 July 2008**, and this is the only imagery Camposcope has at that date and at that
+resolution. Both assets verified accessible from `ee-leandromet` on 2026-08-23.
+
+**The trap, and it is a serious one:** the mosaic is *circa* 2008 and the `date` band carries
+per-pixel acquisition time as Unix epoch seconds. Over the test property the pixels date to
+22 May and 11 June 2008 — before the cutoff — but that is a property-by-property fact, not a
+property of the dataset. Never present this imagery as showing the cutoff date without
+reporting the acquisition dates actually under the property. Full treatment, including the
+line between observation and legal classification, in [12-spot-2008.md](12-spot-2008.md).
+
+## 7. IBGE biomes, domains and natural regions
+
+| | |
+|---|---|
+| **Asset** | `projects/ee-leandromet/assets/ibge_biome_domain_250k` — 271 polygons, verified 2026-08-23 |
+| **Scale** | 1:250 000, simplified to ~1.5 km for delivery |
+| **Licence** | IBGE, public data with attribution |
+
+Ported from Naturametrics, including its delivery mechanism: the only layer served to the
+browser as **vector** rather than tiles, because it must name itself on hover.
+
+**The trap:** the delivered geometry is approximate to roughly a kilometre. It is an
+orientation aid, never an input to a number ([11](11-search-and-navigation.md) §6).
+
+## 8. IBGE municípios
+
+Two representations of the same 5 570 units ([11](11-search-and-navigation.md) §4):
+
+- **`data/municipios.csv`** — committed, ~200 kB, drives the cascading selector and the
+  type-ahead. `cod_municipio_ibge` is what the WFS filter needs, so this table is also what
+  makes the municipality browser possible without querying the CAR layer for its own index.
+- **An Earth Engine asset** under `ee-leandromet` — supplies the *geometry*, for framing and
+  clipping. Registered in `config/datasets.py::IBGE_MUNICIPIOS`.
+
+`cod_municipio_ibge` joins them. Source: IBGE localidades API and malhas territoriais.
+
+## 9. Nominatim (OpenStreetMap) — place search
+
+| | |
+|---|---|
+| **Endpoint** | `nominatim.openstreetmap.org/search`, `countrycodes=br` |
+| **Licence** | ODbL — attribution required *with the results*, not only in an About page |
+
+Used only as the last of four resolvers ([11](11-search-and-navigation.md) §2, §5), because
+rural properties largely do not have addresses.
+
+**The trap:** its usage policy caps it at roughly one request per second and forbids bulk
+use. Debounced, submit-only, serialised, cached — and never called at all when a code, a
+coordinate or a município name would have answered.
+
+## 10. IBGE UF boundaries — local, committed
 
 A **simplified** GeoJSON of the 27 UF polygons, committed to `data/`, used only to route a
 map click to the right `sicar_imoveis_<uf>` layer (**D5**). Simplified aggressively —
@@ -109,7 +170,7 @@ and near a state line the property query itself is the arbiter.
 
 Source: IBGE malhas territoriais, public domain with attribution.
 
-## 7. Basemaps
+## 11. Basemaps
 
 Ported from Naturametrics along with its open caveat: the default Google tile endpoints
 (`mt1.google.com/vt`) are **undocumented, not a licensed API**. They work and they are fast,
@@ -117,7 +178,7 @@ and they are fine for local development. Before any public deployment this must 
 either a Google Maps Platform key or a fall back to Esri/OSM, which are licensed for this
 use. Carried here as an inherited debt, not a decision.
 
-## 8. Attribution block
+## 12. Attribution block
 
 Every export and the About page carry, in full:
 
@@ -126,4 +187,6 @@ Every export and the About page carry, in full:
 > regularidade ou posse.**
 > MapBiomas Collection 10.1 (CC BY-SA 4.0) · Hansen Global Forest Change, Hansen/UMD/Google/USGS/NASA (CC BY 4.0) ·
 > ESA CCI Biomass v6.0, Santoro & Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat ·
-> Malhas territoriais IBGE · Processado no Google Earth Engine.
+> Google LLC, Brazil Forest Imagery Dataset 2008, criado a partir de imagens SPOT de aproximadamente 2008 ·
+> IBGE — biomas e domínios morfoclimáticos 1:250.000, malhas territoriais e localidades ·
+> Busca de lugares © colaboradores do OpenStreetMap (ODbL) · Processado no Google Earth Engine.

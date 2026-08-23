@@ -40,11 +40,14 @@ transition/Sankey machinery. All of it is ported deliberately, module by module 
 
 The first shippable version does exactly this:
 
-1. **Find a property.** Three entry gestures, all producing the same thing:
+1. **Find a property.** One search box and a map click, all producing the same thing
+   ([11-search-and-navigation.md](11-search-and-navigation.md)):
    - paste a `cod_imovel` (`MT-5108501-CBE0F5…`) → exact WFS lookup;
+   - paste a coordinate (decimal, DMS, or a Google Maps URL) → a point;
    - click the map → `INTERSECTS` WFS query at that point, disambiguated when several
      properties overlap;
-   - pick UF + município → the property list for that municipality, filterable.
+   - pick UF + município → the property list for that municipality, filterable;
+   - type a place name → the map is framed there, and **no property is selected**.
 2. **Show the cadastral record.** Boundary on the map, and a card with `cod_imovel`,
    `status_imovel`, `condicao`, `dat_criacao` / `data_atualizacao`, declared `area`,
    **geometry-derived area**, `m_fiscal` (módulos fiscais), `tipo_imovel`, `municipio`.
@@ -63,7 +66,13 @@ The first shippable version does exactly this:
    over its ten snapshots (2007, 2010, 2015–2022).
 8. **Satellite context** — Sentinel-2 and Landsat composites, selectable by year, clipped
    to the study area, so the user can look at the place rather than only at its statistics.
-9. **Export everything** with provenance: a grouped ZIP with `imovel.csv` plus one
+9. **SPOT 2008** — the Google Brazil Forest 2008 mosaic at 5–10 m, which is the imagery
+   nearest the Código Florestal's own reference date of 22 July 2008, always shown with the
+   acquisition dates of the pixels actually covering the property. It is data and a date,
+   never a classification — [12-spot-2008.md](12-spot-2008.md) draws the line.
+10. **Orientation layers** — the IBGE biome / domain overlay, naming itself on hover, so a
+   user can tell where they are before they know what they are looking at.
+11. **Export everything** with provenance: a grouped ZIP with `imovel.csv` plus one
    directory per zone (property, each ring), the geometries as GeoJSON, the charts as
    PNG / SVG / HTML / CSV, an ODS workbook for the tabular results.
 
@@ -91,6 +100,10 @@ The first shippable version does exactly this:
   due-diligence result. That is what terra_web's `relatorio-car` and `avalia_imoveis_mt`
   are for, and they are separate products with a separate legal posture.
 - **No valuation.** Deliberately: the Score VTM work lives in terra_web.
+- **No *área rural consolidada* figure.** Camposcope ships the 2008 imagery and reports when
+  it was taken; it does not classify any hectare as consolidated. That is a legal
+  determination resting on facts no photograph contains
+  ([12-spot-2008.md](12-spot-2008.md) §4).
 - **No batch mode over many properties.** Phase 6 at the earliest, and it needs the SICAR
   rate-limit story solved first.
 - **No user accounts, no saved projects.** A URL with a `cod_imovel` is the whole

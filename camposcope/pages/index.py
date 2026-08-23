@@ -7,7 +7,7 @@ import reflex as rx
 from ..components.cadastro import cadastral_card, zones_panel
 from ..components.layout import BORDER, MUTED, header, section
 from ..components.map.leaflet_map import leaflet_map
-from ..components.search import search_panel
+from ..components.search import municipio_browser, search_panel
 from ..config.datasets import BASEMAPS
 from ..state import AppState
 
@@ -29,6 +29,17 @@ def _layers_panel() -> rx.Component:
             spacing="2", align="center",
         ),
         rx.text("Aparece a partir do zoom 8.", size="1", color=MUTED),
+        rx.hstack(
+            rx.switch(checked=AppState.show_biomes,
+                      on_change=AppState.toggle_biomes, size="1"),
+            rx.text("Biomas e domínios (IBGE)", size="1"),
+            spacing="2", align="center",
+        ),
+        rx.text(
+            "Limites aproximados (~1 km) — orientação, não decide o bioma de "
+            "um imóvel específico.",
+            size="1", color=MUTED,
+        ),
     )
 
 
@@ -36,6 +47,7 @@ def _sidebar() -> rx.Component:
     return rx.vstack(
         search_panel(),
         cadastral_card(),
+        municipio_browser(),
         zones_panel(),
         _layers_panel(),
         width="340px",
@@ -58,6 +70,7 @@ def _map() -> rx.Component:
             zoom=AppState.zoom,
             layers=AppState.map_layers,
             overlays=AppState.map_overlays,
+            vectors=AppState.biome_vectors,
             fit_bounds=AppState.fit_bounds,
             on_map_click=AppState.select_at_point,
             width="100%",

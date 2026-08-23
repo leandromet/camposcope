@@ -9,6 +9,7 @@ import logging
 
 import reflex as rx
 
+from .api import register as register_api
 from .components.layout import ACCENT
 from .pages.index import index
 from .state import AppState
@@ -44,3 +45,7 @@ app.add_page(
     ),
     on_load=AppState.on_load,
 )
+
+# The biome polygons are fetched by the browser over HTTP, not pushed through
+# the WebSocket — see camposcope/api/__init__.py for why.
+register_api(app)

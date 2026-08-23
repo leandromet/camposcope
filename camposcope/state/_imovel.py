@@ -41,6 +41,15 @@ class ImovelMixin(rx.State, mixin=True):
     #: is a first-class UI state, not an error path (decision D7).
     candidates: List[Dict[str, Any]] = []
 
+    # --- the município browser (doc/05 §5.4) ------------------------------
+    #: One page of a município's registrations, geometry-less. Geometry arrives
+    #: only when a row is chosen, through ``by_code``.
+    municipio_list: List[Dict[str, Any]] = []
+    municipio_total: int = 0
+    municipio_page: int = 0
+    municipio_page_size: int = 25
+    loading_list: bool = False
+
     # --- the selected record ---------------------------------------------
     imovel: Dict[str, Any] = {}
     imovel_geojson: Dict[str, Any] = {}
@@ -158,6 +167,66 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
+
+    @rx.var
+    def municipio_pages(self) -> int:
+        if not self.municipio_total:
+            return 0
+        return -(-self.municipio_total // self.municipio_page_size)
+
+    @rx.var
+    def municipio_page_label(self) -> str:
+        if not self.municipio_total:
+            return ""
+        return f"página {self.municipio_page + 1} de {self.municipio_pages}"
+
+    @rx.event(background=True)
+    async def load_municipio_list(self):
+        """Fetch one page of a município's registrations.
+
+        Two SICAR calls: a ``resultType=hits`` count (header only, free) and one
+        page with the geometry excluded via ``propertyName`` — the difference
+        between kilobytes and megabytes (doc/05 §5.4).
+        """
+        async with self:
+            uf = self.search_uf
+            code = self.search_municipio_ibge
+            page = self.municipio_page
+            size = self.municipio_page_size
+            self.loading_list = True
+            self.sicar_error = ""
+        if not (uf and code):
+            async with self:
+                self.loading_list = False
+            return
+
+        try:
+            total = sicar.count_in_municipio(uf, int(code))
+            rows = sicar.list_in_municipio(
+                uf, int(code), page=page, page_size=size
+            )
+        except (ValueError, SicarError) as exc:
+            async with self:
+                self.loading_list = False
+                self.sicar_error = str(exc)
+            return
+
+        async with self:
+            self.loading_list = False
+            self.municipio_total = total
+            self.municipio_list = [self._summary(r) for r in rows]
+
+    @rx.event
+    def next_municipio_page(self):
+        if self.municipio_page + 1 < self.municipio_pages:
+            self.municipio_page += 1
+            return type(self).load_municipio_list
+
+    @rx.event
+    def prev_municipio_page(self):
+        if self.municipio_page > 0:
+            self.municipio_page -= 1
+            return type(self).load_municipio_list
 
     @rx.event
     def adopt_car_param(self) -> None:

@@ -7,7 +7,8 @@ and Camposcope pulls its official boundary from the Serviço Florestal Brasileir
 GeoServer, builds neighbourhood rings around it, and runs the full land-use analysis stack
 inside both: MapBiomas trajectory 1985–2024, land-cover transitions as Sankey diagrams,
 Hansen forest loss split at the property's registration date, ESA CCI above-ground biomass,
-and Sentinel-2 / Landsat context imagery.
+Sentinel-2 / Landsat context imagery, and the SPOT 2008 mosaic — the imagery nearest the
+Forest Code's own reference date of 22 July 2008.
 
 Camposcope is a sibling of [Naturametrics](https://github.com/leandromet) and
 [Yvynation](https://github.com/leandromet), not a fork of either. The three are defined by
@@ -42,14 +43,22 @@ them, and issues **no compliance verdict of any kind**. See
 | Phase | | |
 |---|---|---|
 | 0 | Skeleton, SICAR service, persistent map | ✅ working |
-| 1 | Find a property → boundary + cadastral record | 🚧 code lookup and map click work; município browser pending |
+| 1 | Find a property → boundary + cadastral record | 🚧 code, coordinate, município and place resolvers done; UI pending |
 | 2 | Zones: rings, areas, overlaps | 🚧 rings, areas and overlap computation work; UI partial |
 | 3 | MapBiomas trajectory | planned |
 | 4 | Transitions & Sankey | planned |
-| 5 | Hansen, biomass, satellite context | planned |
+| 5 | Hansen, biomass, satellite context, SPOT 2008 | 🚧 SPOT date/coverage service done |
 | 6 | Export & provenance | planned |
 
 Full plan in [`doc/03-roadmap.md`](doc/03-roadmap.md).
+
+### Finding a property
+
+One search box resolves four kinds of input, in order, stopping at the first match — a CAR
+code, a coordinate (decimal, DMS or a Google Maps URL), a município, and only then a place
+name. Rural properties largely do not have street addresses, so address search is the last
+resort rather than the headline, and a place result **frames the map without selecting any
+property**. See [`doc/11-search-and-navigation.md`](doc/11-search-and-navigation.md).
 
 ---
 
@@ -66,7 +75,8 @@ pip install -r requirements.txt
 
 cp .env.example .env        # then edit
 
-python scripts/fetch_uf_boundaries.py   # once — builds data/uf_boundaries.simplified.geojson
+python scripts/fetch_uf_boundaries.py   # once — click → UF routing
+python scripts/fetch_municipios.py      # once — the município selector
 
 reflex run
 ```
@@ -115,6 +125,8 @@ schema, queries and limits, all verified against the live service.
 CAR/SICAR (Serviço Florestal Brasileiro) · MapBiomas Collection 10.1 (CC BY-SA 4.0) ·
 Hansen Global Forest Change, Hansen/UMD/Google/USGS/NASA (CC BY 4.0) · ESA CCI Biomass v6.0,
 Santoro & Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat ·
-Malhas territoriais IBGE · Processed on Google Earth Engine.
+Google LLC, Brazil Forest Imagery Dataset 2008, from circa 2008 SPOT images ·
+IBGE — biomes and domains 1:250,000, territorial meshes and localities ·
+Place search © OpenStreetMap contributors (ODbL) · Processed on Google Earth Engine.
 
 Full table with licences and caveats: [`doc/04-data-sources.md`](doc/04-data-sources.md).

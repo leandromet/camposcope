@@ -26,7 +26,7 @@ class LayersMixin(rx.State, mixin=True):
     #: how 218 000 polygons get on screen without any of them travelling to the
     #: browser as vectors (doc/05-sicar-geoserver.md §5.5).
     show_car_layer: bool = True
-    car_layer_opacity: float = 0.55
+    car_layer_opacity: float = 0.35
     #: Below this the polygons are an unreadable smear and the request is
     #: pointless, so the layer simply does not draw.
     car_layer_min_zoom: int = 8
@@ -36,6 +36,13 @@ class LayersMixin(rx.State, mixin=True):
     #: never moves on its own for a layer toggle or a year change).
     fit_bounds: List[List[float]] = []
 
+    #: The IBGE biome/domain overlay — navigation, not an input (decision D13,
+    #: doc/11-search-and-navigation.md §6). Off by default: it is orientation,
+    #: not something every session needs drawn.
+    show_biomes: bool = False
+    show_biome_labels: bool = True
+    biome_opacity: float = 0.45
+
     @rx.event
     def set_basemap(self, name: str) -> None:
         if name in BASEMAPS:
@@ -44,6 +51,32 @@ class LayersMixin(rx.State, mixin=True):
     @rx.event
     def toggle_car_layer(self) -> None:
         self.show_car_layer = not self.show_car_layer
+
+    @rx.event
+    def toggle_biomes(self) -> None:
+        self.show_biomes = not self.show_biomes
+
+    @rx.event
+    def toggle_biome_labels(self) -> None:
+        self.show_biome_labels = not self.show_biome_labels
+
+    @rx.var(deps=["show_biomes", "show_biome_labels", "biome_opacity"],
+            auto_deps=False)
+    def biome_vectors(self) -> List[Dict[str, Any]]:
+        """The browser-side vector layer spec, or nothing when toggled off.
+
+        Involves no Earth Engine call from here — the fetch happens in the
+        browser against the HTTP route (camposcope/api), so unlike every tile
+        spec this cannot fail on the Python side.
+        """
+        if not self.show_biomes:
+            return []
+        from ..services import biomes
+
+        return [biomes.vector_spec(
+            opacity=self.biome_opacity,
+            show_labels=self.show_biome_labels,
+        )]
 
     @rx.var
     def map_layers(self) -> List[Dict[str, Any]]:
