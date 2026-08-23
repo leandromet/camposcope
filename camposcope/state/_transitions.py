@@ -111,7 +111,8 @@ class TransitionsMixin(rx.State, mixin=True):
                 for src, tgts in out.get(zone_key, {}).items()
             }
 
-    @rx.var(cache=True)
+    @rx.var(cache=True, deps=["sankey_transitions", "sankey_year_a", "sankey_year_b", "lang"],
+            auto_deps=False)
     def sankey_figure(self) -> go.Figure:
         from ..services import transitions as tr
 
@@ -194,7 +195,7 @@ class TransitionsMixin(rx.State, mixin=True):
     #: raw stage data between the background handler and the computed var.
     _multi_stage_stages: list = []
 
-    @rx.var(cache=True)
+    @rx.var(cache=True, deps=["multi_stage_years", "lang"], auto_deps=False)
     def multi_stage_figure(self) -> go.Figure:
         from ..services import transitions as tr
 

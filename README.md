@@ -46,8 +46,8 @@ them, and issues **no compliance verdict of any kind**. See
 | 1 | Find a property → boundary + cadastral record | ✅ done |
 | 2 | Zones: rings, areas, overlaps, biome overlay | ✅ done |
 | 3 | MapBiomas trajectory | ✅ done |
-| 4 | Transitions & Sankey | planned |
-| 5 | Hansen, biomass, satellite context, SPOT 2008 | 🚧 SPOT date/coverage service done |
+| 4 | Transitions & Sankey | ✅ done |
+| 5 | Hansen, biomass, satellite context, SPOT 2008 | 🚧 Hansen + biomass + SPOT done; satellite imagery layers planned |
 | 6 | Export & provenance | planned |
 
 Full plan in [`doc/03-roadmap.md`](doc/03-roadmap.md).

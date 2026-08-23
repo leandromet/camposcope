@@ -9,7 +9,7 @@ from the browser. A phase is not done because its code exists.
 | 1 | Find a property → boundary + cadastral record | ✅ all four resolvers + município browser done |
 | 2 | Zones: rings, areas, overlaps | ✅ done, incl. biome overlay (D13) |
 | 3 | MapBiomas trajectory | ✅ done — batched reducer, chart, registration-date marker |
-| 4 | Transitions & Sankey | planned |
+| 4 | Transitions & Sankey | ✅ done — batched reducer, two-stage + multi-stage figures, reconciled against Cobertura |
 | 5 | Hansen, biomass, satellite context | planned |
 | 6 | Export & provenance | planned |
 | 7 | Beyond v1 | speculative |

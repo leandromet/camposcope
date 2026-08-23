@@ -37,6 +37,7 @@ def section(title: str, *children, **props) -> rx.Component:
 
 def header() -> rx.Component:
     from ..state import AppState
+    from .citation import cite_dialog
 
     return rx.hstack(
         rx.hstack(
@@ -46,6 +47,7 @@ def header() -> rx.Component:
             align="center",
         ),
         rx.spacer(),
+        cite_dialog(),
         rx.segmented_control.root(
             rx.segmented_control.item("PT", value="pt"),
             rx.segmented_control.item("EN", value="en"),
