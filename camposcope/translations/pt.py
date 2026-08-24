@@ -10,7 +10,7 @@ from __future__ import annotations
 
 TRANSLATIONS_PT: dict[str, str] = {
     # --- header --------------------------------------------------------- #
-    "app_name": "Camposcope",
+    "app_name": "Camposcope - Earth Engine para o CAR",
 
     # --- search panel (components/search.py) ---------------------------- #
     "search_title": "Busca",

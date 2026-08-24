@@ -8,7 +8,7 @@ from __future__ import annotations
 
 TRANSLATIONS_EN: dict[str, str] = {
     # --- header --------------------------------------------------------- #
-    "app_name": "Camposcope",
+    "app_name": "Camposcope - Earth Engine for the CAR",
 
     # --- search panel ----------------------------------------------------- #
     "search_title": "Search",
