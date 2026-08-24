@@ -69,6 +69,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "tab_transicoes": "Transitions",
     "tab_floresta": "Forest",
     "tab_biomassa": "Biomass",
+    "tab_fogo": "Fire",
     "tab_validacao": "Validation",
 
     # --- Cover tab ------------------------------------------------------- #
@@ -177,6 +178,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "legend_no_coverage": "No SPOT coverage in this zone.",
     "legend_spot_before_cutoff": "before 22 July 2008",
     "legend_biomassa_esa": "Biomass — ESA CCI",
+    "legend_fogo_frequencia": "Fire — Frequency",
+    "legend_fogo_ocorrencias": "occurrences (1985–2025)",
     "legend_mapbiomas_comparacao": "MapBiomas — comparison",
     "legend_choose_years": "Choose the years on the Transitions tab.",
     "legend_drag_to_compare": "Drag the bar on the map to compare.",
@@ -231,6 +234,20 @@ TRANSLATIONS_EN: dict[str, str] = {
     ),
     "erro_perda_florestal": "Could not compute forest loss: {detail}",
     "erro_biomassa": "Could not compute biomass: {detail}",
+    "erro_fogo": "Could not compute fire analysis: {detail}",
     "erro_spot_cobertura": "Could not check SPOT coverage: {detail}",
     "erro_comparacao_ibge": "Could not compute the comparison: {detail}",
+
+    # --- Fire tab (components/fogo.py) -------------------------------------- #
+    "fogo_intro": (
+        "Fire history analysis (% of years with detected fire), fire frequency, "
+        "and year of last fire occurrence."
+    ),
+    "fogo_col_ano": "Year",
+    "fogo_col_cicatrizes": "Fire Scars (%)",
+    "fogo_col_frequencia": "Frequency",
+    "fogo_historio_anos": "Years with fire",
+    "fogo_frequencia_ocorrencias": "Frequency (occurrences)",
+    "fogo_ultima_queimada": "Last fire",
+    "fogo_attribution": "MapBiomas Fire Collection 5 (CC BY-SA 4.0) · 30 m scale · Landsat classification (NBR) with deep learning.",
 }

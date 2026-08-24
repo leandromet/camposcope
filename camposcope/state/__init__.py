@@ -14,7 +14,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ._analysis import (
-    AnalysisMixin, BiomassMixin, ForestChangeMixin, SpotCoverageMixin,
+    AnalysisMixin, BiomassMixin, FireMixin, ForestChangeMixin, SpotCoverageMixin,
     ValidacaoMixin,
 )
 from ._imovel import ImovelMixin
@@ -26,7 +26,7 @@ from ._zones import ZonesMixin
 
 
 class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, AnalysisMixin,
-               ForestChangeMixin, BiomassMixin, SpotCoverageMixin,
+               ForestChangeMixin, BiomassMixin, FireMixin, SpotCoverageMixin,
                ValidacaoMixin, TransitionsMixin, UIMixin, rx.State):
     """Root application state."""
 

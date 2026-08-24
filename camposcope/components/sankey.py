@@ -26,49 +26,6 @@ def _year_select(value, on_change, label) -> rx.Component:
     )
 
 
-def _multi_stage_section() -> rx.Component:
-    return rx.vstack(
-        rx.hstack(
-            rx.text(AppState.tr["transicoes_multi_stage_title"], size="2",
-                    weight="medium"),
-            rx.spacer(),
-            rx.button(
-                rx.cond(AppState.multi_stage_running, AppState.tr["calculando"],
-                       AppState.tr["calcular"]),
-                on_click=AppState.run_multi_stage_sankey,
-                disabled=AppState.multi_stage_running,
-                size="1",
-            ),
-            width="100%", align="center",
-        ),
-        rx.cond(
-            AppState.multi_stage_error,
-            rx.callout(AppState.multi_stage_error, icon="triangle-alert",
-                       color_scheme="amber", size="1"),
-        ),
-        rx.cond(
-            AppState.multi_stage_running,
-            rx.center(
-                rx.hstack(rx.spinner(),
-                         rx.text(AppState.tr["transicoes_multi_stage_running"],
-                                size="2"),
-                         spacing="2"),
-                height="200px",
-            ),
-            rx.cond(
-                AppState.multi_stage_years,
-                rx.plotly(
-                    data=AppState.multi_stage_figure,
-                    config={"displayModeBar": False, "displaylogo": False,
-                           "responsive": True},
-                    width="100%", height="320px",
-                ),
-            ),
-        ),
-        spacing="2", width="100%",
-    )
-
-
 def _two_stage_section() -> rx.Component:
     return rx.vstack(
         rx.hstack(
@@ -83,9 +40,9 @@ def _two_stage_section() -> rx.Component:
                        AppState.tr["calcular"]),
                 on_click=AppState.run_sankey,
                 disabled=AppState.sankey_running,
-                size="1", align_self="end",
+                size="1",
             ),
-            spacing="3", align="end",
+            spacing="3", align="start",
         ),
         rx.cond(
             AppState.sankey_error,
@@ -135,9 +92,7 @@ def _two_stage_section() -> rx.Component:
 def transitions_tab() -> rx.Component:
     return rx.vstack(
         rx.text(AppState.tr["transicoes_intro"], size="1", color=MUTED),
-        rx.box(_multi_stage_section(), padding_y="2", border_bottom=BORDER,
-               width="100%"),
-        rx.box(_two_stage_section(), padding_top="2", width="100%"),
+        rx.box(_two_stage_section(), width="100%"),
         rx.text(
             f"{AppState.tr['transicoes_min_gap_note_prefix']} "
             f"{SANKEY_MIN_YEAR_GAP} "

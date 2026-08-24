@@ -178,6 +178,29 @@ def _biomassa_legend() -> rx.Component:
     )
 
 
+def _fire_legend() -> rx.Component:
+    """Fire frequency legend — same 6-stop palette as
+    services/layers.py::fire_frequency_spec, so the on-map colours and this
+    swatch never drift apart."""
+    return rx.vstack(
+        _header(AppState.tr["legend_fogo_frequencia"]),
+        rx.hstack(
+            rx.box(width="60px", height="8px", border_radius="2px",
+                  background="linear-gradient(to right, #ffffff, #ffffb2, "
+                            "#fecc5c, #fd8d3c, #f03b20, #bd0026)"),
+            spacing="2", align="center",
+        ),
+        rx.hstack(
+            rx.text("0", size="1", color="var(--gray-11)"),
+            rx.spacer(),
+            rx.text("41", size="1", color="var(--gray-11)"),
+            width="100%",
+        ),
+        rx.text(AppState.tr["legend_fogo_ocorrencias"], size="1", color="var(--gray-11)"),
+        spacing="2", width="100%",
+    )
+
+
 def _transicoes_legend() -> rx.Component:
     """Older year on the left of the swipe divider, newer on the right — the
     same `sankey_year_a`/`sankey_year_b` the two-stage Sankey uses, so this
@@ -260,6 +283,7 @@ def map_legend() -> rx.Component:
                 ("transicoes", _transicoes_legend()),
                 ("floresta", _floresta_legend()),
                 ("biomassa", _biomassa_legend()),
+                ("fogo", _fire_legend()),
                 ("validacao", _validacao_legend()),
                 rx.fragment(),
             ),

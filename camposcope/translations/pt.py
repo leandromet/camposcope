@@ -72,6 +72,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "tab_transicoes": "Transições",
     "tab_floresta": "Floresta",
     "tab_biomassa": "Biomassa",
+    "tab_fogo": "Fogo",
     "tab_validacao": "Validação",
 
     # --- Cobertura tab ---------------------------------------------------- #
@@ -116,6 +117,19 @@ TRANSLATIONS_PT: dict[str, str] = {
     "biomassa_col_mg_ha": "Mg/ha",
     "biomassa_col_total_mg": "Total (Mg)",
     "biomassa_attribution": "ESA CCI Biomass v6.0 — Santoro & Cartus (2025) · escala 100 m.",
+
+    # --- Fogo tab --------------------------------------------------------------- #
+    "fogo_intro": (
+        "Análise de histórico de fogo (% de anos com fogo detectado), frequência de "
+        "ocorrências de queimadas e ano da última queimada."
+    ),
+    "fogo_col_ano": "Ano",
+    "fogo_col_cicatrizes": "Cicatrizes (%)",
+    "fogo_col_frequencia": "Frequência",
+    "fogo_historio_anos": "Anos com fogo",
+    "fogo_frequencia_ocorrencias": "Frequência (ocorrências)",
+    "fogo_ultima_queimada": "Última queimada",
+    "fogo_attribution": "MapBiomas Fogo Coleção 5 (CC BY-SA 4.0) · escala 30 m · classificação Landsat (NBR) com aprendizado profundo.",
 
     # --- Transições tab (components/sankey.py) ---------------------------- #
     "transicoes_intro": (
@@ -182,6 +196,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_no_coverage": "Sem cobertura SPOT nesta zona.",
     "legend_spot_before_cutoff": "antes de 22/07/2008",
     "legend_biomassa_esa": "Biomassa — ESA CCI",
+    "legend_fogo_frequencia": "Fogo — Frequência",
+    "legend_fogo_ocorrencias": "ocorrências (1985–2025)",
     "legend_mapbiomas_comparacao": "MapBiomas — comparação",
     "legend_choose_years": "Escolha os anos na aba Transições.",
     "legend_drag_to_compare": "Arraste a barra no mapa para comparar.",
@@ -238,6 +254,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     ),
     "erro_perda_florestal": "Não foi possível calcular a perda florestal: {detail}",
     "erro_biomassa": "Não foi possível calcular a biomassa: {detail}",
+    "erro_fogo": "Não foi possível calcular a análise de fogo: {detail}",
     "erro_spot_cobertura": "Não foi possível verificar a cobertura SPOT: {detail}",
     "erro_comparacao_ibge": "Não foi possível calcular a comparação: {detail}",
 

@@ -12,6 +12,7 @@ import reflex as rx
 from ..config import mapbiomas as mb
 from ..config.datasets import AGB_YEARS
 from ..state import AppState
+from .fogo import fogo_tab
 from .layout import BORDER, MUTED, split_panel, zone_selector
 from .sankey import transitions_tab
 from .validacao import validacao_tab
@@ -176,8 +177,6 @@ def floresta_tab() -> rx.Component:
     return rx.vstack(
         zone_selector(),
         rx.hstack(
-            rx.text(AppState.tr["floresta_intro"], size="1", color=MUTED),
-            rx.spacer(),
             _run_button("calcular", AppState.hansen_running, AppState.run_hansen),
             width="100%", align="start",
         ),
@@ -265,8 +264,6 @@ def biomassa_tab() -> rx.Component:
     return rx.vstack(
         zone_selector(),
         rx.hstack(
-            rx.text(AppState.tr["biomassa_intro"], size="1", color=MUTED),
-            rx.spacer(),
             _run_button("calcular", AppState.biomass_running, AppState.run_biomass),
             width="100%", align="start",
         ),
@@ -312,12 +309,14 @@ def results_panel() -> rx.Component:
                     rx.tabs.trigger(AppState.tr["tab_transicoes"], value="transicoes"),
                     rx.tabs.trigger(AppState.tr["tab_floresta"], value="floresta"),
                     rx.tabs.trigger(AppState.tr["tab_biomassa"], value="biomassa"),
+                    rx.tabs.trigger(AppState.tr["tab_fogo"], value="fogo"),
                     rx.tabs.trigger(AppState.tr["tab_validacao"], value="validacao"),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),
                 rx.tabs.content(floresta_tab(), value="floresta"),
                 rx.tabs.content(biomassa_tab(), value="biomassa"),
+                rx.tabs.content(fogo_tab(), value="fogo"),
                 rx.tabs.content(validacao_tab(), value="validacao"),
                 value=AppState.results_tab,
                 on_change=AppState.set_results_tab,

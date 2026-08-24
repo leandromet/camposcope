@@ -24,7 +24,7 @@ def _mode_switch() -> rx.Component:
                                   value="ibge_2022"),
         value=AppState.validacao_mode,
         on_change=AppState.set_validacao_mode,
-        size="1", width="100%",
+        size="1",
     )
 
 
@@ -42,9 +42,9 @@ def _spot_band_switch() -> rx.Component:
                                       value="analytic"),
             value=AppState.spot_band_mode,
             on_change=AppState.set_spot_band_mode,
-            size="1", width="100%",
+            size="1",
         ),
-        spacing="1", width="100%",
+        spacing="1",
     )
 
 
@@ -141,8 +141,6 @@ def _matrix_table() -> rx.Component:
 def _ibge_section() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.text(AppState.tr["validacao_ibge_intro"], size="1", color=MUTED),
-            rx.spacer(),
             rx.button(
                 rx.cond(AppState.validacao_running, AppState.tr["calculando"],
                        AppState.tr["calcular"]),

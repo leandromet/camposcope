@@ -249,8 +249,45 @@ def ibge_vegetation_spec(
     }
 
 
+def fire_frequency_spec(
+    *, opacity: float = 0.75, z_index: int = 12,
+) -> Optional[Dict[str, Any]]:
+    """Fire frequency from MapBiomas Fire Collection 5 (1985-2025) — count of fire
+    occurrences with an orange-red-darkred gradient (0-41 range). The Fogo tab's map
+    layer. The source asset carries 81 bands (one per partial window MapBiomas
+    publishes); only the full-period band is drawn here (services/fire.py)."""
+    from .fire import FIRE_FREQUENCY_DATASET_ID, _FIRE_FREQUENCY_BAND, _FIRE_FREQUENCY_MAX
+
+    cache_key = "fire_frequency"
+
+    def build():
+        import ee
+        return ee.Image(FIRE_FREQUENCY_DATASET_ID).select(_FIRE_FREQUENCY_BAND)
+
+    # Matches components/map_legend.py's gradient bar exactly, so the
+    # on-map colours and the legend swatch never drift apart.
+    vis = {
+        "min": 0, "max": _FIRE_FREQUENCY_MAX,
+        "palette": ["ffffff", "ffffb2", "fecc5c", "fd8d3c", "f03b20", "bd0026"],
+    }
+
+    try:
+        url = get_tile_url(cache_key, build, vis)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Fire frequency layer failed: %s", exc)
+        return None
+    if url is None:
+        return None
+
+    return {
+        "id": cache_key, "url": url, "opacity": opacity, "z_index": z_index,
+        "attribution": "MapBiomas Fogo Coleção 5 (CC BY-SA 4.0) · escala 30 m",
+        "max_native_zoom": 13,
+    }
+
+
 __all__ = [
     "basemap_spec", "ee_basemap_spec", "ibge_vegetation_spec",
     "mapbiomas_year_spec", "hansen_treecover_spec", "hansen_change_spec",
-    "biomass_year_spec",
+    "biomass_year_spec", "fire_frequency_spec",
 ]

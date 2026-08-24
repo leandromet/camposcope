@@ -163,6 +163,10 @@ class LayersMixin(rx.State, mixin=True):
             cache_key = f"biomass:{year_biomass}"
             mint_fn = lambda: layer_service.biomass_year_spec(year_biomass)
 
+        elif tab == "fogo":
+            cache_key = "fire_frequency"
+            mint_fn = layer_service.fire_frequency_spec
+
         else:
             return
 

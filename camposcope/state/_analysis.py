@@ -585,3 +585,115 @@ class ValidacaoMixin(rx.State, mixin=True):
         async with self:
             self.validacao_running = False
             self.validacao_matrix = matrix
+
+
+class FireMixin(rx.State, mixin=True):
+    """MapBiomas Fire Collection 5 (1985-2025) — history, frequency, last fire."""
+
+    fire_running: bool = False
+    fire_error: str = ""
+    #: One row per zone: fire_history_pct, fire_frequency, fire_last_year, area_ha.
+    fire_rows: List[Dict[str, Any]] = []
+    #: Long-format rows: zone_key, zone_label, year, fire_pct. One row per
+    #: zone per year (1985-2025), 0 for years with no fire detected — the
+    #: same shape AnalysisMixin.history_rows uses for the Cobertura chart.
+    fire_annual_rows: List[Dict[str, Any]] = []
+
+    @rx.var
+    def fire_table_rows(self) -> List[Dict[str, Any]]:
+        """Fire statistics for the active zone."""
+        rows = [r for r in self.fire_rows if r["zone_key"] == self.active_zone]
+        return [
+            {
+                "fire_history_pct": round(r["fire_history_pct"], 1),
+                "fire_frequency": r["fire_frequency"],
+                "fire_last_year": r.get("fire_last_year") or "—",
+            }
+            for r in rows
+        ]
+
+    @rx.var(
+        cache=True,
+        deps=["fire_annual_rows", "active_zone", "lang"],
+        auto_deps=False,
+    )
+    def fire_figure(self) -> go.Figure:
+        """One bar per year (1985-2025) — the % of the zone that burned that
+        year, 0 where MapBiomas detected no fire. Same idea as the Cobertura
+        trajectory chart, but per-year burned share instead of class area."""
+        from ..services.fire import FIRE_YEARS
+
+        lang = getattr(self, "lang", "pt")
+        rows = {
+            r["year"]: r["fire_pct"]
+            for r in self.fire_annual_rows if r["zone_key"] == self.active_zone
+        }
+
+        fig = go.Figure()
+        if not rows:
+            fig.add_annotation(
+                text="Sem dados" if lang == "pt" else "No data",
+                showarrow=False, font=dict(size=13, color="#888"),
+            )
+        else:
+            years = FIRE_YEARS
+            values = [rows.get(y, 0.0) for y in years]
+            fig.add_bar(
+                x=years, y=values,
+                marker=dict(color="#d4271e"),
+                hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+            )
+
+        fig.update_layout(
+            template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
+            xaxis=dict(title=None, tickmode="linear", dtick=5),
+            yaxis=dict(
+                title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
+                range=[0, 100],
+            ),
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+            showlegend=False,
+        )
+        return fig
+
+    @rx.event(background=True)
+    async def run_fire(self):
+        from ..services import fire as fire_svc
+        from ..services.zones import Zone
+
+        async with self:
+            zones_geojson = dict(self.zones_geojson or {})
+            zones_meta = list(self.zones or [])
+            self.fire_running = True
+            self.fire_error = ""
+
+        if not zones_meta or not zones_geojson.get("features"):
+            async with self:
+                self.fire_running = False
+            return
+
+        geom_by_key = {f["properties"]["zone_key"]: f["geometry"]
+                      for f in zones_geojson["features"]}
+        zone_objs = [
+            Zone(key=z["zone_key"], label=z["zone_label"], kind=z["zone_kind"],
+                geojson=geom_by_key[z["zone_key"]], area_ha=z["area_ha"])
+            for z in zones_meta if z["zone_key"] in geom_by_key
+        ]
+
+        try:
+            summary_df, annual_df, _prov = fire_svc.fire_analysis(zone_objs)
+            summary_rows = summary_df.to_dict("records")
+            annual_rows = annual_df.to_dict("records")
+        except Exception as exc:
+            logger.exception("Fire analysis failed")
+            async with self:
+                self.fire_running = False
+                self.fire_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_fogo"].format(detail=exc)
+            return
+
+        async with self:
+            self.fire_running = False
+            self.fire_rows = summary_rows
+            self.fire_annual_rows = annual_rows
