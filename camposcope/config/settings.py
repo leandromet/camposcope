@@ -37,6 +37,11 @@ GCP_PROJECT_ID = os.environ.get("CS_GCP_PROJECT_ID", "ee-leandromet")
 EE_SERVICE_ACCOUNT_JSON = os.environ.get("CS_EE_SERVICE_ACCOUNT_JSON", "")
 EE_SERVICE_ACCOUNT_FILE = os.environ.get("CS_EE_SERVICE_ACCOUNT_FILE", "")
 
+#: GA4 Measurement ID, shared with the portal and the other three subdomains
+#: (same registrable domain umaterra.com.br, one unified property). Empty in
+#: local dev so testing never pollutes real traffic data.
+GA_MEASUREMENT_ID = os.environ.get("CS_GA_MEASUREMENT_ID", "")
+
 #: Earth Engine tier. The Partner-tier grant on GCP_PROJECT_ID is what makes the
 #: wide tile fan-out affordable (doc/06-ee-layers.md §4); `contributor` is the
 #: rollback if that uplift lapses.
