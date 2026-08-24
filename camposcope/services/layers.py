@@ -220,8 +220,37 @@ def biomass_year_spec(
     }
 
 
+def ibge_vegetation_spec(
+    *, opacity: float = 1.0, z_index: int = 20,
+) -> Optional[Dict[str, Any]]:
+    """IBGE Vegetação 2022, rasterized once (services/ibge_vegetation.py) —
+    the SPOT/IBGE comparison tab's left-hand layer for the "ibge_2022" mode.
+    A single snapshot, so the cache key carries no year."""
+    from .ibge_vegetation import classified_image
+
+    cache_key = "ibge_vegetation:leg2"
+
+    def build():
+        return classified_image()
+
+    from ..config.ibge_vegetation import IBGE_VEG_ATTRIBUTION, IBGE_VEG_VIS
+
+    try:
+        url = get_tile_url(cache_key, build, IBGE_VEG_VIS)
+    except Exception as exc:                       # noqa: BLE001
+        logger.warning("IBGE vegetation layer failed: %s", exc)
+        return None
+    if url is None:
+        return None
+
+    return {
+        "id": cache_key, "url": url, "opacity": opacity, "z_index": z_index,
+        "attribution": IBGE_VEG_ATTRIBUTION, "max_native_zoom": 13,
+    }
+
+
 __all__ = [
-    "basemap_spec", "ee_basemap_spec",
+    "basemap_spec", "ee_basemap_spec", "ibge_vegetation_spec",
     "mapbiomas_year_spec", "hansen_treecover_spec", "hansen_change_spec",
     "biomass_year_spec",
 ]

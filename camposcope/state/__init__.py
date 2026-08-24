@@ -15,6 +15,7 @@ import reflex as rx
 
 from ._analysis import (
     AnalysisMixin, BiomassMixin, ForestChangeMixin, SpotCoverageMixin,
+    ValidacaoMixin,
 )
 from ._imovel import ImovelMixin
 from ._layers import LayersMixin
@@ -26,7 +27,7 @@ from ._zones import ZonesMixin
 
 class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, AnalysisMixin,
                ForestChangeMixin, BiomassMixin, SpotCoverageMixin,
-               TransitionsMixin, UIMixin, rx.State):
+               ValidacaoMixin, TransitionsMixin, UIMixin, rx.State):
     """Root application state."""
 
     @rx.event

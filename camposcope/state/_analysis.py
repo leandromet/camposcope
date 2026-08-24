@@ -448,3 +448,88 @@ class SpotCoverageMixin(rx.State, mixin=True):
         async with self:
             self.spot_running = False
             self.spot_summary = summary
+
+
+class ValidacaoMixin(rx.State, mixin=True):
+    """SPOT/IBGE vs MapBiomas comparison — a quality-control check against
+    reference data, not a new analysis of the property (doc/03-roadmap.md
+    Phase 5 addendum). Two modes, one swipe divider on the map either way:
+
+    ``spot_2008``  SPOT imagery (left) vs MapBiomas 2008 classification (right)
+    ``ibge_2022``  IBGE Vegetação 2022 (left) vs MapBiomas 2022 (right), plus
+                   the bucket-matrix numbers below — IBGE has no imagery to
+                   look at, only another classification to check against.
+    """
+
+    validacao_mode: str = "spot_2008"
+    #: Which SPOT band combination the spot_2008 pairing shows — true colour
+    #: or the false-colour near-infrared composite (doc/04-data-sources.md §6:
+    #: NIR-in-red is what makes 2008 vegetation legible against pasture).
+    #: Meaningless in ibge_2022 mode, where there is no SPOT side to pick.
+    spot_band_mode: str = "visual"
+
+    validacao_running: bool = False
+    validacao_error: str = ""
+    #: Only meaningful for ibge_2022 — spot_2008 is visual-only, nothing to
+    #: tabulate (doc/12-spot-2008.md: SPOT is imagery, not a classification).
+    validacao_matrix: Dict[str, Any] = {}
+
+    @rx.event
+    def set_validacao_mode(self, mode: str | list[str]):
+        # Plain event, not background — see set_hansen_layer_mode for the
+        # same shape. A background handler mutating self.xxx directly outside
+        # `async with self:` raises ImmutableStateError; a plain one just
+        # writes and returns the next event to chain, which is all this
+        # needs (mint_analysis_layer is itself background).
+        value = mode[0] if isinstance(mode, list) else mode
+        self.validacao_mode = value if value in ("spot_2008", "ibge_2022") else "spot_2008"
+        return self.__class__.mint_analysis_layer
+
+    @rx.event
+    def set_spot_band_mode(self, mode: str | list[str]):
+        value = mode[0] if isinstance(mode, list) else mode
+        self.spot_band_mode = value if value in ("visual", "analytic") else "visual"
+        return self.__class__.mint_analysis_layer
+
+    @rx.event(background=True)
+    async def run_validacao(self):
+        """Compute the IBGE-vs-MapBiomas bucket matrix for the active zone.
+        A no-op in spot_2008 mode — see class docstring."""
+        from ..services import ibge_vegetation as iv
+        from ..services.zones import Zone
+
+        async with self:
+            if self.validacao_mode != "ibge_2022":
+                return
+            zones_geojson = dict(self.zones_geojson or {})
+            zones_meta = list(self.zones or [])
+            zone_key = self.active_zone
+            self.validacao_running = True
+            self.validacao_error = ""
+
+        if not zones_meta or not zones_geojson.get("features"):
+            async with self:
+                self.validacao_running = False
+            return
+
+        geom_by_key = {f["properties"]["zone_key"]: f["geometry"]
+                      for f in zones_geojson["features"]}
+        zone_objs = [
+            Zone(key=z["zone_key"], label=z["zone_label"], kind=z["zone_kind"],
+                geojson=geom_by_key[z["zone_key"]], area_ha=z["area_ha"])
+            for z in zones_meta if z["zone_key"] in geom_by_key
+        ]
+
+        try:
+            df, _prov = iv.mapbiomas_comparison(zone_objs)
+            matrix = iv.bucket_matrix(df, zone_key)
+        except Exception as exc:                       # noqa: BLE001
+            logger.exception("IBGE/MapBiomas comparison failed")
+            async with self:
+                self.validacao_running = False
+                self.validacao_error = f"Não foi possível calcular a comparação: {exc}"
+            return
+
+        async with self:
+            self.validacao_running = False
+            self.validacao_matrix = matrix

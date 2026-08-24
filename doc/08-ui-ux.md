@@ -108,6 +108,7 @@ radii automatically with a visible notice explaining why ([06](06-ee-layers.md) 
 | **Transições** | Two-stage Sankey + table side by side, plus the multi-stage diagram ([07](07-transitions.md)) | none — a diagram, not a single raster |
 | **Floresta** | Three period stats (até 2008 / 2008 até o registro / depois do registro) + chart + table | Hansen loss/gain since 2008 or since registration |
 | **Biomassa** | Chart + snapshot table side by side, gaps drawn as gaps | ESA CCI, selected snapshot |
+| **Validação** | Mode switch (SPOT×2008 / IBGE×2022); bucket-matrix table for the IBGE mode | Two layers, swipe-clipped left/right |
 | **⇩** | Export panel | — |
 
 Chart and table are always side by side (`components/layout.py::split_panel`), stacking only

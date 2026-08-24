@@ -91,3 +91,93 @@ def test_every_adopt_call_site_triggers_run_history():
             "`return self.__class__.run_history` after the `async with self:` "
             "block that calls _adopt."
         )
+
+
+def test_background_handlers_never_write_state_outside_async_with():
+    """Regression test for a real bug: `set_spot_band_mode` (and
+    `set_validacao_mode`, same commit) were declared
+    `@rx.event(background=True)` and wrote `self.spot_band_mode = value`
+    directly, one indent level OUTSIDE the function's `async with self:`
+    block. Inside a background handler `self` is a `StateProxy` that only
+    allows mutation while inside that context manager — the app compiled and
+    every other test passed, but the handler raised
+    `ImmutableStateError: Background task StateProxy is immutable outside of
+    a context manager` the first time a user actually clicked the control.
+
+    This is a runtime-only failure with no static type signal, so it cannot
+    be caught by test_index_renders (which only builds the component tree,
+    never fires an event) — it has to be caught by reading the source shape
+    directly. The two handlers turned out not to need `background=True` at
+    all: matching sibling setters (`set_hansen_layer_mode` et al.) are plain
+    `@rx.event` and chain `mint_analysis_layer` (itself background) just
+    fine by returning it, which is the fix that was applied.
+
+    The check: for every `@rx.event(background=True)` method, no
+    `self.<name> = ` assignment line may sit at an indentation level at or
+    shallower than the nearest preceding `async with self:` line — that
+    shape means the assignment fell outside the block.
+    """
+    import pathlib
+    import re
+
+    state_dir = pathlib.Path(__file__).resolve().parent.parent / "camposcope" / "state"
+    assign_re = re.compile(r"^(\s*)self\.\w+\s*=(?!=)")
+    with_re = re.compile(r"^(\s*)async with self:\s*$")
+    decorator_re = re.compile(r"^(\s*)@rx\.event\(background=True\)\s*$")
+    def_re = re.compile(r"^(\s*)(async )?def (\w+)\(")
+
+    offenders = []
+    for path in sorted(state_dir.glob("*.py")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        i = 0
+        while i < len(lines):
+            m = decorator_re.match(lines[i])
+            if not m:
+                i += 1
+                continue
+            # Found a background handler's decorator; find its def line and
+            # then walk the function body until dedent back to def's indent.
+            j = i + 1
+            while j < len(lines) and not def_re.match(lines[j]):
+                j += 1
+            if j >= len(lines):
+                break
+            def_indent = len(def_re.match(lines[j]).group(1))
+            func_name = def_re.match(lines[j]).group(3)
+            body_start = j + 1
+            k = body_start
+            with_indent = None  # indentation of the innermost open `async with self:`
+            while k < len(lines):
+                line = lines[k]
+                stripped = line.strip()
+                if stripped:
+                    indent = len(line) - len(line.lstrip())
+                    if indent <= def_indent:
+                        break  # dedented out of the function
+                    wm = with_re.match(line)
+                    if wm:
+                        with_indent = len(wm.group(1))
+                    else:
+                        am = assign_re.match(line)
+                        if am:
+                            assign_indent = len(am.group(1))
+                            if with_indent is None or assign_indent <= with_indent:
+                                offenders.append(
+                                    f"{path.name}:{k + 1}: {func_name}(): "
+                                    f"{stripped}"
+                                )
+                        # Leaving the with-block's body dedents back to (or
+                        # below) with_indent; a non-with line at exactly
+                        # with_indent means the block ended.
+                        if (with_indent is not None
+                                and indent <= with_indent and not wm):
+                            with_indent = None
+                k += 1
+            i = k
+
+    assert not offenders, (
+        "background event handler(s) assign to self.<attr> outside their "
+        "`async with self:` block — this raises ImmutableStateError at "
+        "runtime, the first time the handler actually fires:\n"
+        + "\n".join(offenders)
+    )

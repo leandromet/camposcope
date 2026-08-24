@@ -111,7 +111,7 @@ unharmonised collection does not. Use the harmonised one and nothing else.
 | **Assets** | `GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL` and `.../ANALYTIC` |
 | **Resolution** | 5 m (visual) / 10 m (analytic) |
 | **Coverage** | Brazil's **forest areas only** — partial by design |
-| **Licence** | ⚠️ Gated: requires accepting the dataset agreement, granted per service account |
+| **Licence** | Standard public Earth Engine catalog asset — access is scoped to the GCP project (`ee-leandromet`), not per calling account. `CS_SPOT_ENABLED` was shipped `false` at first on the mistaken assumption it needed per-account acceptance; corrected 2026-08 (doc/12 §2). |
 | **Attribution** | Google LLC, Brazil Forest Imagery Dataset 2008, created from circa 2008 SPOT images |
 
 Not just another basemap. The Código Florestal's *área rural consolidada* hinges on
@@ -165,7 +165,24 @@ rural properties largely do not have addresses.
 use. Debounced, submit-only, serialised, cached — and never called at all when a code, a
 coordinate or a município name would have answered.
 
-## 10. IBGE UF boundaries — local, committed
+## 10. IBGE Vegetação do Brasil (1:250.000, 2022)
+
+| | |
+|---|---|
+| **Asset** | `projects/ee-leandromet/assets/vege_area` — 145 458 polygons, verified accessible from this project 2026-08 |
+| **Class field** | `legenda_2` (`leg2_id`, 1–54) — ported verbatim from Naturametrics, see `config/ibge_vegetation.py` |
+| **Licence** | IBGE, public data with attribution |
+
+Ground-truth vegetation classification, used only for the Validação tab's IBGE × MapBiomas
+2022 comparison ([03](03-roadmap.md) Phase 5 addendum) — never as an input to any property
+number, since its 54-class taxonomy shares no classes with MapBiomas and comparing them
+requires reducing both to a shared 6-bucket grouping first.
+
+**The trap:** it is a *vector* asset rasterized once per session (`reduceToImage`), not a
+pre-baked raster — treating `vege_area` as if it were already an image would silently drop
+every feature's classification.
+
+## 11. IBGE UF boundaries — local, committed
 
 A **simplified** GeoJSON of the 27 UF polygons, committed to `data/`, used only to route a
 map click to the right `sicar_imoveis_<uf>` layer (**D5**). Simplified aggressively —
@@ -174,7 +191,7 @@ and near a state line the property query itself is the arbiter.
 
 Source: IBGE malhas territoriais, public domain with attribution.
 
-## 11. Basemaps
+## 12. Basemaps
 
 Ported from Naturametrics along with its open caveat: the default Google tile endpoints
 (`mt1.google.com/vt`) are **undocumented, not a licensed API**. They work and they are fast,
@@ -182,7 +199,7 @@ and they are fine for local development. Before any public deployment this must 
 either a Google Maps Platform key or a fall back to Esri/OSM, which are licensed for this
 use. Carried here as an inherited debt, not a decision.
 
-## 12. Attribution block
+## 13. Attribution block
 
 Every export and the About page carry, in full:
 

@@ -68,11 +68,11 @@ class LayersMixin(rx.State, mixin=True):
     #: just looks this key up — it never decides which layer belongs to which
     #: tab itself, so that decision lives in exactly one place.
     active_analysis_layer_key: str = ""
-    #: Transições is the one tab with TWO layers at once — the older year on
-    #: the left of a swipe divider, the newer on the right, so the transition
-    #: is something you can literally drag across rather than only read off a
-    #: Sankey. ``[left_key, right_key]``, both into `analysis_layer_specs`;
-    #: empty whenever the active tab isn't Transições.
+    #: Transições and Validação are the two tabs with TWO layers at once
+    #: instead of one — older/newer year for Transições, reference/checked
+    #: for Validação — each pair split by the same swipe divider.
+    #: ``[left_key, right_key]``, both into `analysis_layer_specs`; empty
+    #: whenever the active tab is neither.
     swipe_layer_keys: List[str] = []
     analysis_layer_busy: bool = False
     analysis_layer_error: str = ""
@@ -101,15 +101,24 @@ class LayersMixin(rx.State, mixin=True):
             year_mb = getattr(self, "mapbiomas_layer_year", None)
             hansen_mode = getattr(self, "hansen_layer_mode", "2008")
             year_biomass = getattr(self, "biomass_layer_year", None)
+            validacao_mode = getattr(self, "validacao_mode", "spot_2008")
+            spot_band_mode = getattr(self, "spot_band_mode", "visual")
             registration_year = getattr(self, "imovel", {}).get("ano_criacao") or None
 
-        if tab != "transicoes":
+        #: The two tabs with TWO layers at once, not one.
+        swipe_tabs = ("transicoes", "validacao")
+        if tab not in swipe_tabs:
             async with self:
                 self.swipe_layer_keys = []
 
         if tab == "transicoes":
             if has_property and enabled:
                 await self._mint_swipe_layers()
+            return
+
+        if tab == "validacao":
+            if has_property and enabled:
+                await self._mint_validacao_layers(validacao_mode, spot_band_mode)
             return
 
         if not has_property or not enabled:
@@ -232,6 +241,78 @@ class LayersMixin(rx.State, mixin=True):
                 self.swipe_layer_keys = [left_key, right_key]
             else:
                 self.analysis_layer_error = (
+                    "Não foi possível carregar as camadas de comparação."
+                )
+
+    async def _mint_validacao_layers(self, mode: str, spot_band_mode: str) -> None:
+        """The Validação tab's two layers: a classification checked on the
+        right against reference data on the left. ``mode`` picks the pairing
+        (doc/03-roadmap.md Phase 5 addendum — "like naturametrics"):
+
+        ``spot_2008``  SPOT 2008 imagery ↔ MapBiomas 2008. ``spot_band_mode``
+                       ("visual" | "analytic") picks which SPOT mosaic —
+                       naturametrics offers both (`mb_spot_visual` /
+                       `mb_spot_analytic`) because they answer different
+                       questions: true colour reads naturally, the
+                       false-colour NIR composite makes vegetation legible
+                       against pasture at a glance.
+        ``ibge_2022``  IBGE Vegetação 2022 ↔ MapBiomas 2022. No SPOT side, so
+                       ``spot_band_mode`` is unused here.
+
+        Reuses whatever the Cobertura tab or the SPOT toggle in Floresta's
+        legend already minted — same cache, same keys. The visual/analytic
+        switch is exactly why the SPOT key carries the band mode: switching
+        it must mint a genuinely different tile, not silently keep showing
+        whichever one was cached first.
+        """
+        spot_key = f"spot_2008_{spot_band_mode}"
+        if mode == "spot_2008":
+            left_key, right_key = f"basemap:{spot_key}", "mapbiomas:v10_1:2008"
+        else:
+            left_key, right_key = "ibge_vegetation:leg2", "mapbiomas:v10_1:2022"
+
+        async with self:
+            cached = self.analysis_layer_specs
+            if left_key in cached and right_key in cached:
+                self.swipe_layer_keys = [left_key, right_key]
+                return
+            self.analysis_layer_busy = True
+            self.analysis_layer_error = ""
+
+        import asyncio
+
+        from ..services import layers as layer_service
+
+        loop = asyncio.get_running_loop()
+        try:
+            if mode == "spot_2008":
+                spec_left, spec_right = await asyncio.gather(
+                    loop.run_in_executor(None, layer_service.ee_basemap_spec,
+                                         spot_key),
+                    loop.run_in_executor(None, layer_service.mapbiomas_year_spec,
+                                         2008),
+                )
+            else:
+                spec_left, spec_right = await asyncio.gather(
+                    loop.run_in_executor(None, layer_service.ibge_vegetation_spec),
+                    loop.run_in_executor(None, layer_service.mapbiomas_year_spec,
+                                         2022),
+                )
+        except Exception as exc:                      # noqa: BLE001
+            logger.warning("Validação layers (%s) failed: %s", mode, exc)
+            spec_left = spec_right = None
+
+        async with self:
+            self.analysis_layer_busy = False
+            if spec_left and spec_right:
+                self.analysis_layer_specs[left_key] = {**spec_left, "clip": "left"}
+                self.analysis_layer_specs[right_key] = {**spec_right, "clip": "right"}
+                self.swipe_layer_keys = [left_key, right_key]
+            else:
+                self.analysis_layer_error = (
+                    "Não foi possível carregar as camadas de comparação. "
+                    "SPOT pode exigir CS_SPOT_ENABLED=true."
+                    if mode == "spot_2008" else
                     "Não foi possível carregar as camadas de comparação."
                 )
 

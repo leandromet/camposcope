@@ -19,43 +19,42 @@ from ..state import AppState
 #: laggy, and the resized height is a per-viewer convenience, not data
 #: anything else needs to know about.
 #:
-#: A `MutationObserver` re-attaches the listener whenever the handle element
-#: appears, because the results drawer (and its handle) only exists in the
-#: DOM once a property is selected — `results_panel()` is conditionally
-#: rendered, so React mounts a fresh element each time rather than ever
-#: leaving a stale one for a one-time `DOMContentLoaded` listener to find.
+#: Event DELEGATION on `document`, not a direct listener on the handle
+#: element. The first version attached listeners to the specific handle DOM
+#: node via a MutationObserver, which broke: `results_panel()` is
+#: conditionally rendered, so React tears down and recreates that node on
+#: state changes far more often than expected, silently orphaning the
+#: listeners each time. Delegating to `document` and looking the handle up by
+#: ID *inside* the event callback means there is nothing to re-attach —
+#: whichever node currently has that ID is found fresh on every event.
 _RESIZE_SCRIPT = """
 (function () {
-  function init() {
-    var handle = document.getElementById('results-drag-handle');
+  if (window._csResizeInit) return;
+  window._csResizeInit = true;
+  var dragging = false, startY = 0, startHeight = 0;
+  document.addEventListener('mousedown', function (e) {
+    var handle = e.target.closest && e.target.closest('#results-drag-handle');
+    if (!handle) return;
     var drawer = document.getElementById('results-drawer');
-    if (!handle || !drawer || handle._csDragInit) return;
-    handle._csDragInit = true;
-    var dragging = false, startY = 0, startHeight = 0;
-    handle.addEventListener('mousedown', function (e) {
-      dragging = true;
-      startY = e.clientY;
-      startHeight = drawer.offsetHeight;
-      document.body.style.userSelect = 'none';
-      e.preventDefault();
-    });
-    document.addEventListener('mousemove', function (e) {
-      if (!dragging) return;
-      var delta = startY - e.clientY;
-      var next = Math.min(window.innerHeight * 0.85,
-                          Math.max(80, startHeight + delta));
-      drawer.style.maxHeight = next + 'px';
-    });
-    document.addEventListener('mouseup', function () {
-      if (dragging) { dragging = false; document.body.style.userSelect = ''; }
-    });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-  new MutationObserver(init).observe(document.body, {childList: true, subtree: true});
+    if (!drawer) return;
+    dragging = true;
+    startY = e.clientY;
+    startHeight = drawer.offsetHeight;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    var drawer = document.getElementById('results-drawer');
+    if (!drawer) return;
+    var delta = startY - e.clientY;
+    var next = Math.min(window.innerHeight * 0.85,
+                        Math.max(80, startHeight + delta));
+    drawer.style.maxHeight = next + 'px';
+  });
+  document.addEventListener('mouseup', function () {
+    if (dragging) { dragging = false; document.body.style.userSelect = ''; }
+  });
 })();
 """
 

@@ -39,6 +39,39 @@ def split_panel(chart: rx.Component, table: rx.Component,
     )
 
 
+def zone_selector() -> rx.Component:
+    """Which zone the active tab describes. Shared by every tab that has one
+    (Cobertura, Floresta, Biomassa, Validação) — lives here rather than in
+    ``results.py`` so ``validacao.py`` can use it without a circular import.
+    Selecting a zone never moves the map (constraint C1) — only
+    ``AppState.frame_geometry`` does that, and only when a *property* is
+    newly selected."""
+    from ..state import AppState
+
+    return rx.cond(
+        AppState.zones,
+        rx.hstack(
+            rx.foreach(
+                AppState.zones,
+                lambda z: rx.button(
+                    z["zone_label"],
+                    on_click=AppState.set_active_zone(z["zone_key"]),
+                    size="1",
+                    variant=rx.cond(
+                        AppState.active_zone == z["zone_key"], "solid", "soft"
+                    ),
+                    color_scheme=rx.cond(
+                        z["zone_kind"] == "property", "amber", "blue"
+                    ),
+                ),
+            ),
+            spacing="2",
+            wrap="wrap",
+            width="100%",
+        ),
+    )
+
+
 def section(title: str, *children, **props) -> rx.Component:
     """A titled sidebar block."""
     return rx.vstack(

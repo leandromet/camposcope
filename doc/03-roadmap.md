@@ -131,6 +131,36 @@ SPOT panel reports its three date/coverage numbers, a property outside the mosai
 says so rather than showing an empty map, and the word "consolidada" appears nowhere as a
 classification of area.
 
+### Phase 5 addendum — Validação tab (QC against reference data)
+
+Ported in spirit from Naturametrics' `compare_mode` (`state/_layers.py`) — a swipe divider,
+not just a chart, because the question is "does this classification match reality" and a
+map answers that more directly than a table alone.
+
+- `config/ibge_vegetation.py` ported verbatim: the IBGE Vegetação 2022 asset
+  (`projects/ee-leandromet/assets/vege_area`, 145 458 polygons, 54-class `legenda_2`), its
+  official colours, and the shared natural/anthropic × forest 6-bucket taxonomy used to
+  compare it against MapBiomas — the two legends share no classes.
+- `services/ibge_vegetation.py` reshaped from Naturametrics' buffers-around-a-point to
+  Camposcope's zones: `classified_image()` rasterizes the 145k-polygon FeatureCollection
+  once (`reduceToImage`), `mapbiomas_comparison()` runs the same batched
+  `reduceRegions(frequencyHistogram)` pattern as every other analysis in this app, and
+  `bucket_matrix()` pivots one zone's joint histogram into the 6×6 % table the tab displays.
+- Two modes, one swipe divider each: **SPOT × MapBiomas 2008** (reference imagery vs. the
+  classification at the Forest Code's own year — visual only, nothing to tabulate) and
+  **IBGE × MapBiomas 2022** (two classifications, so the bucket matrix + the two headline
+  numbers — forest %, natural % — per source).
+- Both pairings reuse whatever the Cobertura tab or Floresta's SPOT toggle already minted —
+  same tile-URL cache, same keys.
+
+**Done test:** switching to Validação and choosing a mode draws two clipped layers on the
+map with a working swipe handle; the IBGE mode's bucket matrix reconciles to the zone's
+total area; a property with heavy post-2022 clearing shows IBGE reading more "natural
+forest" than MapBiomas for the same zone (IBGE's polygons are coarser and don't track
+year-to-year change the way MapBiomas' per-pixel classification does) — verified live on
+the test property: IBGE 35.9% natural vs. MapBiomas 20.7%, consistent with its
+pasture→soy trajectory in Cobertura.
+
 ## Phase 6 — Export & provenance
 
 - Grouped ZIP: `imovel.csv` + one directory per zone + `geometries.geojson` +

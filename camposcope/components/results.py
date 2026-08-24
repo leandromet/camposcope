@@ -12,36 +12,9 @@ import reflex as rx
 from ..config import mapbiomas as mb
 from ..config.datasets import AGB_YEARS
 from ..state import AppState
-from .layout import BORDER, MUTED, split_panel
+from .layout import BORDER, MUTED, split_panel, zone_selector
 from .sankey import transitions_tab
-
-
-def zone_selector() -> rx.Component:
-    """Which zone the chart and tabs describe. Selecting one never moves the
-    map (constraint C1) — only ``AppState.frame_geometry`` does that, and only
-    when a *property* is newly selected."""
-    return rx.cond(
-        AppState.zones,
-        rx.hstack(
-            rx.foreach(
-                AppState.zones,
-                lambda z: rx.button(
-                    z["zone_label"],
-                    on_click=AppState.set_active_zone(z["zone_key"]),
-                    size="1",
-                    variant=rx.cond(
-                        AppState.active_zone == z["zone_key"], "solid", "soft"
-                    ),
-                    color_scheme=rx.cond(
-                        z["zone_kind"] == "property", "amber", "blue"
-                    ),
-                ),
-            ),
-            spacing="2",
-            wrap="wrap",
-            width="100%",
-        ),
-    )
+from .validacao import validacao_tab
 
 
 def _run_button(label: str, running_var, on_click) -> rx.Component:
@@ -363,11 +336,13 @@ def results_panel() -> rx.Component:
                     rx.tabs.trigger("Transições", value="transicoes"),
                     rx.tabs.trigger("Floresta", value="floresta"),
                     rx.tabs.trigger("Biomassa", value="biomassa"),
+                    rx.tabs.trigger("Validação", value="validacao"),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),
                 rx.tabs.content(floresta_tab(), value="floresta"),
                 rx.tabs.content(biomassa_tab(), value="biomassa"),
+                rx.tabs.content(validacao_tab(), value="validacao"),
                 value=AppState.results_tab,
                 on_change=AppState.set_results_tab,
                 width="100%",

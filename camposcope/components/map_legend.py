@@ -200,6 +200,51 @@ def _transicoes_legend() -> rx.Component:
     )
 
 
+def _validacao_legend() -> rx.Component:
+    """Left/right is fixed by the pairing (reference on the left, checked
+    classification on the right), not a free choice — but which SPOT mosaic
+    sits on the left in spot_2008 mode IS a choice, so unlike Transições this
+    legend carries one control, mirroring the same switch in the Validação
+    tab (components/validacao.py::_spot_band_switch)."""
+    return rx.vstack(
+        _header(
+            rx.cond(
+                AppState.validacao_mode == "spot_2008",
+                "SPOT 2008 × MapBiomas",
+                "IBGE 2022 × MapBiomas",
+            ),
+        ),
+        rx.cond(
+            AppState.validacao_mode == "spot_2008",
+            rx.segmented_control.root(
+                rx.segmented_control.item("Visual", value="visual"),
+                rx.segmented_control.item("Falsa-cor", value="analytic"),
+                value=AppState.spot_band_mode,
+                on_change=AppState.set_spot_band_mode,
+                size="1", width="100%",
+            ),
+        ),
+        rx.cond(
+            AppState.map_swipe_enabled,
+            rx.hstack(
+                rx.text(
+                    rx.cond(AppState.validacao_mode == "spot_2008", "SPOT",
+                           "IBGE"),
+                    size="1", weight="medium",
+                ),
+                rx.icon("move-horizontal", size=12),
+                rx.text("MapBiomas", size="1", weight="medium"),
+                spacing="2", align="center",
+            ),
+            rx.text("Escolha o modo na aba Validação.", size="1",
+                   color="var(--gray-11)"),
+        ),
+        rx.text("Arraste a barra no mapa para comparar.", size="1",
+               color="var(--gray-11)"),
+        spacing="2", width="100%",
+    )
+
+
 def map_legend() -> rx.Component:
     """Shown only once a property is selected and the active tab has a map
     layer of its own."""
@@ -212,6 +257,7 @@ def map_legend() -> rx.Component:
                 ("transicoes", _transicoes_legend()),
                 ("floresta", _floresta_legend()),
                 ("biomassa", _biomassa_legend()),
+                ("validacao", _validacao_legend()),
                 rx.fragment(),
             ),
             **_BOX_STYLE,
