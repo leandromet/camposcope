@@ -31,7 +31,7 @@ _BOX_STYLE = dict(
 )
 
 
-def _header(title: str) -> rx.Component:
+def _header(title) -> rx.Component:
     return rx.hstack(
         rx.text(title, size="1", weight="bold"),
         rx.spacer(),
@@ -41,7 +41,7 @@ def _header(title: str) -> rx.Component:
     )
 
 
-def _swatch_row(color: str, label: str) -> rx.Component:
+def _swatch_row(color: str, label) -> rx.Component:
     return rx.hstack(
         rx.box(width="10px", height="10px", border_radius="2px",
               background=color, flex_shrink="0"),
@@ -52,14 +52,14 @@ def _swatch_row(color: str, label: str) -> rx.Component:
 
 def _cobertura_legend() -> rx.Component:
     return rx.vstack(
-        _header("MapBiomas"),
+        _header(AppState.tr["legend_mapbiomas"]),
         rx.select(
             [str(y) for y in mb.MAPBIOMAS_YEARS],
             value=AppState.mapbiomas_layer_year.to_string(),
             on_change=AppState.set_mapbiomas_layer_year,
             size="1", width="100%",
         ),
-        rx.text("Cores: paleta oficial MapBiomas", size="1",
+        rx.text(AppState.tr["legend_mapbiomas_palette"], size="1",
                color="var(--gray-11)"),
         spacing="2", width="100%",
     )
@@ -74,7 +74,7 @@ def _spot_section() -> rx.Component:
     return rx.vstack(
         rx.divider(),
         rx.hstack(
-            rx.text("Imagem SPOT 2008", size="1", weight="medium"),
+            rx.text(AppState.tr["legend_spot_2008"], size="1", weight="medium"),
             rx.spacer(),
             rx.switch(checked=is_spot, on_change=AppState.toggle_spot_basemap,
                      size="1"),
@@ -82,7 +82,8 @@ def _spot_section() -> rx.Component:
         ),
         rx.cond(
             AppState.basemap_busy,
-            rx.hstack(rx.spinner(size="1"), rx.text("Carregando…", size="1"),
+            rx.hstack(rx.spinner(size="1"),
+                     rx.text(AppState.tr["legend_loading"], size="1"),
                      spacing="2", align="center"),
         ),
         rx.cond(
@@ -94,8 +95,8 @@ def _spot_section() -> rx.Component:
             is_spot,
             rx.vstack(
                 rx.button(
-                    rx.cond(AppState.spot_running, "Verificando…",
-                           "Verificar cobertura"),
+                    rx.cond(AppState.spot_running, AppState.tr["legend_verifying"],
+                           AppState.tr["legend_verify_coverage"]),
                     on_click=AppState.run_spot_coverage,
                     disabled=AppState.spot_running, size="1", width="100%",
                 ),
@@ -116,19 +117,17 @@ def _spot_section() -> rx.Component:
                             ),
                             rx.text(
                                 f"{AppState.spot_summary['pre_cutoff_pct']}% "
-                                "antes de 22/07/2008",
+                                f"{AppState.tr['legend_spot_before_cutoff']}",
                                 size="1", weight="medium",
                             ),
                             spacing="1",
                         ),
-                        rx.text("Sem cobertura SPOT nesta zona.", size="1",
+                        rx.text(AppState.tr["legend_no_coverage"], size="1",
                                color="var(--gray-11)"),
                     ),
                 ),
-                rx.text(
-                    "Não classifica área consolidada.", size="1",
-                    color="var(--gray-11)",
-                ),
+                rx.text(AppState.tr["validacao_no_verdict_short"], size="1",
+                       color="var(--gray-11)"),
                 spacing="2", width="100%",
             ),
         ),
@@ -138,16 +137,18 @@ def _spot_section() -> rx.Component:
 
 def _floresta_legend() -> rx.Component:
     return rx.vstack(
-        _header("Floresta — Hansen"),
+        _header(AppState.tr["legend_floresta_hansen"]),
         rx.segmented_control.root(
-            rx.segmented_control.item("desde 2008", value="2008"),
-            rx.segmented_control.item("desde o registro", value="registro"),
+            rx.segmented_control.item(AppState.tr["legend_hansen_since_2008"],
+                                      value="2008"),
+            rx.segmented_control.item(AppState.tr["legend_hansen_since_registro"],
+                                      value="registro"),
             value=AppState.hansen_layer_mode,
             on_change=AppState.set_hansen_layer_mode,
             size="1", width="100%",
         ),
-        _swatch_row("#d4271e", "Perda"),
-        _swatch_row("#02d659", "Ganho (sem data)"),
+        _swatch_row("#d4271e", AppState.tr["legend_perda"]),
+        _swatch_row("#02d659", AppState.tr["legend_ganho_sem_data"]),
         _spot_section(),
         spacing="2", width="100%",
     )
@@ -155,7 +156,7 @@ def _floresta_legend() -> rx.Component:
 
 def _biomassa_legend() -> rx.Component:
     return rx.vstack(
-        _header("Biomassa — ESA CCI"),
+        _header(AppState.tr["legend_biomassa_esa"]),
         rx.select(
             [str(y) for y in AGB_YEARS],
             value=AppState.biomass_layer_year.to_string(),
@@ -182,7 +183,7 @@ def _transicoes_legend() -> rx.Component:
     same `sankey_year_a`/`sankey_year_b` the two-stage Sankey uses, so this
     legend has nothing of its own to set, only to say what is showing."""
     return rx.vstack(
-        _header("MapBiomas — comparação"),
+        _header(AppState.tr["legend_mapbiomas_comparacao"]),
         rx.cond(
             AppState.map_swipe_enabled,
             rx.hstack(
@@ -191,10 +192,10 @@ def _transicoes_legend() -> rx.Component:
                 rx.text(AppState.sankey_year_right, size="1", weight="medium"),
                 spacing="2", align="center",
             ),
-            rx.text("Escolha os anos na aba Transições.", size="1",
+            rx.text(AppState.tr["legend_choose_years"], size="1",
                    color="var(--gray-11)"),
         ),
-        rx.text("Arraste a barra no mapa para comparar.", size="1",
+        rx.text(AppState.tr["legend_drag_to_compare"], size="1",
                color="var(--gray-11)"),
         spacing="2", width="100%",
     )
@@ -210,15 +211,17 @@ def _validacao_legend() -> rx.Component:
         _header(
             rx.cond(
                 AppState.validacao_mode == "spot_2008",
-                "SPOT 2008 × MapBiomas",
-                "IBGE 2022 × MapBiomas",
+                AppState.tr["validacao_mode_spot"],
+                AppState.tr["validacao_mode_ibge"],
             ),
         ),
         rx.cond(
             AppState.validacao_mode == "spot_2008",
             rx.segmented_control.root(
-                rx.segmented_control.item("Visual", value="visual"),
-                rx.segmented_control.item("Falsa-cor", value="analytic"),
+                rx.segmented_control.item(AppState.tr["legend_visual"],
+                                          value="visual"),
+                rx.segmented_control.item(AppState.tr["legend_falsa_cor"],
+                                          value="analytic"),
                 value=AppState.spot_band_mode,
                 on_change=AppState.set_spot_band_mode,
                 size="1", width="100%",
@@ -236,10 +239,10 @@ def _validacao_legend() -> rx.Component:
                 rx.text("MapBiomas", size="1", weight="medium"),
                 spacing="2", align="center",
             ),
-            rx.text("Escolha o modo na aba Validação.", size="1",
+            rx.text(AppState.tr["legend_choose_mode"], size="1",
                    color="var(--gray-11)"),
         ),
-        rx.text("Arraste a barra no mapa para comparar.", size="1",
+        rx.text(AppState.tr["legend_drag_to_compare"], size="1",
                color="var(--gray-11)"),
         spacing="2", width="100%",
     )

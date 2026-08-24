@@ -18,6 +18,7 @@ import reflex as rx
 from ..config import sicar as vocab
 from ..services import sicar
 from ..services.sicar import SicarError
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +59,21 @@ class ImovelMixin(rx.State, mixin=True):
     def has_imovel(self) -> bool:
         return bool(self.imovel.get("cod_imovel"))
 
-    @rx.var
+    @rx.var(cache=True, deps=["lang"], auto_deps=False)
     def disclosure(self) -> str:
-        """The C4 statement. Permanent, non-dismissible, one source of truth."""
+        """The C4 statement. Permanent, non-dismissible, one source of truth.
+
+        ``deps=["lang"]`` is required, not decorative: Reflex's default
+        ``@rx.var`` is cached, and its auto-dependency tracker finds
+        dependencies by statically scanning the function body for literal
+        ``self.<attr>`` accesses. ``lang`` lives on a sibling mixin
+        (UIMixin), so it is read via ``getattr(self, "lang", ...)`` for
+        Pyright's benefit — a pattern the tracker cannot see through. Without
+        an explicit dep, this var computes once (whatever ``lang`` happened
+        to be at the time) and never again, which is exactly the bug this
+        fixes: switching language left the disclosure text stuck on
+        whichever one was active when a property was first loaded.
+        """
         return (vocab.DISCLOSURE_EN if getattr(self, "lang", "pt") == "en"
                 else vocab.DISCLOSURE_PT)
 
@@ -126,9 +139,7 @@ class ImovelMixin(rx.State, mixin=True):
         if uf is None:
             async with self:
                 self.searching = False
-                self.sicar_error = (
-                    "Este ponto está fora do território brasileiro coberto pelo CAR."
-                )
+                self.sicar_error = get_translations(self.lang)["erro_fora_brasil"]
             return
 
         try:
@@ -143,9 +154,9 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             if not found:
-                self.sicar_error = (
-                    f"Nenhum imóvel registrado no CAR neste ponto ({uf})."
-                )
+                self.sicar_error = get_translations(self.lang)[
+                    "erro_sem_imovel_ponto"
+                ].format(uf=uf)
             elif single_match:
                 self._adopt(found[0])
             else:

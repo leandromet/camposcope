@@ -94,7 +94,7 @@ def header() -> rx.Component:
     return rx.hstack(
         rx.hstack(
             rx.icon("scan-search", size=20),
-            rx.heading("Camposcope", size="4", weight="bold"),
+            rx.heading(AppState.tr["app_name"], size="4", weight="bold"),
             spacing="2",
             align="center",
         ),

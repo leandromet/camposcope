@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import reflex as rx
 
 from ..config import mapbiomas as mb
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,9 @@ class TransitionsMixin(rx.State, mixin=True):
             logger.exception("Sankey failed")
             async with self:
                 self.sankey_running = False
-                self.sankey_error = f"Não foi possível calcular a transição: {exc}"
+                self.sankey_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_transicao"].format(detail=exc)
             return
 
         async with self:
@@ -154,6 +157,7 @@ class TransitionsMixin(rx.State, mixin=True):
             zone_key = self.active_zone
             registration_year = (getattr(self, "imovel", {}).get("ano_criacao")
                                  or None)
+            lang = getattr(self, "lang", "pt")
             self.multi_stage_running = True
             self.multi_stage_error = ""
         if not zones_geojson.get("features"):
@@ -189,21 +193,21 @@ class TransitionsMixin(rx.State, mixin=True):
             logger.exception("Multi-stage Sankey failed")
             async with self:
                 self.multi_stage_running = False
-                self.multi_stage_error = (
-                    f"Não foi possível calcular as transições: {exc}"
-                )
+                self.multi_stage_error = get_translations(lang)[
+                    "erro_transicoes_multi"
+                ].format(detail=exc)
             return
 
-        fig = tr.multi_stage_sankey_figure(stages, lang="pt")
+        fig = tr.multi_stage_sankey_figure(stages, lang=lang)
 
         async with self:
             self.multi_stage_running = False
             self.multi_stage_years = years
             self._multi_stage_stages = stages
             if fig is None:
-                self.multi_stage_error = (
-                    "Sem dados de transição suficientes para o diagrama."
-                )
+                self.multi_stage_error = get_translations(lang)[
+                    "erro_transicao_dados_insuficientes"
+                ]
 
     #: Not a state var (figures built from it are cached below) — holds the
     #: raw stage data between the background handler and the computed var.

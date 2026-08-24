@@ -17,7 +17,7 @@ from ..state import AppState
 from .layout import BORDER, MUTED, split_panel
 
 
-def _year_select(value, on_change, label: str) -> rx.Component:
+def _year_select(value, on_change, label) -> rx.Component:
     years = [str(y) for y in mb.MAPBIOMAS_YEARS]
     return rx.vstack(
         rx.text(label, size="1", color=MUTED),
@@ -29,10 +29,12 @@ def _year_select(value, on_change, label: str) -> rx.Component:
 def _multi_stage_section() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.text("Antes · registro do CAR · hoje", size="2", weight="medium"),
+            rx.text(AppState.tr["transicoes_multi_stage_title"], size="2",
+                    weight="medium"),
             rx.spacer(),
             rx.button(
-                rx.cond(AppState.multi_stage_running, "Calculando…", "Calcular"),
+                rx.cond(AppState.multi_stage_running, AppState.tr["calculando"],
+                       AppState.tr["calcular"]),
                 on_click=AppState.run_multi_stage_sankey,
                 disabled=AppState.multi_stage_running,
                 size="1",
@@ -47,7 +49,9 @@ def _multi_stage_section() -> rx.Component:
         rx.cond(
             AppState.multi_stage_running,
             rx.center(
-                rx.hstack(rx.spinner(), rx.text("Calculando transições…", size="2"),
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["transicoes_multi_stage_running"],
+                                size="2"),
                          spacing="2"),
                 height="200px",
             ),
@@ -70,12 +74,13 @@ def _two_stage_section() -> rx.Component:
         rx.hstack(
             _year_select(AppState.sankey_year_a,
                         lambda v: AppState.set_sankey_years(v, AppState.sankey_year_b),
-                        "De"),
+                        AppState.tr["transicoes_de"]),
             _year_select(AppState.sankey_year_b,
                         lambda v: AppState.set_sankey_years(AppState.sankey_year_a, v),
-                        "Para"),
+                        AppState.tr["transicoes_para"]),
             rx.button(
-                rx.cond(AppState.sankey_running, "Calculando…", "Calcular"),
+                rx.cond(AppState.sankey_running, AppState.tr["calculando"],
+                       AppState.tr["calcular"]),
                 on_click=AppState.run_sankey,
                 disabled=AppState.sankey_running,
                 size="1", align_self="end",
@@ -90,7 +95,8 @@ def _two_stage_section() -> rx.Component:
         rx.cond(
             AppState.sankey_running,
             rx.center(
-                rx.hstack(rx.spinner(), rx.text("Calculando…", size="2"), spacing="2"),
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"), spacing="2"),
                 height="200px",
             ),
             rx.cond(
@@ -106,8 +112,8 @@ def _two_stage_section() -> rx.Component:
                         width="100%", height="280px",
                     ),
                     rx.vstack(
-                        rx.text("Maiores transições", size="1", weight="medium",
-                               color=MUTED),
+                        rx.text(AppState.tr["transicoes_maiores"], size="1",
+                               weight="medium", color=MUTED),
                         rx.foreach(
                             AppState.sankey_table_rows[:10],
                             lambda r: rx.hstack(
@@ -128,20 +134,14 @@ def _two_stage_section() -> rx.Component:
 
 def transitions_tab() -> rx.Component:
     return rx.vstack(
-        rx.text(
-            "Transições de cobertura da terra pixel a pixel — a soja que "
-            "virou floresta continua contada como soja em ambos os pontos "
-            "da comparação.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["transicoes_intro"], size="1", color=MUTED),
         rx.box(_multi_stage_section(), padding_y="2", border_bottom=BORDER,
                width="100%"),
         rx.box(_two_stage_section(), padding_top="2", width="100%"),
         rx.text(
-            f"MapBiomas Coleção 10.1 · pares de anos com menos de "
-            f"{SANKEY_MIN_YEAR_GAP} anos de diferença são recusados — nesse "
-            "intervalo, a maior parte das \"transições\" é ruído de "
-            "classificação, não mudança real.",
+            f"{AppState.tr['transicoes_min_gap_note_prefix']} "
+            f"{SANKEY_MIN_YEAR_GAP} "
+            f"{AppState.tr['transicoes_min_gap_note_suffix']}",
             size="1", color=MUTED,
         ),
         spacing="3", width="100%", padding="3",

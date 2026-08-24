@@ -16,6 +16,7 @@ import reflex as rx
 
 from ..config.settings import RING_RADII_M
 from ..services import zones as zones_svc
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,9 @@ class ZonesMixin(rx.State, mixin=True):
             built = zones_svc.build_zones(geojson, radii_m=self.ring_radii_m)
         except Exception as exc:                       # a self-declared polygon
             logger.exception("zone construction failed")
-            self.zones_error = f"Não foi possível construir as zonas: {exc}"
+            self.zones_error = get_translations(getattr(self, "lang", "pt"))[
+                "erro_zonas"
+            ].format(detail=exc)
             self.zones = []
             self.zones_geojson = {}
             return

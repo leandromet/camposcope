@@ -19,6 +19,7 @@ import reflex as rx
 
 from ..services import geocode, municipios
 from ..services.geocode import GeocodeError
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,29 @@ class SearchMixin(rx.State, mixin=True):
     def has_results(self) -> bool:
         return bool(self.municipio_hits or self.place_hits or self.candidates)
 
+    def _echo_text(self, resolution) -> str:
+        """Rebuild the echo line in the current language.
+
+        ``geocode.resolve`` is PT-only by design (it is a pure classifier, not
+        a UI-facing service — doc/11-search-and-navigation.md) and returns its
+        own ``.echo`` pre-formatted in Portuguese. Only the noun ("código
+        CAR"/"coordenada"/"município"/"lugar") needs a language, so it is
+        rebuilt here from ``kind`` + ``payload`` rather than adding ``lang`` to
+        a service that otherwise has no notion of it.
+        """
+        msgs = get_translations(getattr(self, "lang", "pt"))
+        kind, payload = resolution.kind, resolution.payload
+        if kind == "codigo":
+            return f"{msgs['echo_codigo']} {payload}"
+        if kind == "coordenada":
+            return f"{msgs['echo_coordenada']} {payload.lat:.4f}, {payload.lon:.4f}"
+        if kind == "municipio":
+            first = payload[0]
+            return f"{msgs['echo_municipio']} {first['nome']}/{first['uf']}"
+        if kind == "lugar":
+            return f"{msgs['echo_lugar']} “{payload}”"
+        return resolution.echo
+
     # --- typing ----------------------------------------------------------
     @rx.event
     def set_query(self, value: str) -> None:
@@ -58,7 +82,7 @@ class SearchMixin(rx.State, mixin=True):
             return
         try:
             resolution = geocode.resolve(value)
-            self.echo = resolution.echo
+            self.echo = self._echo_text(resolution)
             self.echo_kind = resolution.kind
         except ValueError as exc:
             # A coordinate that parsed but is unusable — a transposed pair, say.
@@ -122,10 +146,9 @@ class SearchMixin(rx.State, mixin=True):
         async with self:
             self.searching_place = False
             if not places:
-                self.search_error = (
-                    f"Nenhum lugar encontrado para “{raw}”. Tente um município, "
-                    "uma coordenada ou um código CAR."
-                )
+                self.search_error = get_translations(self.lang)[
+                    "erro_lugar_nao_encontrado"
+                ].format(query=raw)
             self.place_hits = [
                 {
                     "label": p.label,

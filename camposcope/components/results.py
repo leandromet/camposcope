@@ -17,9 +17,9 @@ from .sankey import transitions_tab
 from .validacao import validacao_tab
 
 
-def _run_button(label: str, running_var, on_click) -> rx.Component:
+def _run_button(label_key: str, running_var, on_click) -> rx.Component:
     return rx.button(
-        rx.cond(running_var, "Calculando…", label),
+        rx.cond(running_var, AppState.tr["calculando"], AppState.tr[label_key]),
         on_click=on_click, disabled=running_var, size="1",
     )
 
@@ -27,11 +27,7 @@ def _run_button(label: str, running_var, on_click) -> rx.Component:
 def _map_layer_note() -> rx.Component:
     """A one-line reminder that this tab's map layer can be turned on/off from
     the on-map legend, not repeated controls in every tab."""
-    return rx.text(
-        "A camada correspondente aparece no mapa — use a legenda no canto do "
-        "mapa para ligar/desligar ou trocar o ano.",
-        size="1", color=MUTED,
-    )
+    return rx.text(AppState.tr["map_layer_note"], size="1", color=MUTED)
 
 
 # --------------------------------------------------------------------------- #
@@ -40,7 +36,7 @@ def _map_layer_note() -> rx.Component:
 def _cobertura_table() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.text("Ano", size="1", color=MUTED),
+            rx.text(AppState.tr["cobertura_ano"], size="1", color=MUTED),
             rx.select(
                 [str(y) for y in mb.MAPBIOMAS_YEARS],
                 value=AppState.mapbiomas_layer_year.to_string(),
@@ -52,7 +48,7 @@ def _cobertura_table() -> rx.Component:
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    rx.table.column_header_cell("Classe"),
+                    rx.table.column_header_cell(AppState.tr["cobertura_classe"]),
                     rx.table.column_header_cell("ha", text_align="right"),
                     rx.table.column_header_cell("%", text_align="right"),
                 ),
@@ -66,7 +62,7 @@ def _cobertura_table() -> rx.Component:
                                 rx.box(width="10px", height="10px",
                                       border_radius="2px",
                                       background=r["color"]),
-                                rx.text(r["class_pt"], size="1"),
+                                rx.text(r["class_label"], size="1"),
                                 spacing="2", align="center",
                             ),
                         ),
@@ -86,10 +82,10 @@ def _cobertura_table() -> rx.Component:
 def _cobertura_chart() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.text("hectares", size="1", color=MUTED),
+            rx.text(AppState.tr["cobertura_hectares"], size="1", color=MUTED),
             rx.switch(checked=AppState.history_normalise,
                      on_change=AppState.toggle_history_normalise, size="1"),
-            rx.text("percentual", size="1", color=MUTED),
+            rx.text(AppState.tr["cobertura_percentual"], size="1", color=MUTED),
             spacing="2", align="center",
         ),
         rx.plotly(
@@ -112,17 +108,14 @@ def cobertura_tab() -> rx.Component:
         ),
         rx.cond(
             AppState.history_degraded,
-            rx.callout(
-                "Resultado calculado em resolução reduzida após uma falha "
-                "temporária do Earth Engine.",
-                icon="info", color_scheme="gray", size="1",
-            ),
+            rx.callout(AppState.tr["cobertura_degraded"], icon="info",
+                       color_scheme="gray", size="1"),
         ),
         rx.cond(
             AppState.history_running,
             rx.center(
                 rx.hstack(rx.spinner(),
-                         rx.text("Calculando trajetória MapBiomas…", size="2"),
+                         rx.text(AppState.tr["cobertura_running"], size="2"),
                          spacing="2"),
                 height="260px",
             ),
@@ -130,18 +123,13 @@ def cobertura_tab() -> rx.Component:
                 AppState.has_history,
                 split_panel(_cobertura_chart(), _cobertura_table()),
                 rx.center(
-                    rx.text("Selecione um imóvel para ver a trajetória de "
-                           "uso da terra.", size="2", color=MUTED),
+                    rx.text(AppState.tr["cobertura_empty"], size="2", color=MUTED),
                     height="200px",
                 ),
             ),
         ),
         _map_layer_note(),
-        rx.text(
-            "MapBiomas Coleção 10.1 (CC BY-SA 4.0) · escala 30 m · "
-            "reduceRegions em lote por zona.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["cobertura_attribution"], size="1", color=MUTED),
         spacing="3", width="100%", padding="3",
     )
 
@@ -149,7 +137,7 @@ def cobertura_tab() -> rx.Component:
 # --------------------------------------------------------------------------- #
 # Floresta — up to 2008 / 2008 até o registro / depois do registro
 # --------------------------------------------------------------------------- #
-def _period_stat(label: str, value_var, color: str) -> rx.Component:
+def _period_stat(label, value_var, color: str) -> rx.Component:
     return rx.vstack(
         rx.text(label, size="1", color=MUTED),
         rx.text(f"{value_var} ha", size="3", weight="bold", color=color),
@@ -161,9 +149,10 @@ def _floresta_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
-                rx.table.column_header_cell("Ano"),
-                rx.table.column_header_cell("Perda (ha)", text_align="right"),
-                rx.table.column_header_cell("Período"),
+                rx.table.column_header_cell(AppState.tr["floresta_col_ano"]),
+                rx.table.column_header_cell(AppState.tr["floresta_col_perda"],
+                                            text_align="right"),
+                rx.table.column_header_cell(AppState.tr["floresta_col_periodo"]),
             ),
         ),
         rx.table.body(
@@ -187,15 +176,9 @@ def floresta_tab() -> rx.Component:
     return rx.vstack(
         zone_selector(),
         rx.hstack(
-            rx.text(
-                "Perda de cobertura florestal por período: até 2008 (data de "
-                "corte do Código Florestal), de 2008 até o registro no CAR, "
-                "e depois do registro. Ganho é uma camada única, sem data "
-                "(2000–2012), nunca somado à perda.",
-                size="1", color=MUTED,
-            ),
+            rx.text(AppState.tr["floresta_intro"], size="1", color=MUTED),
             rx.spacer(),
-            _run_button("Calcular", AppState.hansen_running, AppState.run_hansen),
+            _run_button("calcular", AppState.hansen_running, AppState.run_hansen),
             width="100%", align="start",
         ),
         rx.cond(
@@ -206,7 +189,8 @@ def floresta_tab() -> rx.Component:
         rx.cond(
             AppState.hansen_running,
             rx.center(
-                rx.hstack(rx.spinner(), rx.text("Calculando…", size="2"),
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"),
                          spacing="2"),
                 height="200px",
             ),
@@ -214,16 +198,16 @@ def floresta_tab() -> rx.Component:
                 AppState.hansen_has_run,
                 rx.vstack(
                     rx.hstack(
-                        _period_stat("Até 2008", AppState.hansen_loss_up_to_2008_ha,
-                                    "#f5a524"),
-                        _period_stat("2008 até o registro",
+                        _period_stat(AppState.tr["floresta_ate_2008"],
+                                    AppState.hansen_loss_up_to_2008_ha, "#f5a524"),
+                        _period_stat(AppState.tr["floresta_2008_ate_registro"],
                                     AppState.hansen_loss_2008_to_registration_ha,
                                     "#e5484d"),
-                        _period_stat("Depois do registro",
+                        _period_stat(AppState.tr["floresta_depois_registro"],
                                     AppState.hansen_loss_after_registration_ha,
                                     "#8b1a1a"),
-                        _period_stat("Ganho (sem data)", AppState.hansen_gain_ha,
-                                    "#02d659"),
+                        _period_stat(AppState.tr["floresta_ganho_sem_data"],
+                                    AppState.hansen_gain_ha, "#02d659"),
                         spacing="5", width="100%", wrap="wrap",
                     ),
                     split_panel(
@@ -240,10 +224,7 @@ def floresta_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(
-            "Hansen/UMD/Google/USGS/NASA — Global Forest Change · escala 30 m.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["floresta_attribution"], size="1", color=MUTED),
         spacing="3", width="100%", padding="3",
     )
 
@@ -255,9 +236,11 @@ def _biomassa_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
-                rx.table.column_header_cell("Ano"),
-                rx.table.column_header_cell("Mg/ha", text_align="right"),
-                rx.table.column_header_cell("Total (Mg)", text_align="right"),
+                rx.table.column_header_cell(AppState.tr["biomassa_col_ano"]),
+                rx.table.column_header_cell(AppState.tr["biomassa_col_mg_ha"],
+                                            text_align="right"),
+                rx.table.column_header_cell(AppState.tr["biomassa_col_total_mg"],
+                                            text_align="right"),
             ),
         ),
         rx.table.body(
@@ -282,14 +265,9 @@ def biomassa_tab() -> rx.Component:
     return rx.vstack(
         zone_selector(),
         rx.hstack(
-            rx.text(
-                "Biomassa acima do solo, dez anos: 2007, 2010 e anual a "
-                "partir de 2015. O intervalo entre eles é uma lacuna real da "
-                "fonte, não um dado ausente — não interpolado.",
-                size="1", color=MUTED,
-            ),
+            rx.text(AppState.tr["biomassa_intro"], size="1", color=MUTED),
             rx.spacer(),
-            _run_button("Calcular", AppState.biomass_running, AppState.run_biomass),
+            _run_button("calcular", AppState.biomass_running, AppState.run_biomass),
             width="100%", align="start",
         ),
         rx.cond(
@@ -300,7 +278,8 @@ def biomassa_tab() -> rx.Component:
         rx.cond(
             AppState.biomass_running,
             rx.center(
-                rx.hstack(rx.spinner(), rx.text("Calculando…", size="2"),
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"),
                          spacing="2"),
                 height="200px",
             ),
@@ -318,10 +297,7 @@ def biomassa_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(
-            "ESA CCI Biomass v6.0 — Santoro & Cartus (2025) · escala 100 m.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["biomassa_attribution"], size="1", color=MUTED),
         spacing="3", width="100%", padding="3",
     )
 
@@ -332,11 +308,11 @@ def results_panel() -> rx.Component:
         rx.box(
             rx.tabs.root(
                 rx.tabs.list(
-                    rx.tabs.trigger("Cobertura", value="cobertura"),
-                    rx.tabs.trigger("Transições", value="transicoes"),
-                    rx.tabs.trigger("Floresta", value="floresta"),
-                    rx.tabs.trigger("Biomassa", value="biomassa"),
-                    rx.tabs.trigger("Validação", value="validacao"),
+                    rx.tabs.trigger(AppState.tr["tab_cobertura"], value="cobertura"),
+                    rx.tabs.trigger(AppState.tr["tab_transicoes"], value="transicoes"),
+                    rx.tabs.trigger(AppState.tr["tab_floresta"], value="floresta"),
+                    rx.tabs.trigger(AppState.tr["tab_biomassa"], value="biomassa"),
+                    rx.tabs.trigger(AppState.tr["tab_validacao"], value="validacao"),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),

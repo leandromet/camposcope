@@ -33,7 +33,8 @@ def _echo_line() -> rx.Component:
     return rx.cond(
         AppState.echo,
         rx.hstack(
-            rx.text("lido como:", size="1", color=MUTED, flex_shrink="0"),
+            rx.text(AppState.tr["search_read_as"], size="1", color=MUTED,
+                    flex_shrink="0"),
             rx.badge(
                 AppState.echo,
                 size="1",
@@ -57,7 +58,7 @@ def _search_field() -> rx.Component:
         rx.hstack(
             rx.input(
                 rx.input.slot(rx.icon("search", size=14)),
-                placeholder="código CAR, coordenada, município ou lugar…",
+                placeholder=AppState.tr["search_placeholder"],
                 value=AppState.query,
                 on_change=AppState.set_query,
                 on_key_down=lambda key: rx.cond(
@@ -83,8 +84,8 @@ def _search_field() -> rx.Component:
         rx.button(
             rx.cond(
                 AppState.searching | AppState.searching_place,
-                "Buscando…",
-                "Buscar",
+                AppState.tr["search_button_busy"],
+                AppState.tr["search_button"],
             ),
             on_click=AppState.submit_search,
             disabled=AppState.searching | AppState.searching_place,
@@ -113,7 +114,8 @@ def _municipio_hits() -> rx.Component:
     return rx.cond(
         AppState.municipio_hits,
         rx.vstack(
-            rx.text("Municípios", size="1", weight="medium", color=MUTED),
+            rx.text(AppState.tr["search_municipios_heading"], size="1",
+                    weight="medium", color=MUTED),
             rx.foreach(
                 AppState.municipio_hits,
                 lambda m: _result_row(
@@ -132,7 +134,8 @@ def _place_hits() -> rx.Component:
     return rx.cond(
         AppState.place_hits,
         rx.vstack(
-            rx.text("Lugares", size="1", weight="medium", color=MUTED),
+            rx.text(AppState.tr["search_places_heading"], size="1",
+                    weight="medium", color=MUTED),
             rx.foreach(
                 AppState.place_hits,
                 lambda p, i: _result_row(
@@ -140,15 +143,9 @@ def _place_hits() -> rx.Component:
                     on_click=AppState.choose_place(i),
                 ),
             ),
-            rx.text(
-                "Um lugar apenas enquadra o mapa. Clique sobre um imóvel para "
-                "analisá-lo.",
-                size="1", color=MUTED,
-            ),
-            rx.text(
-                "Busca de lugares © colaboradores do OpenStreetMap (ODbL)",
-                size="1", color=MUTED,
-            ),
+            rx.text(AppState.tr["search_places_note"], size="1", color=MUTED),
+            rx.text(AppState.tr["search_places_attribution"], size="1",
+                    color=MUTED),
             spacing="1",
             width="100%",
         ),
@@ -166,8 +163,7 @@ def candidate_chooser() -> rx.Component:
         AppState.candidates,
         rx.vstack(
             rx.text(
-                "Mais de um imóvel registrado cobre este ponto. "
-                "Sobreposições são comuns no CAR — escolha qual analisar:",
+                AppState.tr["search_candidates_note"],
                 size="1", weight="medium",
             ),
             rx.foreach(
@@ -194,10 +190,12 @@ def municipio_browser() -> rx.Component:
     return rx.cond(
         AppState.municipio_list,
         section(
-            "Imóveis no município",
+            AppState.tr["municipio_browser_title"],
             rx.hstack(
-                rx.text(f"{AppState.municipio_total} registros", size="1",
-                        color=MUTED),
+                rx.text(
+                    f"{AppState.municipio_total} {AppState.tr['municipio_browser_total']}",
+                    size="1", color=MUTED,
+                ),
                 rx.spacer(),
                 rx.text(AppState.municipio_page_label, size="1", color=MUTED),
                 width="100%",
@@ -216,11 +214,13 @@ def municipio_browser() -> rx.Component:
                 ),
             ),
             rx.hstack(
-                rx.button("‹ anterior", on_click=AppState.prev_municipio_page,
+                rx.button(AppState.tr["municipio_browser_prev"],
+                          on_click=AppState.prev_municipio_page,
                           disabled=AppState.municipio_page <= 0,
                           size="1", variant="soft"),
                 rx.spacer(),
-                rx.button("próxima ›", on_click=AppState.next_municipio_page,
+                rx.button(AppState.tr["municipio_browser_next"],
+                          on_click=AppState.next_municipio_page,
                           disabled=AppState.municipio_page + 1
                           >= AppState.municipio_pages,
                           size="1", variant="soft"),
@@ -232,7 +232,7 @@ def municipio_browser() -> rx.Component:
 
 def search_panel() -> rx.Component:
     return section(
-        "Busca",
+        AppState.tr["search_title"],
         _search_field(),
         rx.cond(
             AppState.search_error,

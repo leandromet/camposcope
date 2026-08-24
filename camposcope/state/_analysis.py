@@ -20,6 +20,7 @@ import reflex as rx
 
 from ..components.charts import land_cover_history_figure
 from ..config import mapbiomas as mb
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -62,11 +63,12 @@ class AnalysisMixin(rx.State, mixin=True):
         largest first — the compact table shown beside the trajectory chart
         (not one row per year: forty years of every class would not fit)."""
         year = self.mapbiomas_layer_year
+        class_key = "class_en" if getattr(self, "lang", "pt") == "en" else "class_pt"
         rows = [r for r in self.history_rows_for_zone if r["year"] == year]
         total = sum(r["area_ha"] for r in rows) or 1.0
         out = [
             {
-                "class_pt": r["class_pt"], "color": r["color"],
+                "class_label": r[class_key], "color": r["color"],
                 "area_ha": round(r["area_ha"], 2),
                 "area_pct": round(100.0 * r["area_ha"] / total, 1),
             }
@@ -152,9 +154,9 @@ class AnalysisMixin(rx.State, mixin=True):
             logger.exception("MapBiomas history failed")
             async with self:
                 self.history_running = False
-                self.history_error = (
-                    f"Não foi possível calcular a trajetória MapBiomas: {exc}"
-                )
+                self.history_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_trajetoria_mapbiomas"].format(detail=exc)
             return
 
         async with self:
@@ -163,10 +165,9 @@ class AnalysisMixin(rx.State, mixin=True):
             self.history_degraded = prov.degraded
             self.history_notes = list(prov.notes)
             if df.empty:
-                self.history_error = (
-                    "A consulta ao MapBiomas não retornou classes para esta "
-                    "geometria."
-                )
+                self.history_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_mapbiomas_sem_classes"]
 
 
 class ForestChangeMixin(rx.State, mixin=True):
@@ -199,11 +200,20 @@ class ForestChangeMixin(rx.State, mixin=True):
         "2008_ate_registro": "#e5484d",
         "apos_registro": "#8b1a1a",
     }
-    _PERIOD_LABEL = {
+    _PERIOD_LABEL_PT = {
         "ate_2008": "Até 2008",
         "2008_ate_registro": "2008 até o registro",
         "apos_registro": "Depois do registro",
     }
+    _PERIOD_LABEL_EN = {
+        "ate_2008": "Up to 2008",
+        "2008_ate_registro": "2008 to registration",
+        "apos_registro": "After registration",
+    }
+
+    def _period_labels(self) -> Dict[str, str]:
+        return (self._PERIOD_LABEL_EN if getattr(self, "lang", "pt") == "en"
+               else self._PERIOD_LABEL_PT)
 
     def _hansen_period_total(self, period: str) -> float:
         return round(sum(
@@ -229,19 +239,24 @@ class ForestChangeMixin(rx.State, mixin=True):
             (r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone),
             key=lambda r: r["year"],
         )
+        labels = self._period_labels()
         return [
             {"year": r["year"], "area_ha": round(r["area_ha"], 2),
-             "period_label": self._PERIOD_LABEL.get(r["period"], r["period"])}
+             "period_label": labels.get(r["period"], r["period"])}
             for r in rows
         ]
 
     @rx.var(cache=True)
     def hansen_figure(self) -> go.Figure:
+        lang = getattr(self, "lang", "pt")
         rows = [r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone]
+        labels = self._period_labels()
         fig = go.Figure()
         if not rows:
-            fig.add_annotation(text="Sem dados", showarrow=False,
-                              font=dict(size=13, color="#888"))
+            fig.add_annotation(
+                text="Sem dados" if lang == "pt" else "No data",
+                showarrow=False, font=dict(size=13, color="#888"),
+            )
         else:
             for period in ("ate_2008", "2008_ate_registro", "apos_registro"):
                 bucket = [r for r in rows if r["period"] == period]
@@ -249,7 +264,7 @@ class ForestChangeMixin(rx.State, mixin=True):
                     continue
                 fig.add_bar(
                     x=[r["year"] for r in bucket], y=[r["area_ha"] for r in bucket],
-                    name=self._PERIOD_LABEL[period],
+                    name=labels[period],
                     marker_color=self._PERIOD_COLOR[period],
                 )
         fig.update_layout(
@@ -258,7 +273,7 @@ class ForestChangeMixin(rx.State, mixin=True):
             legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
                        font=dict(size=9)),
             xaxis=dict(title=None, tickmode="linear", dtick=2),
-            yaxis=dict(title="Perda (ha)"),
+            yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)"),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         )
         return fig
@@ -296,7 +311,9 @@ class ForestChangeMixin(rx.State, mixin=True):
             logger.exception("Hansen forest change failed")
             async with self:
                 self.hansen_running = False
-                self.hansen_error = f"Não foi possível calcular a perda florestal: {exc}"
+                self.hansen_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_perda_florestal"].format(detail=exc)
             return
 
         async with self:
@@ -339,14 +356,17 @@ class BiomassMixin(rx.State, mixin=True):
 
     @rx.var(cache=True)
     def biomass_figure(self) -> go.Figure:
+        lang = getattr(self, "lang", "pt")
         rows = sorted(
             (r for r in self.biomass_rows if r["zone_key"] == self.active_zone),
             key=lambda r: r["year"],
         )
         fig = go.Figure()
         if not rows:
-            fig.add_annotation(text="Sem dados", showarrow=False,
-                              font=dict(size=13, color="#888"))
+            fig.add_annotation(
+                text="Sem dados" if lang == "pt" else "No data",
+                showarrow=False, font=dict(size=13, color="#888"),
+            )
         else:
             # The series has a real gap (2011-2014 missing) — connectgaps=False
             # draws it as a gap instead of interpolating across it.
@@ -359,7 +379,7 @@ class BiomassMixin(rx.State, mixin=True):
         fig.update_layout(
             template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
             xaxis=dict(title=None, tickmode="linear", dtick=2),
-            yaxis=dict(title="Biomassa (Mg/ha)"),
+            yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)"),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
             showlegend=False,
         )
@@ -394,7 +414,9 @@ class BiomassMixin(rx.State, mixin=True):
             logger.exception("Biomass failed")
             async with self:
                 self.biomass_running = False
-                self.biomass_error = f"Não foi possível calcular a biomassa: {exc}"
+                self.biomass_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_biomassa"].format(detail=exc)
             return
 
         async with self:
@@ -442,7 +464,9 @@ class SpotCoverageMixin(rx.State, mixin=True):
             logger.exception("SPOT coverage failed")
             async with self:
                 self.spot_running = False
-                self.spot_error = f"Não foi possível verificar a cobertura SPOT: {exc}"
+                self.spot_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_spot_cobertura"].format(detail=exc)
             return
 
         async with self:
@@ -527,7 +551,9 @@ class ValidacaoMixin(rx.State, mixin=True):
             logger.exception("IBGE/MapBiomas comparison failed")
             async with self:
                 self.validacao_running = False
-                self.validacao_error = f"Não foi possível calcular a comparação: {exc}"
+                self.validacao_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_comparacao_ibge"].format(detail=exc)
             return
 
         async with self:

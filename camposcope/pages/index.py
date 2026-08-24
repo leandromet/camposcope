@@ -72,7 +72,7 @@ def _drag_handle() -> rx.Component:
 
 def _layers_panel() -> rx.Component:
     return section(
-        "Camadas",
+        AppState.tr["layers_title"],
         rx.select(
             list(ALL_BASEMAPS.keys()),
             value=AppState.basemap,
@@ -82,7 +82,8 @@ def _layers_panel() -> rx.Component:
         ),
         rx.cond(
             AppState.basemap_busy,
-            rx.hstack(rx.spinner(size="1"), rx.text("Carregando camada…", size="1"),
+            rx.hstack(rx.spinner(size="1"),
+                     rx.text(AppState.tr["layers_loading"], size="1"),
                      spacing="2", align="center"),
         ),
         rx.cond(
@@ -92,29 +93,22 @@ def _layers_panel() -> rx.Component:
         ),
         rx.cond(
             AppState.basemap.contains("spot"),
-            rx.text(
-                "Verificação de cobertura e datas: aba Floresta.",
-                size="1", color=MUTED,
-            ),
+            rx.text(AppState.tr["layers_spot_hint"], size="1", color=MUTED),
         ),
         rx.hstack(
             rx.switch(checked=AppState.show_car_layer,
                       on_change=AppState.toggle_car_layer, size="1"),
-            rx.text("Imóveis do CAR (WMS)", size="1"),
+            rx.text(AppState.tr["layers_car_wms"], size="1"),
             spacing="2", align="center",
         ),
-        rx.text("Aparece a partir do zoom 8.", size="1", color=MUTED),
+        rx.text(AppState.tr["layers_car_wms_note"], size="1", color=MUTED),
         rx.hstack(
             rx.switch(checked=AppState.show_biomes,
                       on_change=AppState.toggle_biomes, size="1"),
-            rx.text("Biomas e domínios (IBGE)", size="1"),
+            rx.text(AppState.tr["layers_biomes"], size="1"),
             spacing="2", align="center",
         ),
-        rx.text(
-            "Limites aproximados (~1 km) — orientação, não decide o bioma de "
-            "um imóvel específico.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["layers_biomes_note"], size="1", color=MUTED),
     )
 
 
@@ -128,7 +122,7 @@ def _sidebar() -> rx.Component:
                     rx.icon("panel-left-close", size=15),
                     on_click=AppState.toggle_sidebar,
                     size="1", variant="ghost", color_scheme="gray",
-                    aria_label="Esconder painel",
+                    aria_label=AppState.tr["sidebar_hide_aria"],
                 ),
                 width="100%", padding_top="2",
             ),
@@ -154,7 +148,7 @@ def _sidebar() -> rx.Component:
                 rx.icon("panel-left-open", size=15),
                 on_click=AppState.toggle_sidebar,
                 size="1", variant="soft", color_scheme="gray",
-                aria_label="Mostrar painel",
+                aria_label=AppState.tr["sidebar_show_aria"],
             ),
             padding="2",
             border_right=BORDER,

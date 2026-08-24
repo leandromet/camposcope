@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Dict
+
 import reflex as rx
+
+from ..translations import get_translations
 
 
 class UIMixin(rx.State, mixin=True):
@@ -14,6 +18,14 @@ class UIMixin(rx.State, mixin=True):
     #: One transient message. Cadastral and Earth Engine failures each render in
     #: their own place (doc/08-ui-ux.md §6); this is for everything else.
     toast: str = ""
+
+    @rx.var(cache=True)
+    def tr(self) -> Dict[str, str]:
+        """Static UI text for the current language — every component reads
+        labels/buttons/captions through this rather than hardcoding Portuguese
+        (translations/__init__.py explains what deliberately stays OUT of this
+        table: cadastral fields, dataset vocabulary, zone labels)."""
+        return get_translations(self.lang)
 
     @rx.event
     def set_lang(self, lang: str | list[str]) -> None:

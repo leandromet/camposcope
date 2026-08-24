@@ -7,13 +7,14 @@ Trimmed from Naturametrics' ``state/_layers.py`` (decision D2).
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import reflex as rx
 
 from ..config.datasets import ALL_BASEMAPS, BASEMAPS, is_ee_basemap
 from ..config.settings import DEFAULT_BASEMAP, DEFAULT_CENTER, DEFAULT_ZOOM
 from ..services import sicar
+from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
 
@@ -95,8 +96,13 @@ class LayersMixin(rx.State, mixin=True):
         of one — see `_mint_swipe_layers`.
         """
         async with self:
-            tab = self.results_tab
-            has_property = self.has_imovel
+            # `results_tab` (UIMixin) and `has_imovel` (ImovelMixin) live on
+            # sibling mixins, invisible to a static checker looking only at
+            # LayersMixin — `getattr` with a default sidesteps that the same
+            # way every other cross-mixin read in this function already does,
+            # for consistency as much as to silence the warning.
+            tab = getattr(self, "results_tab", "cobertura")
+            has_property = getattr(self, "has_imovel", False)
             enabled = self.analysis_layer_enabled
             year_mb = getattr(self, "mapbiomas_layer_year", None)
             hansen_mode = getattr(self, "hansen_layer_mode", "2008")
@@ -125,34 +131,37 @@ class LayersMixin(rx.State, mixin=True):
             return
 
         from ..config.settings import HANSEN_TREECOVER_THRESHOLD
+        from ..services import layers as layer_service
 
         cache_key: Optional[str] = None
-        mint_fn = None
+        # A lambda ASSIGNED to `mint_fn`, not a nested `def mint_fn():` —
+        # the latter declares a second, distinct symbol in the same scope
+        # ("mint_fn is obscured by a declaration of the same name" from a
+        # static checker), even though it works fine at runtime. An
+        # assignment matches the variable's own declared type instead of
+        # competing with it.
+        mint_fn: Optional[Callable[[], Optional[Dict[str, Any]]]] = None
 
         if tab == "cobertura" and year_mb:
             cache_key = f"mapbiomas:v10_1:{year_mb}"
-
-            def mint_fn():
-                from ..services import layers as layer_service
-                return layer_service.mapbiomas_year_spec(year_mb)
+            mint_fn = lambda: layer_service.mapbiomas_year_spec(year_mb)
 
         elif tab == "floresta":
+            # registration_year can be falsy (property not yet registered, or
+            # not selected) even when hansen_mode == "registro" — 2008 is the
+            # honest fallback either way, and it keeps `from_year` a definite
+            # int rather than `int | None` going into hansen_change_spec.
             from_year = (
-                registration_year if hansen_mode == "registro"
+                int(registration_year)
+                if hansen_mode == "registro" and registration_year
                 else 2008
             )
             cache_key = f"hansen_change:{from_year}:{HANSEN_TREECOVER_THRESHOLD}"
-
-            def mint_fn():
-                from ..services import layers as layer_service
-                return layer_service.hansen_change_spec(from_year)
+            mint_fn = lambda: layer_service.hansen_change_spec(from_year)
 
         elif tab == "biomassa" and year_biomass:
             cache_key = f"biomass:{year_biomass}"
-
-            def mint_fn():
-                from ..services import layers as layer_service
-                return layer_service.biomass_year_spec(year_biomass)
+            mint_fn = lambda: layer_service.biomass_year_spec(year_biomass)
 
         else:
             return
@@ -179,9 +188,9 @@ class LayersMixin(rx.State, mixin=True):
                 self.analysis_layer_specs[cache_key] = spec
                 self.active_analysis_layer_key = cache_key
             else:
-                self.analysis_layer_error = (
-                    "Não foi possível carregar a camada desta aba no mapa."
-                )
+                self.analysis_layer_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_camada_aba"]
 
     async def _mint_swipe_layers(self) -> None:
         """The Transições tab's map layer: the two selected Sankey years,
@@ -242,9 +251,9 @@ class LayersMixin(rx.State, mixin=True):
                 self.analysis_layer_specs[right_key] = spec_right
                 self.swipe_layer_keys = [left_key, right_key]
             else:
-                self.analysis_layer_error = (
-                    "Não foi possível carregar as camadas de comparação."
-                )
+                self.analysis_layer_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_camadas_comparacao"]
 
     async def _mint_validacao_layers(self, mode: str, spot_band_mode: str) -> None:
         """The Validação tab's two layers: a classification checked on the
@@ -316,11 +325,10 @@ class LayersMixin(rx.State, mixin=True):
                 self.analysis_layer_specs[right_key] = spec_right
                 self.swipe_layer_keys = [left_key, right_key]
             else:
+                msgs = get_translations(getattr(self, "lang", "pt"))
                 self.analysis_layer_error = (
-                    "Não foi possível carregar as camadas de comparação. "
-                    "SPOT pode exigir CS_SPOT_ENABLED=true."
-                    if mode == "spot_2008" else
-                    "Não foi possível carregar as camadas de comparação."
+                    msgs["erro_camadas_comparacao_spot"] if mode == "spot_2008"
+                    else msgs["erro_camadas_comparacao"]
                 )
 
     @rx.event(background=True)
@@ -365,11 +373,9 @@ class LayersMixin(rx.State, mixin=True):
                 # Stay on the previous basemap and say why, rather than
                 # reverting silently — a silent revert would look like the
                 # select control is broken, not like a permission gap.
-                self.basemap_error = (
-                    f"Não foi possível carregar a camada '{name}'. Ela pode "
-                    "exigir uma licença que esta instalação não tem "
-                    "(CS_SPOT_ENABLED)."
-                )
+                self.basemap_error = get_translations(
+                    getattr(self, "lang", "pt")
+                )["erro_basemap"].format(name=name)
 
     @rx.event(background=True)
     async def toggle_spot_basemap(self):

@@ -18,8 +18,10 @@ from .layout import MUTED, zone_selector
 
 def _mode_switch() -> rx.Component:
     return rx.segmented_control.root(
-        rx.segmented_control.item("SPOT × MapBiomas 2008", value="spot_2008"),
-        rx.segmented_control.item("IBGE × MapBiomas 2022", value="ibge_2022"),
+        rx.segmented_control.item(AppState.tr["validacao_mode_spot"],
+                                  value="spot_2008"),
+        rx.segmented_control.item(AppState.tr["validacao_mode_ibge"],
+                                  value="ibge_2022"),
         value=AppState.validacao_mode,
         on_change=AppState.set_validacao_mode,
         size="1", width="100%",
@@ -32,10 +34,12 @@ def _spot_band_switch() -> rx.Component:
     left-hand layer instead. NIR-in-red is what makes 2008 vegetation
     legible against pasture at a glance (doc/04-data-sources.md §6)."""
     return rx.vstack(
-        rx.text("Mosaico SPOT", size="1", color=MUTED),
+        rx.text(AppState.tr["validacao_spot_mosaic"], size="1", color=MUTED),
         rx.segmented_control.root(
-            rx.segmented_control.item("Visual", value="visual"),
-            rx.segmented_control.item("Falsa-cor (NIR)", value="analytic"),
+            rx.segmented_control.item(AppState.tr["validacao_spot_visual"],
+                                      value="visual"),
+            rx.segmented_control.item(AppState.tr["validacao_spot_analytic"],
+                                      value="analytic"),
             value=AppState.spot_band_mode,
             on_change=AppState.set_spot_band_mode,
             size="1", width="100%",
@@ -46,17 +50,9 @@ def _spot_band_switch() -> rx.Component:
 
 def _spot_note() -> rx.Component:
     return rx.vstack(
-        rx.text(
-            "Imagens SPOT de aproximadamente 2008 ao lado da classificação "
-            "MapBiomas para o mesmo ano — a referência visual mais próxima "
-            "da data de corte do Código Florestal (22/07/2008).",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["validacao_spot_note"], size="1", color=MUTED),
         _spot_band_switch(),
-        rx.text(
-            "Não classifica área consolidada nem avalia regularidade.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["validacao_no_verdict"], size="1", color=MUTED),
         spacing="2", width="100%",
     )
 
@@ -69,7 +65,7 @@ def _matrix_table() -> rx.Component:
     return rx.vstack(
         rx.hstack(
             rx.vstack(
-                rx.text("Floresta", size="1", color=MUTED),
+                rx.text(AppState.tr["validacao_floresta"], size="1", color=MUTED),
                 rx.hstack(
                     rx.text(f"IBGE {AppState.validacao_matrix['forest_ibge']}%",
                            size="2", weight="bold"),
@@ -81,7 +77,7 @@ def _matrix_table() -> rx.Component:
                 spacing="0",
             ),
             rx.vstack(
-                rx.text("Natural", size="1", color=MUTED),
+                rx.text(AppState.tr["validacao_natural"], size="1", color=MUTED),
                 rx.hstack(
                     rx.text(f"IBGE {AppState.validacao_matrix['natural_ibge']}%",
                            size="2", weight="bold"),
@@ -97,8 +93,8 @@ def _matrix_table() -> rx.Component:
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    rx.table.column_header_cell("IBGE (esquerda)"),
-                    rx.table.column_header_cell("MapBiomas (direita)"),
+                    rx.table.column_header_cell(AppState.tr["validacao_col_ibge"]),
+                    rx.table.column_header_cell(AppState.tr["validacao_col_mapbiomas"]),
                     rx.table.column_header_cell("%", text_align="right"),
                 ),
             ),
@@ -117,6 +113,9 @@ def _matrix_table() -> rx.Component:
                         AppState.validacao_matrix["matrix"].to(dict)[g_ibge]
                         .to(dict)[g_mb].to(float) > 0,
                         rx.table.row(
+                            # Group NAMES (leg2 labels) are dataset vocabulary
+                            # (translations/__init__.py §2) — GROUP_LABELS_PT
+                            # stays PT-only, same rule as MapBiomas class names.
                             rx.table.cell(rx.text(labels[g_ibge], size="1")),
                             rx.table.cell(rx.text(labels[g_mb], size="1")),
                             rx.table.cell(
@@ -142,15 +141,11 @@ def _matrix_table() -> rx.Component:
 def _ibge_section() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.text(
-                "IBGE Vegetação (1:250.000, 2022) contra a classificação "
-                "MapBiomas do mesmo ano, reduzidas a uma taxonomia comum de "
-                "6 grupos — os dois mapas não compartilham classes.",
-                size="1", color=MUTED,
-            ),
+            rx.text(AppState.tr["validacao_ibge_intro"], size="1", color=MUTED),
             rx.spacer(),
             rx.button(
-                rx.cond(AppState.validacao_running, "Calculando…", "Calcular"),
+                rx.cond(AppState.validacao_running, AppState.tr["calculando"],
+                       AppState.tr["calcular"]),
                 on_click=AppState.run_validacao,
                 disabled=AppState.validacao_running,
                 size="1",
@@ -165,18 +160,14 @@ def _ibge_section() -> rx.Component:
         rx.cond(
             AppState.validacao_running,
             rx.center(
-                rx.hstack(rx.spinner(), rx.text("Calculando…", size="2"),
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"),
                          spacing="2"),
                 height="150px",
             ),
             rx.cond(AppState.validacao_matrix, _matrix_table()),
         ),
-        rx.text(
-            "'Vegetação Secundária' do IBGE não tem equivalente direto no "
-            "MapBiomas por definição; a tabela mostra o que o MapBiomas lê "
-            "hoje nesses polígonos.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["validacao_ibge_caveat"], size="1", color=MUTED),
         spacing="3", width="100%",
     )
 
@@ -190,10 +181,6 @@ def validacao_tab() -> rx.Component:
             _spot_note(),
             _ibge_section(),
         ),
-        rx.text(
-            "IBGE — Mapa de Vegetação do Brasil 1:250.000 (2022) · "
-            "Google Brazil Forest Imagery Dataset 2008.",
-            size="1", color=MUTED,
-        ),
+        rx.text(AppState.tr["validacao_attribution"], size="1", color=MUTED),
         spacing="3", width="100%", padding="3",
     )
