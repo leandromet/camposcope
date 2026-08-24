@@ -38,11 +38,13 @@ class TransitionsMixin(rx.State, mixin=True):
     multi_stage_running: bool = False
     multi_stage_error: str = ""
 
-    @rx.var
+    @rx.var(cache=True, deps=["sankey_transitions", "lang"], auto_deps=False)
     def sankey_table_rows(self) -> List[dict]:
         """The transition dict flattened for a sortable table — the figure is
         for seeing the shape, the table is for making a claim
-        (doc/07-transitions.md §5)."""
+        (doc/07-transitions.md §5). Explicit ``deps`` for the same reason as
+        ``ImovelMixin.disclosure``: ``lang`` is read via ``getattr``, which
+        Reflex's auto-dependency scan cannot see."""
         rows = []
         for src_id, tgt_dict in self.sankey_transitions.items():
             for tgt_id, area in tgt_dict.items():

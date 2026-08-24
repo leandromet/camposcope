@@ -57,11 +57,19 @@ class AnalysisMixin(rx.State, mixin=True):
         zone = self.active_zone
         return [r for r in self.history_rows if r["zone_key"] == zone]
 
-    @rx.var
+    @rx.var(
+        cache=True,
+        deps=["history_rows", "active_zone", "mapbiomas_layer_year", "lang"],
+        auto_deps=False,
+    )
     def history_table_rows(self) -> List[Dict[str, Any]]:
         """The active zone's class breakdown for ``mapbiomas_layer_year``,
         largest first — the compact table shown beside the trajectory chart
-        (not one row per year: forty years of every class would not fit)."""
+        (not one row per year: forty years of every class would not fit).
+        Explicit ``deps``: ``lang`` is read via ``getattr`` (see
+        ``ImovelMixin.disclosure``), invisible to auto-detection — without
+        this the table's class names would stick to whichever language was
+        active when the property was first loaded."""
         year = self.mapbiomas_layer_year
         class_key = "class_en" if getattr(self, "lang", "pt") == "en" else "class_pt"
         rows = [r for r in self.history_rows_for_zone if r["year"] == year]
@@ -84,14 +92,19 @@ class AnalysisMixin(rx.State, mixin=True):
         self.mapbiomas_layer_year = int(year)
         return self.__class__.mint_analysis_layer
 
-    @rx.var(cache=True)
+    @rx.var(
+        cache=True,
+        deps=["history_rows", "active_zone", "history_normalise", "imovel", "lang"],
+        auto_deps=False,
+    )
     def history_figure(self) -> go.Figure:
         """Built server-side from already-fetched rows — never a fresh EE call.
 
         Cached so switching UI tabs or toggling something unrelated does not
-        rebuild the figure; it is invalidated automatically when
-        ``history_rows``, ``active_zone``, ``history_normalise`` or ``lang``
-        change, since those are exactly the vars this reads.
+        rebuild the figure; explicit ``deps`` because ``lang`` and ``imovel``
+        are read via ``getattr`` for cross-mixin access (see
+        ``ImovelMixin.disclosure``), which Reflex's auto-dependency scan
+        cannot see — only ``history_normalise`` would be auto-detected.
         """
         return land_cover_history_figure(
             self.history_rows_for_zone,
@@ -233,8 +246,13 @@ class ForestChangeMixin(rx.State, mixin=True):
     def hansen_loss_after_registration_ha(self) -> float:
         return self._hansen_period_total("apos_registro")
 
-    @rx.var
+    @rx.var(
+        cache=True, deps=["active_zone", "hansen_loss_rows", "lang"],
+        auto_deps=False,
+    )
     def hansen_table_rows(self) -> List[Dict[str, Any]]:
+        # Explicit deps: `lang` (via _period_labels' getattr) is invisible to
+        # auto-detection — see ImovelMixin.disclosure.
         rows = sorted(
             (r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone),
             key=lambda r: r["year"],
@@ -246,8 +264,12 @@ class ForestChangeMixin(rx.State, mixin=True):
             for r in rows
         ]
 
-    @rx.var(cache=True)
+    @rx.var(
+        cache=True, deps=["active_zone", "hansen_loss_rows", "lang"],
+        auto_deps=False,
+    )
     def hansen_figure(self) -> go.Figure:
+        # Explicit deps: same getattr blind spot as hansen_table_rows above.
         lang = getattr(self, "lang", "pt")
         rows = [r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone]
         labels = self._period_labels()
@@ -354,8 +376,12 @@ class BiomassMixin(rx.State, mixin=True):
             for r in rows
         ]
 
-    @rx.var(cache=True)
+    @rx.var(
+        cache=True, deps=["active_zone", "biomass_rows", "lang"],
+        auto_deps=False,
+    )
     def biomass_figure(self) -> go.Figure:
+        # Explicit deps: same getattr blind spot as hansen_figure above.
         lang = getattr(self, "lang", "pt")
         rows = sorted(
             (r for r in self.biomass_rows if r["zone_key"] == self.active_zone),
