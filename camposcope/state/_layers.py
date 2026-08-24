@@ -232,12 +232,14 @@ class LayersMixin(rx.State, mixin=True):
         async with self:
             self.analysis_layer_busy = False
             if spec_left and spec_right:
-                # `clip` marks each half of the divider — set here rather than
-                # in the service layer, since services/layers.py has no
-                # notion of "which side" and shouldn't need one for a single
-                # tab's presentation choice.
-                self.analysis_layer_specs[left_key] = {**spec_left, "clip": "left"}
-                self.analysis_layer_specs[right_key] = {**spec_right, "clip": "right"}
+                # The cached spec carries no `clip` — `map_layers` applies it
+                # fresh from each key's position in `swipe_layer_keys` every
+                # render. Baking a side into the cache here was the bug: this
+                # same cache is shared with Cobertura and Validação, and a
+                # tile minted "right" in one pairing must not stay clipped
+                # "right" when a different pairing later needs it on the left.
+                self.analysis_layer_specs[left_key] = spec_left
+                self.analysis_layer_specs[right_key] = spec_right
                 self.swipe_layer_keys = [left_key, right_key]
             else:
                 self.analysis_layer_error = (
@@ -305,8 +307,13 @@ class LayersMixin(rx.State, mixin=True):
         async with self:
             self.analysis_layer_busy = False
             if spec_left and spec_right:
-                self.analysis_layer_specs[left_key] = {**spec_left, "clip": "left"}
-                self.analysis_layer_specs[right_key] = {**spec_right, "clip": "right"}
+                # No `clip` baked in here either — see `map_layers` and the
+                # matching comment in `_mint_swipe_layers` for why: this
+                # cache is shared with Transições and Cobertura, and the side
+                # a tile sits on is a property of the current pairing, not of
+                # the tile.
+                self.analysis_layer_specs[left_key] = spec_left
+                self.analysis_layer_specs[right_key] = spec_right
                 self.swipe_layer_keys = [left_key, right_key]
             else:
                 self.analysis_layer_error = (
@@ -442,15 +449,30 @@ class LayersMixin(rx.State, mixin=True):
             })
 
         if self.analysis_layer_enabled and len(self.swipe_layer_keys) == 2:
-            # Transições: two layers at once, each clipped to its side of the
-            # divider by leaflet_map.js — z_index must differ or Leaflet's
-            # own pane ordering (both "overlayPane") leaves the paint order
-            # to insertion order, which is fragile once either layer refreshes.
+            # Transições and Validação: two layers at once, each clipped to
+            # its side of the divider by leaflet_map.js.
+            #
+            # `clip` is applied HERE, fresh, from each key's POSITION in
+            # `swipe_layer_keys` — never trusted from `analysis_layer_specs`.
+            # The specs cache is shared across every tab that can show a
+            # given tile (Cobertura, Transições and Validação can all mint
+            # "mapbiomas:v10_1:2008"), and which SIDE a tile sits on is
+            # context — which pairing is currently active — not a property
+            # of the tile itself. Baking "clip" into the cached dict at mint
+            # time was the actual bug: a tile minted as the right side in one
+            # pairing stayed clipped "right" forever, including the next time
+            # a DIFFERENT pairing needed it on the left — reproduced by
+            # visiting Transições with 2008 as one of the two years, then
+            # Validação's SPOT×2008 pairing, in that order. z_index must also
+            # differ or Leaflet's own pane ordering (both "overlayPane")
+            # leaves the paint order to insertion order, which is fragile
+            # once either layer refreshes.
             left_key, right_key = self.swipe_layer_keys
-            for i, key in enumerate((left_key, right_key)):
+            for i, (key, side) in enumerate(((left_key, "left"), (right_key, "right"))):
                 spec = self.analysis_layer_specs.get(key)
                 if spec:
-                    layers.append({**spec, "id": f"swipe:{key}", "z_index": 10 + i})
+                    layers.append({**spec, "id": f"swipe:{key}",
+                                   "clip": side, "z_index": 10 + i})
         else:
             active = self.active_analysis_layer_key
             if self.analysis_layer_enabled and active in self.analysis_layer_specs:
