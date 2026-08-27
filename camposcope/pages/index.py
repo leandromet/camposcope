@@ -203,10 +203,20 @@ def _map() -> rx.Component:
             # drawer stays above it too.
             z_index="1000",
         ),
-        rx.script(_RESIZE_SCRIPT),
         flex="1",
         height="100%",
         position="relative",
+        # NOT rx.script(_RESIZE_SCRIPT) as a child — that compiles to a plain
+        # <script> body nested inside react-helmet's <Helmet>, and neither
+        # React's own commit (scripts inserted as JSX children are set via
+        # innerHTML, which browsers refuse to execute) nor Helmet's here ever
+        # actually ran it: confirmed live via headless Chromium + CDP,
+        # window._csResizeInit stayed false and a simulated drag never moved
+        # the drawer. on_mount=rx.call_script(...) fires through Reflex's own
+        # event pipeline instead — the same mechanism already proven to work
+        # for the per-chart PNG export buttons (components/export_widgets.py)
+        # — so the browser actually executes it once this box mounts.
+        on_mount=rx.call_script(_RESIZE_SCRIPT),
     )
 
 
