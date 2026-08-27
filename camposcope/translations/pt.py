@@ -253,6 +253,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     ),
     "sidebar_hide_aria": "Esconder painel",
     "sidebar_show_aria": "Mostrar painel",
+    "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
 
     # --- runtime errors (state/*.py — set from background event handlers,
     # not JSX, so they read through get_translations() directly rather

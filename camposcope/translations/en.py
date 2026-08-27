@@ -235,6 +235,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     ),
     "sidebar_hide_aria": "Hide panel",
     "sidebar_show_aria": "Show panel",
+    "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
 
     # --- runtime errors --------------------------------------------------- #
     "erro_fora_brasil": (

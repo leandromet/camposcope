@@ -119,7 +119,14 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
-        return [self.__class__.run_history, self.__class__.mint_analysis_layer]
+        # Expands the mobile sheet from its default "half" toward a view of
+        # the freshly-adopted property, mirroring the map-app convention of
+        # a selection opening its own detail sheet rather than leaving the
+        # user to notice and drag it up themselves. A no-op on desktop and
+        # a no-op if the sheet is already open wider than "half" — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        return [self.__class__.run_history, self.__class__.mint_analysis_layer,
+               rx.call_script("window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
 
     @rx.event(background=True)
     async def select_at_point(self, lat: float, lon: float):
@@ -165,7 +172,16 @@ class ImovelMixin(rx.State, mixin=True):
                 self.candidates = [self._summary(i) for i in found]
 
         if single_match:
-            return [self.__class__.run_history, self.__class__.mint_analysis_layer]
+            # Expands the mobile sheet from its default "half" toward a view
+            # of the freshly-adopted property, mirroring the map-app
+            # convention of a selection opening its own detail sheet rather
+            # than leaving the user to notice and drag it up themselves. A
+            # no-op on desktop and a no-op if the sheet is already open
+            # wider than "half" — see
+            # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+            return [self.__class__.run_history, self.__class__.mint_analysis_layer,
+                   rx.call_script(
+                       "window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
 
     @rx.event(background=True)
     async def choose_candidate(self, cod_imovel: str):
@@ -183,7 +199,14 @@ class ImovelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt(record)
-        return [self.__class__.run_history, self.__class__.mint_analysis_layer]
+        # Expands the mobile sheet from its default "half" toward a view of
+        # the freshly-adopted property, mirroring the map-app convention of
+        # a selection opening its own detail sheet rather than leaving the
+        # user to notice and drag it up themselves. A no-op on desktop and
+        # a no-op if the sheet is already open wider than "half" — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        return [self.__class__.run_history, self.__class__.mint_analysis_layer,
+               rx.call_script("window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
 
     @rx.var
     def municipio_pages(self) -> int:
