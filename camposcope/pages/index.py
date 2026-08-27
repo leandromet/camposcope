@@ -48,8 +48,19 @@ _RESIZE_SCRIPT = """
     var drawer = document.getElementById('results-drawer');
     if (!drawer) return;
     var delta = startY - e.clientY;
-    var next = Math.min(window.innerHeight * 0.85,
+    // Capped at 3/4 of the viewport, not more: past that the map itself
+    // stops being useful as a map, and the whole point of a drawer (over a
+    // separate results page) is that the map stays visible alongside it.
+    var next = Math.min(window.innerHeight * 0.75,
                         Math.max(80, startHeight + delta));
+    // height, not just maxHeight: the drawer has no explicit height of its
+    // own (only the 42vh maxHeight it starts with), so it sizes to its
+    // *content* — a short tab's content stops growing well under the cap,
+    // and the handle stops tracking the mouse right there, which reads as
+    // "hit a limit" even though maxHeight is nowhere near it yet. Setting
+    // height forces the box itself to the dragged size regardless of how
+    // much content is in it.
+    drawer.style.height = next + 'px';
     drawer.style.maxHeight = next + 'px';
   });
   document.addEventListener('mouseup', function () {
@@ -112,48 +123,99 @@ def _layers_panel() -> rx.Component:
     )
 
 
+#: Below "md" (~48em / phone and small-tablet width), the sidebar stops
+#: sharing flex space with the map — at 340px fixed it would leave the map a
+#: sliver on an actual phone — and becomes a slide-over drawer instead:
+#: fixed position, above the map, dismissible by its own close button or by
+#: tapping the backdrop. At "md" and up it is exactly the original in-flow
+#: panel, unchanged.
 def _sidebar() -> rx.Component:
-    return rx.cond(
-        AppState.sidebar_open,
-        rx.vstack(
-            rx.hstack(
-                rx.spacer(),
-                rx.icon_button(
-                    rx.icon("panel-left-close", size=15),
-                    on_click=AppState.toggle_sidebar,
-                    size="1", variant="ghost", color_scheme="gray",
-                    aria_label=AppState.tr["sidebar_hide_aria"],
-                ),
-                width="100%", padding_top="2",
-            ),
-            search_panel(),
-            cadastral_card(),
-            municipio_browser(),
-            zones_panel(),
-            _layers_panel(),
-            width="340px",
-            min_width="340px",
-            height="100%",
-            overflow_y="auto",
-            padding_x="4",
-            border_right=BORDER,
-            background="var(--color-panel)",
-            align_items="stretch",
-            spacing="0",
-        ),
-        # Collapsed: a slim always-visible handle to bring it back, rather
-        # than losing the toggle along with the panel it controls.
-        rx.box(
-            rx.icon_button(
-                rx.icon("panel-left-open", size=15),
+    return rx.fragment(
+        # The backdrop: mobile-only (desktop's in-flow panel needs nothing
+        # behind it), and only while open — tapping it is the same gesture as
+        # tapping outside any mobile drawer, faster to find than hunting for
+        # a specific close icon.
+        rx.cond(
+            AppState.sidebar_open,
+            rx.box(
                 on_click=AppState.toggle_sidebar,
-                size="1", variant="soft", color_scheme="gray",
-                aria_label=AppState.tr["sidebar_show_aria"],
+                display=["block", "block", "none", "none"],
+                position="fixed", top="0", left="0", right="0", bottom="0",
+                background="rgba(0, 0, 0, 0.4)",
+                z_index="1050",
             ),
-            padding="2",
-            border_right=BORDER,
-            background="var(--color-panel)",
-            height="100%",
+        ),
+        rx.cond(
+            AppState.sidebar_open,
+            rx.vstack(
+                rx.hstack(
+                    rx.spacer(),
+                    rx.icon_button(
+                        rx.icon("panel-left-close"),
+                        on_click=AppState.toggle_sidebar,
+                        # Bigger on mobile (44px+ is the usual minimum comfortable
+                        # touch target) — size="1" reads fine as a mouse target on
+                        # desktop but is exactly the kind of small hit-area that
+                        # prompted this change in the first place. A literal-typed
+                        # prop like `size` needs rx.breakpoints(), not a plain
+                        # list — a plain list only works for style props.
+                        size=rx.breakpoints(initial="3", sm="3", md="1", lg="1"),
+                        variant="ghost", color_scheme="gray",
+                        aria_label=AppState.tr["sidebar_hide_aria"],
+                    ),
+                    width="100%", padding_top="2",
+                ),
+                search_panel(),
+                cadastral_card(),
+                municipio_browser(),
+                zones_panel(),
+                _layers_panel(),
+                width=["82vw", "82vw", "340px", "340px"],
+                max_width=["320px", "320px", "340px", "340px"],
+                min_width=["0", "0", "340px", "340px"],
+                height="100%",
+                overflow_y="auto",
+                padding_x="4",
+                border_right=BORDER,
+                background="var(--color-panel)",
+                align_items="stretch",
+                spacing="0",
+                position=["fixed", "fixed", "static", "static"],
+                top="0", left="0",
+                z_index=["1100", "1100", "auto", "auto"],
+                box_shadow=["0 0 32px rgba(0, 0, 0, 0.35)",
+                           "0 0 32px rgba(0, 0, 0, 0.35)", "none", "none"],
+            ),
+            rx.fragment(
+                # Collapsed, desktop: the original slim always-visible rail —
+                # unchanged, works fine with a mouse.
+                rx.box(
+                    rx.icon_button(
+                        rx.icon("panel-left-open", size=15),
+                        on_click=AppState.toggle_sidebar,
+                        size="1", variant="soft", color_scheme="gray",
+                        aria_label=AppState.tr["sidebar_show_aria"],
+                    ),
+                    display=["none", "none", "block", "block"],
+                    padding="2",
+                    border_right=BORDER,
+                    background="var(--color-panel)",
+                    height="100%",
+                ),
+                # Collapsed, mobile: a floating button instead of a sliver at
+                # the edge of the screen — the whole point of this change is
+                # that it has to be *found* first, by touch, without a mouse
+                # to hover-discover it with.
+                rx.icon_button(
+                    rx.icon("panel-left-open", size=20),
+                    on_click=AppState.toggle_sidebar,
+                    size="4", variant="solid", color_scheme="grass",
+                    aria_label=AppState.tr["sidebar_show_aria"],
+                    display=["flex", "flex", "none", "none"],
+                    position="fixed", top="68px", left="12px", z_index="1100",
+                    box_shadow="0 2px 10px rgba(0, 0, 0, 0.35)",
+                ),
+            ),
         ),
     )
 
