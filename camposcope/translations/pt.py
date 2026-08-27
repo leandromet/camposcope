@@ -266,4 +266,50 @@ TRANSLATIONS_PT: dict[str, str] = {
     # --- citation dialog (components/citation.py) --------------------------- #
     # Already bilingual via its own rx.cond(lang==...) pairs; not migrated
     # here to avoid a second source of truth for the same strings.
+
+    # --- export dialog (components/exports.py) ------------------------------ #
+    "download_button": "Baixar dados",
+    "export_dialog_title": "Baixar dados",
+    "export_dialog_desc": (
+        "Uma planilha com tudo o que já foi calculado para este imóvel, ou um "
+        "relatório em HTML pronto para leitura ou impressão."
+    ),
+    "export_choose_imovel_first": "Selecione um imóvel primeiro.",
+    "export_stage_waiting": "Aguardando a trajetória MapBiomas terminar…",
+    "export_stage_building": "Montando o arquivo…",
+    "export_workbook_failed": "Falha ao gerar a planilha: {exc}",
+    "export_report_failed": "Falha ao gerar o relatório: {exc}",
+    "download_workbook_button": "Baixar planilha (.ods)",
+    "download_workbook_hint": "Selecione um imóvel no mapa ou na busca para habilitar.",
+    "workbook_desc": (
+        "Uma planilha com a cobertura por zona e ano, a perda florestal, a "
+        "biomassa, as transições e o fogo já calculados, a validação IBGE "
+        "(se calculada), o dicionário de classes do MapBiomas e uma aba de "
+        "metadados com a proveniência de cada consulta."
+    ),
+    "report_section_title": "Relatório em HTML (formato de artigo)",
+    "report_section_desc": (
+        "Um único arquivo HTML autocontido com os gráficos e/ou tabelas já "
+        "calculados, formatado para leitura ou impressão em PDF — "
+        "complementa a planilha acima, não a substitui."
+    ),
+    "check_report_figures_label": "Gráficos",
+    "check_report_figures_detail": (
+        "Cobertura, floresta, biomassa e fogo — um gráfico por zona — mais "
+        "as transições, se já calculadas."
+    ),
+    "check_report_tables_label": "Tabelas",
+    "check_report_tables_detail": (
+        "Cobertura mais recente, perda florestal, biomassa, transições, "
+        "fogo, validação IBGE (se já calculada) e a proveniência de cada "
+        "consulta."
+    ),
+    "download_report_button": "Baixar relatório (HTML)",
+    "export_close_button": "Fechar",
+
+    # --- per-chart/per-table export icons (components/export_widgets.py) --- #
+    "export_chart_aria": "Baixar este gráfico (PNG)",
+    "export_table_aria": "Baixar esta tabela (CSV)",
+    "export_chart_label": "Exportar figura",
+    "export_table_label": "Exportar tabela",
 }

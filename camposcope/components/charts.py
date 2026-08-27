@@ -136,4 +136,131 @@ def _style(
     return fig
 
 
-__all__ = ["land_cover_history_figure"]
+# --------------------------------------------------------------------------- #
+# Floresta (Hansen), Biomassa and Fogo — extracted from state/_analysis.py's
+# own rx.var figure builders (services/report.py needs the exact figure the
+# screen shows, built off the same rows, and a Reflex state class is not
+# importable from a plain service module — same "one figure-builder, two
+# callers" discipline land_cover_history_figure above already followed).
+# --------------------------------------------------------------------------- #
+
+#: One colour per Hansen loss period — amber/red/dark-red reading as
+#: "further from today", not a severity scale.
+HANSEN_PERIOD_COLOR = {
+    "ate_2008": "#f5a524",
+    "2008_ate_registro": "#e5484d",
+    "apos_registro": "#8b1a1a",
+}
+_HANSEN_PERIOD_LABEL_PT = {
+    "ate_2008": "Até 2008",
+    "2008_ate_registro": "2008 até o registro",
+    "apos_registro": "Depois do registro",
+}
+_HANSEN_PERIOD_LABEL_EN = {
+    "ate_2008": "Up to 2008",
+    "2008_ate_registro": "2008 to registration",
+    "apos_registro": "After registration",
+}
+
+
+def hansen_period_labels(lang: str = "pt") -> Dict[str, str]:
+    return _HANSEN_PERIOD_LABEL_EN if lang == "en" else _HANSEN_PERIOD_LABEL_PT
+
+
+def hansen_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
+    """Hansen forest-loss bars, split into the three periods anchored on the
+    Forest Code's 2008 reference date and the property's own registration
+    (doc/04 §3) — for rows already filtered to one zone."""
+    labels = hansen_period_labels(lang)
+    fig = go.Figure()
+    if not rows:
+        fig.add_annotation(
+            text="Sem dados" if lang == "pt" else "No data",
+            showarrow=False, font=dict(size=13, color="#888"),
+        )
+    else:
+        for period in ("ate_2008", "2008_ate_registro", "apos_registro"):
+            bucket = [r for r in rows if r["period"] == period]
+            if not bucket:
+                continue
+            fig.add_bar(
+                x=[r["year"] for r in bucket], y=[r["area_ha"] for r in bucket],
+                name=labels[period],
+                marker_color=HANSEN_PERIOD_COLOR[period],
+            )
+    fig.update_layout(
+        barmode="stack", template="plotly_white",
+        margin=dict(l=48, r=8, t=8, b=36), height=260,
+        legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
+                   font=dict(size=9)),
+        xaxis=dict(title=None, tickmode="linear", dtick=2),
+        yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)"),
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+    )
+    return fig
+
+
+def biomass_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
+    """ESA CCI above-ground biomass, ten snapshots with a real gap drawn as a
+    gap — for rows already filtered to one zone."""
+    fig = go.Figure()
+    ordered = sorted(rows, key=lambda r: r["year"]) if rows else []
+    if not ordered:
+        fig.add_annotation(
+            text="Sem dados" if lang == "pt" else "No data",
+            showarrow=False, font=dict(size=13, color="#888"),
+        )
+    else:
+        fig.add_scatter(
+            x=[r["year"] for r in ordered], y=[r["agb_mean_mgha"] for r in ordered],
+            mode="markers+lines", connectgaps=False,
+            line=dict(color="#1f8d49"), marker=dict(size=8),
+            hovertemplate="%{x}: %{y:.1f} Mg/ha<extra></extra>",
+        )
+    fig.update_layout(
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
+        xaxis=dict(title=None, tickmode="linear", dtick=2),
+        yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)"),
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+    )
+    return fig
+
+
+def fire_figure(annual_rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
+    """One bar per MapBiomas Fire year, % of the zone burned that year — for
+    annual rows already filtered to one zone."""
+    from ..services.fire import FIRE_YEARS
+
+    values_by_year = {r["year"]: r["fire_pct"] for r in annual_rows}
+    fig = go.Figure()
+    if not values_by_year:
+        fig.add_annotation(
+            text="Sem dados" if lang == "pt" else "No data",
+            showarrow=False, font=dict(size=13, color="#888"),
+        )
+    else:
+        years = FIRE_YEARS
+        values = [values_by_year.get(y, 0.0) for y in years]
+        fig.add_bar(
+            x=years, y=values,
+            marker=dict(color="#d4271e"),
+            hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+        )
+    fig.update_layout(
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
+        xaxis=dict(title=None, tickmode="linear", dtick=5),
+        yaxis=dict(
+            title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
+            range=[0, 100],
+        ),
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+    )
+    return fig
+
+
+__all__ = [
+    "land_cover_history_figure", "hansen_figure", "hansen_period_labels",
+    "HANSEN_PERIOD_COLOR", "biomass_figure", "fire_figure",
+]

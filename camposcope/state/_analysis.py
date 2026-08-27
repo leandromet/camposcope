@@ -18,9 +18,10 @@ from typing import Any, Dict, List
 import plotly.graph_objects as go
 import reflex as rx
 
-from ..components.charts import land_cover_history_figure
+from ..components import charts
 from ..config import mapbiomas as mb
 from ..translations import get_translations
+from ._proxy import plain
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,12 @@ class AnalysisMixin(rx.State, mixin=True):
     history_year_end: int = mb.MAPBIOMAS_YEAR_END
     history_degraded: bool = False
     history_notes: List[str] = []
+    #: Full Provenance.to_dict() — services/exports.py and services/report.py
+    #: read this for constraint C6 (every number traceable to the dataset/
+    #: reducer/scale that produced it); history_degraded/history_notes above
+    #: predate this and stay for the on-screen callout, which does not need
+    #: the whole record.
+    history_provenance: Dict[str, Any] = {}
 
     #: Which zone the chart and results tabs describe. Defaults to the property.
     active_zone: str = "imovel"
@@ -106,7 +113,7 @@ class AnalysisMixin(rx.State, mixin=True):
         ``ImovelMixin.disclosure``), which Reflex's auto-dependency scan
         cannot see — only ``history_normalise`` would be auto-detected.
         """
-        return land_cover_history_figure(
+        return charts.land_cover_history_figure(
             self.history_rows_for_zone,
             lang=getattr(self, "lang", "pt"),
             normalise=self.history_normalise,
@@ -129,13 +136,27 @@ class AnalysisMixin(rx.State, mixin=True):
         so the chart cannot show a stale trajectory next to a fresh error.
         """
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy: a shallow copy leaves the
+            # nested "features" list — and each feature's "geometry" dict —
+            # still wrapped in Reflex's MutableProxy. That is invisible right
+            # up until something recurses all the way through it, which
+            # Provenance.to_dict() (dataclasses.asdict) does below: asdict's
+            # dict/list handling reconstructs each container via type(obj)(),
+            # so a still-proxied inner list becomes a call to
+            # MutableProxy(items) with no state/field_name, and raises
+            # TypeError. zone_objs carries this geometry into every
+            # Provenance this app builds (every services/*.py analysis sets
+            # `geometry=zones[0].geojson`), so unwrapping once here — every
+            # run_* handler below does the same — is what actually closes it
+            # off, rather than defending each call site separately.
+            zones_geojson = plain(self.zones_geojson) or {}
             zones_meta = list(self.zones or [])
             self.history_running = True
             self.history_error = ""
             self.history_rows = []
             self.history_degraded = False
             self.history_notes = []
+            self.history_provenance = {}
 
         if not zones_meta or not zones_geojson.get("features"):
             async with self:
@@ -177,6 +198,7 @@ class AnalysisMixin(rx.State, mixin=True):
             self.history_rows = df.to_dict("records") if not df.empty else []
             self.history_degraded = prov.degraded
             self.history_notes = list(prov.notes)
+            self.history_provenance = prov.to_dict()
             if df.empty:
                 self.history_error = get_translations(
                     getattr(self, "lang", "pt")
@@ -205,28 +227,12 @@ class ForestChangeMixin(rx.State, mixin=True):
     hansen_loss_rows: List[Dict[str, Any]] = []
     hansen_gain_ha: float = 0.0
     hansen_has_run: bool = False
-
-    #: One colour per period — amber/red/dark-red reading as "further from
-    #: today", not a severity scale (loss before 2008 is not "worse").
-    _PERIOD_COLOR = {
-        "ate_2008": "#f5a524",
-        "2008_ate_registro": "#e5484d",
-        "apos_registro": "#8b1a1a",
-    }
-    _PERIOD_LABEL_PT = {
-        "ate_2008": "Até 2008",
-        "2008_ate_registro": "2008 até o registro",
-        "apos_registro": "Depois do registro",
-    }
-    _PERIOD_LABEL_EN = {
-        "ate_2008": "Up to 2008",
-        "2008_ate_registro": "2008 to registration",
-        "apos_registro": "After registration",
-    }
+    #: Full Provenance.to_dict() — see AnalysisMixin.history_provenance for
+    #: why this exists alongside the on-screen fields above.
+    hansen_provenance: Dict[str, Any] = {}
 
     def _period_labels(self) -> Dict[str, str]:
-        return (self._PERIOD_LABEL_EN if getattr(self, "lang", "pt") == "en"
-               else self._PERIOD_LABEL_PT)
+        return charts.hansen_period_labels(getattr(self, "lang", "pt"))
 
     def _hansen_period_total(self, period: str) -> float:
         return round(sum(
@@ -270,35 +276,11 @@ class ForestChangeMixin(rx.State, mixin=True):
     )
     def hansen_figure(self) -> go.Figure:
         # Explicit deps: same getattr blind spot as hansen_table_rows above.
-        lang = getattr(self, "lang", "pt")
+        # Delegates to components.charts.hansen_figure — a plain function, not
+        # inlined here, so services/report.py can build the exact same figure
+        # off the same rows without importing Reflex state (doc/11 §5).
         rows = [r for r in self.hansen_loss_rows if r["zone_key"] == self.active_zone]
-        labels = self._period_labels()
-        fig = go.Figure()
-        if not rows:
-            fig.add_annotation(
-                text="Sem dados" if lang == "pt" else "No data",
-                showarrow=False, font=dict(size=13, color="#888"),
-            )
-        else:
-            for period in ("ate_2008", "2008_ate_registro", "apos_registro"):
-                bucket = [r for r in rows if r["period"] == period]
-                if not bucket:
-                    continue
-                fig.add_bar(
-                    x=[r["year"] for r in bucket], y=[r["area_ha"] for r in bucket],
-                    name=labels[period],
-                    marker_color=self._PERIOD_COLOR[period],
-                )
-        fig.update_layout(
-            barmode="stack", template="plotly_white",
-            margin=dict(l=48, r=8, t=8, b=36), height=260,
-            legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
-                       font=dict(size=9)),
-            xaxis=dict(title=None, tickmode="linear", dtick=2),
-            yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)"),
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-        )
-        return fig
+        return charts.hansen_figure(rows, getattr(self, "lang", "pt"))
 
     @rx.event(background=True)
     async def run_hansen(self):
@@ -306,7 +288,9 @@ class ForestChangeMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see _proxy.plain's own
+            # docstring and the note on the first use of this pattern above.
+            zones_geojson = plain(self.zones_geojson) or {}
             zones_meta = list(self.zones or [])
             registration_year = (getattr(self, "imovel", {}).get("ano_criacao")
                                  or None)
@@ -326,7 +310,7 @@ class ForestChangeMixin(rx.State, mixin=True):
         ]
 
         try:
-            df, gain_ha, _prov = hansen.forest_change(
+            df, gain_ha, prov = hansen.forest_change(
                 zone_objs, registration_year=registration_year
             )
         except Exception as exc:                       # noqa: BLE001
@@ -343,6 +327,7 @@ class ForestChangeMixin(rx.State, mixin=True):
             self.hansen_has_run = True
             self.hansen_loss_rows = df.to_dict("records") if not df.empty else []
             self.hansen_gain_ha = round(gain_ha, 4)
+            self.hansen_provenance = prov.to_dict()
 
 
 class BiomassMixin(rx.State, mixin=True):
@@ -356,6 +341,8 @@ class BiomassMixin(rx.State, mixin=True):
     biomass_running: bool = False
     biomass_error: str = ""
     biomass_rows: List[Dict[str, Any]] = []
+    #: Full Provenance.to_dict() — see AnalysisMixin.history_provenance.
+    biomass_provenance: Dict[str, Any] = {}
 
     @rx.event
     def set_biomass_layer_year(self, year: str) -> None:
@@ -382,34 +369,10 @@ class BiomassMixin(rx.State, mixin=True):
     )
     def biomass_figure(self) -> go.Figure:
         # Explicit deps: same getattr blind spot as hansen_figure above.
-        lang = getattr(self, "lang", "pt")
-        rows = sorted(
-            (r for r in self.biomass_rows if r["zone_key"] == self.active_zone),
-            key=lambda r: r["year"],
-        )
-        fig = go.Figure()
-        if not rows:
-            fig.add_annotation(
-                text="Sem dados" if lang == "pt" else "No data",
-                showarrow=False, font=dict(size=13, color="#888"),
-            )
-        else:
-            # The series has a real gap (2011-2014 missing) — connectgaps=False
-            # draws it as a gap instead of interpolating across it.
-            fig.add_scatter(
-                x=[r["year"] for r in rows], y=[r["agb_mean_mgha"] for r in rows],
-                mode="markers+lines", connectgaps=False,
-                line=dict(color="#1f8d49"), marker=dict(size=8),
-                hovertemplate="%{x}: %{y:.1f} Mg/ha<extra></extra>",
-            )
-        fig.update_layout(
-            template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
-            xaxis=dict(title=None, tickmode="linear", dtick=2),
-            yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)"),
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            showlegend=False,
-        )
-        return fig
+        # Delegates to components.charts.biomass_figure — see that mixin's
+        # own comment on hansen_figure for why this is a plain function now.
+        rows = [r for r in self.biomass_rows if r["zone_key"] == self.active_zone]
+        return charts.biomass_figure(rows, getattr(self, "lang", "pt"))
 
     @rx.event(background=True)
     async def run_biomass(self):
@@ -417,7 +380,9 @@ class BiomassMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see _proxy.plain's own
+            # docstring and the note on the first use of this pattern above.
+            zones_geojson = plain(self.zones_geojson) or {}
             zones_meta = list(self.zones or [])
             self.biomass_running = True
             self.biomass_error = ""
@@ -435,7 +400,7 @@ class BiomassMixin(rx.State, mixin=True):
         ]
 
         try:
-            df, _prov = biomass_svc.above_ground_biomass(zone_objs)
+            df, prov = biomass_svc.above_ground_biomass(zone_objs)
         except Exception as exc:                       # noqa: BLE001
             logger.exception("Biomass failed")
             async with self:
@@ -448,6 +413,7 @@ class BiomassMixin(rx.State, mixin=True):
         async with self:
             self.biomass_running = False
             self.biomass_rows = df.to_dict("records") if not df.empty else []
+            self.biomass_provenance = prov.to_dict()
 
 
 class SpotCoverageMixin(rx.State, mixin=True):
@@ -466,7 +432,9 @@ class SpotCoverageMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see _proxy.plain's own
+            # docstring and the note on the first use of this pattern above.
+            zones_geojson = plain(self.zones_geojson) or {}
             zone_key = self.active_zone
             self.spot_running = True
             self.spot_error = ""
@@ -523,6 +491,15 @@ class ValidacaoMixin(rx.State, mixin=True):
     #: Only meaningful for ibge_2022 — spot_2008 is visual-only, nothing to
     #: tabulate (doc/12-spot-2008.md: SPOT is imagery, not a classification).
     validacao_matrix: Dict[str, Any] = {}
+    #: Full Provenance.to_dict() — see AnalysisMixin.history_provenance. Also
+    #: only meaningful for ibge_2022, same as validacao_matrix.
+    validacao_provenance: Dict[str, Any] = {}
+    #: Which zone validacao_matrix/validacao_provenance describe — the matrix
+    #: itself carries no zone identity, and the active zone can move on
+    #: before the next run_validacao (services/exports.py and
+    #: services/report.py need to say which zone this was, not assume it is
+    #: still the one currently selected).
+    validacao_zone_label: str = ""
 
     @rx.event
     def set_validacao_mode(self, mode: str | list[str]):
@@ -551,7 +528,9 @@ class ValidacaoMixin(rx.State, mixin=True):
         async with self:
             if self.validacao_mode != "ibge_2022":
                 return
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see _proxy.plain's own
+            # docstring and the note on the first use of this pattern above.
+            zones_geojson = plain(self.zones_geojson) or {}
             zones_meta = list(self.zones or [])
             zone_key = self.active_zone
             self.validacao_running = True
@@ -571,7 +550,7 @@ class ValidacaoMixin(rx.State, mixin=True):
         ]
 
         try:
-            df, _prov = iv.mapbiomas_comparison(zone_objs)
+            df, prov = iv.mapbiomas_comparison(zone_objs)
             matrix = iv.bucket_matrix(df, zone_key)
         except Exception as exc:                       # noqa: BLE001
             logger.exception("IBGE/MapBiomas comparison failed")
@@ -582,9 +561,15 @@ class ValidacaoMixin(rx.State, mixin=True):
                 )["erro_comparacao_ibge"].format(detail=exc)
             return
 
+        zone_label = next(
+            (z["zone_label"] for z in zones_meta if z["zone_key"] == zone_key),
+            zone_key,
+        )
         async with self:
             self.validacao_running = False
             self.validacao_matrix = matrix
+            self.validacao_provenance = prov.to_dict()
+            self.validacao_zone_label = zone_label
 
 
 class FireMixin(rx.State, mixin=True):
@@ -598,6 +583,8 @@ class FireMixin(rx.State, mixin=True):
     #: zone per year (1985-2025), 0 for years with no fire detected — the
     #: same shape AnalysisMixin.history_rows uses for the Cobertura chart.
     fire_annual_rows: List[Dict[str, Any]] = []
+    #: Full Provenance.to_dict() — see AnalysisMixin.history_provenance.
+    fire_provenance: Dict[str, Any] = {}
 
     @rx.var
     def fire_table_rows(self) -> List[Dict[str, Any]]:
@@ -620,41 +607,11 @@ class FireMixin(rx.State, mixin=True):
     def fire_figure(self) -> go.Figure:
         """One bar per year (1985-2025) — the % of the zone that burned that
         year, 0 where MapBiomas detected no fire. Same idea as the Cobertura
-        trajectory chart, but per-year burned share instead of class area."""
-        from ..services.fire import FIRE_YEARS
-
-        lang = getattr(self, "lang", "pt")
-        rows = {
-            r["year"]: r["fire_pct"]
-            for r in self.fire_annual_rows if r["zone_key"] == self.active_zone
-        }
-
-        fig = go.Figure()
-        if not rows:
-            fig.add_annotation(
-                text="Sem dados" if lang == "pt" else "No data",
-                showarrow=False, font=dict(size=13, color="#888"),
-            )
-        else:
-            years = FIRE_YEARS
-            values = [rows.get(y, 0.0) for y in years]
-            fig.add_bar(
-                x=years, y=values,
-                marker=dict(color="#d4271e"),
-                hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
-            )
-
-        fig.update_layout(
-            template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
-            xaxis=dict(title=None, tickmode="linear", dtick=5),
-            yaxis=dict(
-                title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
-                range=[0, 100],
-            ),
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            showlegend=False,
-        )
-        return fig
+        trajectory chart, but per-year burned share instead of class area.
+        Delegates to components.charts.fire_figure — see the ForestChangeMixin
+        comment on hansen_figure for why this is a plain function now."""
+        rows = [r for r in self.fire_annual_rows if r["zone_key"] == self.active_zone]
+        return charts.fire_figure(rows, getattr(self, "lang", "pt"))
 
     @rx.event(background=True)
     async def run_fire(self):
@@ -662,7 +619,9 @@ class FireMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see _proxy.plain's own
+            # docstring and the note on the first use of this pattern above.
+            zones_geojson = plain(self.zones_geojson) or {}
             zones_meta = list(self.zones or [])
             self.fire_running = True
             self.fire_error = ""
@@ -681,7 +640,7 @@ class FireMixin(rx.State, mixin=True):
         ]
 
         try:
-            summary_df, annual_df, _prov = fire_svc.fire_analysis(zone_objs)
+            summary_df, annual_df, prov = fire_svc.fire_analysis(zone_objs)
             summary_rows = summary_df.to_dict("records")
             annual_rows = annual_df.to_dict("records")
         except Exception as exc:
@@ -697,3 +656,4 @@ class FireMixin(rx.State, mixin=True):
             self.fire_running = False
             self.fire_rows = summary_rows
             self.fire_annual_rows = annual_rows
+            self.fire_provenance = prov.to_dict()

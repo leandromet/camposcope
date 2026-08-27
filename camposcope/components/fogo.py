@@ -5,6 +5,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ..state import AppState
+from .export_widgets import chart_box, table_export_button
 from .layout import MUTED, zone_selector
 
 
@@ -95,13 +96,18 @@ def fogo_tab() -> rx.Component:
             rx.cond(
                 AppState.fire_rows,
                 rx.vstack(
-                    _fire_stats(),
-                    rx.plotly(
-                        data=AppState.fire_figure,
-                        config={"displayModeBar": False, "displaylogo": False,
-                               "responsive": True},
-                        width="100%", height="260px",
+                    rx.hstack(
+                        rx.spacer(),
+                        rx.cond(
+                            AppState.fire_table_rows,
+                            table_export_button(AppState.download_fogo_csv),
+                            rx.fragment(),
+                        ),
+                        width="100%",
                     ),
+                    _fire_stats(),
+                    chart_box(AppState.fire_figure, "cs-plot-fogo",
+                             "camposcope_fogo", "260px"),
                     spacing="3", width="100%",
                 ),
             ),

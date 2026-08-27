@@ -14,6 +14,7 @@ import reflex as rx
 from ..config import mapbiomas as mb
 from ..config.settings import SANKEY_MIN_YEAR_GAP
 from ..state import AppState
+from .export_widgets import chart_box, table_export_button
 from .layout import BORDER, MUTED, split_panel
 
 
@@ -62,15 +63,16 @@ def _two_stage_section() -> rx.Component:
                 # figure is for seeing the shape, the table is for making a
                 # claim (doc/07-transitions.md §5).
                 split_panel(
-                    rx.plotly(
-                        data=AppState.sankey_figure,
-                        config={"displayModeBar": False, "displaylogo": False,
-                               "responsive": True},
-                        width="100%", height="280px",
-                    ),
+                    chart_box(AppState.sankey_figure, "cs-plot-sankey",
+                             "camposcope_transicoes", "280px"),
                     rx.vstack(
-                        rx.text(AppState.tr["transicoes_maiores"], size="1",
-                               weight="medium", color=MUTED),
+                        rx.hstack(
+                            rx.text(AppState.tr["transicoes_maiores"], size="1",
+                                   weight="medium", color=MUTED),
+                            rx.spacer(),
+                            table_export_button(AppState.download_transicoes_csv),
+                            width="100%", align="center",
+                        ),
                         rx.foreach(
                             AppState.sankey_table_rows[:10],
                             lambda r: rx.hstack(

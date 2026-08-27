@@ -17,6 +17,7 @@ import reflex as rx
 
 from ..config import mapbiomas as mb
 from ..translations import get_translations
+from ._proxy import plain
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,17 @@ class TransitionsMixin(rx.State, mixin=True):
     #: too (doc/07-transitions.md §5: the table stays available alongside
     #: every Sankey).
     sankey_transitions: dict = {}
+    #: Full Provenance.to_dict() — see state/_analysis.py's
+    #: AnalysisMixin.history_provenance for why this exists (services.exports
+    #: and services.report read it for constraint C6). Multi-stage below has
+    #: no such field: it is dead UI (no component renders multi_stage_figure
+    #: yet), so nothing exports it either.
+    sankey_provenance: dict = {}
+    #: Which zone sankey_transitions/sankey_provenance describe — same
+    #: reasoning as ValidacaoMixin.validacao_zone_label: the active zone can
+    #: move on before the next run_sankey, and an export must say which zone
+    #: this actually was, not assume it is still the one selected.
+    sankey_zone_label: str = ""
 
     multi_stage_years: List[int] = []
     multi_stage_running: bool = False
@@ -81,12 +93,19 @@ class TransitionsMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see the same fix's full
+            # explanation in state/_analysis.py's run_history (the "geometry"
+            # inside each feature is what a shallow copy leaves proxied, and
+            # Provenance.to_dict() is what actually recurses into it and
+            # trips on the still-wrapped value).
+            zones_geojson = plain(self.zones_geojson) or {}
+            zones_meta = list(self.zones or [])
             zone_key = self.active_zone
             year_a, year_b = self.sankey_year_a, self.sankey_year_b
             self.sankey_running = True
             self.sankey_error = ""
             self.sankey_transitions = {}
+            self.sankey_provenance = {}
         if not zones_geojson.get("features"):
             async with self:
                 self.sankey_running = False
@@ -105,7 +124,7 @@ class TransitionsMixin(rx.State, mixin=True):
                         geojson=geom, area_ha=0.0)
 
         try:
-            out, _prov = tr.compute_transitions(
+            out, prov = tr.compute_transitions(
                 [zone_obj], year_a, year_b, include_unchanged=True
             )
         except tr.YearGapError as exc:
@@ -129,6 +148,11 @@ class TransitionsMixin(rx.State, mixin=True):
                 str(src): {str(tgt): area for tgt, area in tgts.items()}
                 for src, tgts in out.get(zone_key, {}).items()
             }
+            self.sankey_provenance = prov.to_dict()
+            self.sankey_zone_label = next(
+                (z["zone_label"] for z in zones_meta if z["zone_key"] == zone_key),
+                zone_key,
+            )
 
     @rx.var(cache=True, deps=["sankey_transitions", "sankey_year_a", "sankey_year_b", "lang"],
             auto_deps=False)
@@ -155,7 +179,12 @@ class TransitionsMixin(rx.State, mixin=True):
         from ..services.zones import Zone
 
         async with self:
-            zones_geojson = dict(self.zones_geojson or {})
+            # plain(), not a shallow dict(...) copy — see the same fix's full
+            # explanation in state/_analysis.py's run_history (the "geometry"
+            # inside each feature is what a shallow copy leaves proxied, and
+            # Provenance.to_dict() is what actually recurses into it and
+            # trips on the still-wrapped value).
+            zones_geojson = plain(self.zones_geojson) or {}
             zone_key = self.active_zone
             registration_year = (getattr(self, "imovel", {}).get("ano_criacao")
                                  or None)

@@ -250,4 +250,50 @@ TRANSLATIONS_EN: dict[str, str] = {
     "fogo_frequencia_ocorrencias": "Frequency (occurrences)",
     "fogo_ultima_queimada": "Last fire",
     "fogo_attribution": "MapBiomas Fire Collection 5 (CC BY-SA 4.0) · 30 m scale · Landsat classification (NBR) with deep learning.",
+
+    # --- export dialog (components/exports.py) ------------------------------ #
+    "download_button": "Download data",
+    "export_dialog_title": "Download data",
+    "export_dialog_desc": (
+        "A spreadsheet with everything already computed for this property, "
+        "or an HTML report ready for reading or printing."
+    ),
+    "export_choose_imovel_first": "Select a property first.",
+    "export_stage_waiting": "Waiting for the MapBiomas trajectory to finish…",
+    "export_stage_building": "Building the file…",
+    "export_workbook_failed": "Failed to build the spreadsheet: {exc}",
+    "export_report_failed": "Failed to build the report: {exc}",
+    "download_workbook_button": "Download spreadsheet (.ods)",
+    "download_workbook_hint": "Select a property on the map or search to enable this.",
+    "workbook_desc": (
+        "A spreadsheet with land cover per zone and year, forest loss, "
+        "biomass, transitions and fire already computed, the IBGE "
+        "validation (if computed), the MapBiomas class dictionary, and a "
+        "metadata tab with the provenance of every query."
+    ),
+    "report_section_title": "HTML report (paper-friendly layout)",
+    "report_section_desc": (
+        "One self-contained HTML file with the figures and/or tables "
+        "already computed, laid out for reading or printing to PDF — "
+        "complements the spreadsheet above, not a replacement for it."
+    ),
+    "check_report_figures_label": "Figures",
+    "check_report_figures_detail": (
+        "Land cover, forest change, biomass and fire — one chart per zone "
+        "— plus transitions, if already computed."
+    ),
+    "check_report_tables_label": "Tables",
+    "check_report_tables_detail": (
+        "Latest land cover, forest loss, biomass, transitions, fire, IBGE "
+        "validation (if already computed) and the provenance of every "
+        "query."
+    ),
+    "download_report_button": "Download report (HTML)",
+    "export_close_button": "Close",
+
+    # --- per-chart/per-table export icons (components/export_widgets.py) --- #
+    "export_chart_aria": "Download this chart (PNG)",
+    "export_table_aria": "Download this table (CSV)",
+    "export_chart_label": "Export figure",
+    "export_table_label": "Export table",
 }

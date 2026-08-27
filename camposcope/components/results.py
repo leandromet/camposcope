@@ -12,6 +12,7 @@ import reflex as rx
 from ..config import mapbiomas as mb
 from ..config.datasets import AGB_YEARS
 from ..state import AppState
+from .export_widgets import chart_box, table_export_button
 from .fogo import fogo_tab
 from .layout import BORDER, MUTED, split_panel, zone_selector
 from .sankey import transitions_tab
@@ -44,7 +45,13 @@ def _cobertura_table() -> rx.Component:
                 on_change=AppState.set_mapbiomas_layer_year,
                 size="1",
             ),
-            spacing="2", align="center",
+            rx.spacer(),
+            rx.cond(
+                AppState.history_table_rows,
+                table_export_button(AppState.download_cobertura_csv),
+                rx.fragment(),
+            ),
+            spacing="2", align="center", width="100%",
         ),
         rx.table.root(
             rx.table.header(
@@ -89,12 +96,8 @@ def _cobertura_chart() -> rx.Component:
             rx.text(AppState.tr["cobertura_percentual"], size="1", color=MUTED),
             spacing="2", align="center",
         ),
-        rx.plotly(
-            data=AppState.history_figure,
-            config={"displayModeBar": False, "displaylogo": False,
-                   "responsive": True},
-            width="100%", height="260px",
-        ),
+        chart_box(AppState.history_figure, "cs-plot-cobertura",
+                 "camposcope_cobertura", "260px"),
         spacing="2", width="100%",
     )
 
@@ -147,27 +150,39 @@ def _period_stat(label, value_var, color: str) -> rx.Component:
 
 
 def _floresta_table() -> rx.Component:
-    return rx.table.root(
-        rx.table.header(
-            rx.table.row(
-                rx.table.column_header_cell(AppState.tr["floresta_col_ano"]),
-                rx.table.column_header_cell(AppState.tr["floresta_col_perda"],
-                                            text_align="right"),
-                rx.table.column_header_cell(AppState.tr["floresta_col_periodo"]),
-            ),
-        ),
-        rx.table.body(
-            rx.foreach(
+    return rx.vstack(
+        rx.hstack(
+            rx.spacer(),
+            rx.cond(
                 AppState.hansen_table_rows,
-                lambda r: rx.table.row(
-                    rx.table.cell(rx.text(r["year"], size="1")),
-                    rx.table.cell(rx.text(r["area_ha"], size="1"),
-                                 text_align="right"),
-                    rx.table.cell(rx.text(r["period_label"], size="1")),
+                table_export_button(AppState.download_floresta_csv),
+                rx.fragment(),
+            ),
+            width="100%",
+        ),
+        rx.table.root(
+            rx.table.header(
+                rx.table.row(
+                    rx.table.column_header_cell(AppState.tr["floresta_col_ano"]),
+                    rx.table.column_header_cell(AppState.tr["floresta_col_perda"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["floresta_col_periodo"]),
                 ),
             ),
+            rx.table.body(
+                rx.foreach(
+                    AppState.hansen_table_rows,
+                    lambda r: rx.table.row(
+                        rx.table.cell(rx.text(r["year"], size="1")),
+                        rx.table.cell(rx.text(r["area_ha"], size="1"),
+                                     text_align="right"),
+                        rx.table.cell(rx.text(r["period_label"], size="1")),
+                    ),
+                ),
+            ),
+            size="1", width="100%", variant="surface",
         ),
-        size="1", width="100%", variant="surface",
+        spacing="1", width="100%",
     )
 
 
@@ -210,12 +225,8 @@ def floresta_tab() -> rx.Component:
                         spacing="5", width="100%", wrap="wrap",
                     ),
                     split_panel(
-                        rx.plotly(
-                            data=AppState.hansen_figure,
-                            config={"displayModeBar": False, "displaylogo": False,
-                                   "responsive": True},
-                            width="100%", height="230px",
-                        ),
+                        chart_box(AppState.hansen_figure, "cs-plot-floresta",
+                                 "camposcope_floresta", "230px"),
                         _floresta_table(),
                     ),
                     spacing="3", width="100%",
@@ -232,29 +243,41 @@ def floresta_tab() -> rx.Component:
 # Biomassa
 # --------------------------------------------------------------------------- #
 def _biomassa_table() -> rx.Component:
-    return rx.table.root(
-        rx.table.header(
-            rx.table.row(
-                rx.table.column_header_cell(AppState.tr["biomassa_col_ano"]),
-                rx.table.column_header_cell(AppState.tr["biomassa_col_mg_ha"],
-                                            text_align="right"),
-                rx.table.column_header_cell(AppState.tr["biomassa_col_total_mg"],
-                                            text_align="right"),
-            ),
-        ),
-        rx.table.body(
-            rx.foreach(
+    return rx.vstack(
+        rx.hstack(
+            rx.spacer(),
+            rx.cond(
                 AppState.biomass_table_rows,
-                lambda r: rx.table.row(
-                    rx.table.cell(rx.text(r["year"], size="1")),
-                    rx.table.cell(rx.text(r["agb_mean_mgha"], size="1"),
-                                 text_align="right"),
-                    rx.table.cell(rx.text(r["total_biomass_mg"], size="1"),
-                                 text_align="right"),
+                table_export_button(AppState.download_biomassa_csv),
+                rx.fragment(),
+            ),
+            width="100%",
+        ),
+        rx.table.root(
+            rx.table.header(
+                rx.table.row(
+                    rx.table.column_header_cell(AppState.tr["biomassa_col_ano"]),
+                    rx.table.column_header_cell(AppState.tr["biomassa_col_mg_ha"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["biomassa_col_total_mg"],
+                                                text_align="right"),
                 ),
             ),
+            rx.table.body(
+                rx.foreach(
+                    AppState.biomass_table_rows,
+                    lambda r: rx.table.row(
+                        rx.table.cell(rx.text(r["year"], size="1")),
+                        rx.table.cell(rx.text(r["agb_mean_mgha"], size="1"),
+                                     text_align="right"),
+                        rx.table.cell(rx.text(r["total_biomass_mg"], size="1"),
+                                     text_align="right"),
+                    ),
+                ),
+            ),
+            size="1", width="100%", variant="surface",
         ),
-        size="1", width="100%", variant="surface",
+        spacing="1", width="100%",
     )
 
 
@@ -283,12 +306,8 @@ def biomassa_tab() -> rx.Component:
             rx.cond(
                 AppState.biomass_rows,
                 split_panel(
-                    rx.plotly(
-                        data=AppState.biomass_figure,
-                        config={"displayModeBar": False, "displaylogo": False,
-                               "responsive": True},
-                        width="100%", height="260px",
-                    ),
+                    chart_box(AppState.biomass_figure, "cs-plot-biomassa",
+                             "camposcope_biomassa", "260px"),
                     _biomassa_table(),
                 ),
             ),

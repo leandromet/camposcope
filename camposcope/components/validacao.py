@@ -13,6 +13,7 @@ import reflex as rx
 
 from ..config import ibge_vegetation as iv
 from ..state import AppState
+from .export_widgets import table_export_button
 from .layout import MUTED, zone_selector
 
 
@@ -88,7 +89,9 @@ def _matrix_table() -> rx.Component:
                 ),
                 spacing="0",
             ),
-            spacing="6", width="100%",
+            rx.spacer(),
+            table_export_button(AppState.download_validacao_csv),
+            spacing="6", width="100%", align="center",
         ),
         rx.table.root(
             rx.table.header(
