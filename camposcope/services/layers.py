@@ -315,9 +315,22 @@ def fire_frequency_spec(
     *, opacity: float = 0.75, z_index: int = 12,
 ) -> Optional[Dict[str, Any]]:
     """Fire frequency from MapBiomas Fire Collection 5 (1985-2025) — count of fire
-    occurrences with an orange-red-darkred gradient (0-41 range). The Fogo tab's map
+    occurrences with a yellow-orange-red-darkred gradient. The Fogo tab's map
     layer. The source asset carries 81 bands (one per partial window MapBiomas
-    publishes); only the full-period band is drawn here (services/fire.py)."""
+    publishes); only the full-period band is drawn here (services/fire.py).
+
+    **``min=1``, no white stop — the band is already masked where unburned**
+    (see ``services/fire.py``'s module docstring: a never-burned pixel is
+    masked, not 0), so a leading white-at-0 palette entry was never reachable
+    as "no fire" — every pixel that draws at all has some real burn count. What
+    it *did* do was compress the real, mostly-low range into near-white shades
+    once the ceiling was 41 (see ``_FIRE_FREQUENCY_MAX``'s calibration note):
+    a genuinely burnt pixel at frequency 1-3 rendered as a pale cream barely
+    distinguishable from the basemap, reading as a grey/white wash rather than
+    a fire signal. Dropping the white stop and starting the ramp at the lowest
+    real value fixes that without changing what is or isn't shown — masked
+    pixels were already, and remain, fully transparent.
+    """
     from .fire import FIRE_FREQUENCY_DATASET_ID, _FIRE_FREQUENCY_BAND, _FIRE_FREQUENCY_MAX
 
     cache_key = "fire_frequency"
@@ -329,8 +342,8 @@ def fire_frequency_spec(
     # Matches components/map_legend.py's gradient bar exactly, so the
     # on-map colours and the legend swatch never drift apart.
     vis = {
-        "min": 0, "max": _FIRE_FREQUENCY_MAX,
-        "palette": ["ffffff", "ffffb2", "fecc5c", "fd8d3c", "f03b20", "bd0026"],
+        "min": 1, "max": _FIRE_FREQUENCY_MAX,
+        "palette": ["ffffb2", "fecc5c", "fd8d3c", "f03b20", "bd0026", "800026"],
     }
 
     try:

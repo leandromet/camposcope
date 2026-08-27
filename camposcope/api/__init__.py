@@ -20,6 +20,7 @@ import logging
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from ..canada.services import ecozones
 from ..services import biomes
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,33 @@ async def biomes_geojson(request: Request) -> Response:
                     headers=headers)
 
 
+async def ecozones_geojson(request: Request) -> Response:
+    """The simplified Canadian ecozone polygons, pre-gzipped.
+
+    Same shape as :func:`biomes_geojson`, and unlike it involves no Earth
+    Engine call at all — the source is the ArcGIS FeatureServer
+    (``canada/services/ecozones.py``), so a cold start's first request costs a
+    plain HTTP fetch, not an EE round trip.
+    """
+    try:
+        payload = await _run_blocking(ecozones.geojson_gzipped)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Ecozone GeoJSON could not be produced")
+        return JSONResponse(
+            {"error": "ecozones unavailable", "detail": str(exc)}, status_code=503
+        )
+
+    headers = {"Cache-Control": _CACHE_CONTROL}
+    if "gzip" in request.headers.get("accept-encoding", ""):
+        headers["Content-Encoding"] = "gzip"
+    else:
+        payload = await _run_blocking(lambda: gzip.decompress(payload))
+
+    headers["Content-Length"] = str(len(payload))
+    return Response(content=payload, media_type="application/geo+json",
+                    headers=headers)
+
+
 async def healthz(request: Request) -> Response:
     return JSONResponse({"status": "ok"})
 
@@ -78,5 +106,7 @@ def register(app) -> None:
         logger.warning("Reflex app exposes no Starlette instance — routes skipped")
         return
     api.add_route(biomes.GEOJSON_PATH, biomes_geojson, methods=["GET"])
+    api.add_route(ecozones.GEOJSON_PATH, ecozones_geojson, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
-    logger.info("Registered backend routes %s, /healthz", biomes.GEOJSON_PATH)
+    logger.info("Registered backend routes %s, %s, /healthz",
+                biomes.GEOJSON_PATH, ecozones.GEOJSON_PATH)

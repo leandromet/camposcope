@@ -58,3 +58,9 @@ class UIMixin(rx.State, mixin=True):
         value = self.router.url.query_parameters.get("lang", "")
         if value in ("pt", "en"):
             self.lang = value
+
+    @rx.var
+    def canada_href(self) -> str:
+        """Link to the Canada page, carrying the current language — the
+        counterpart of ``canada/state/_ui.py::CanadaUIMixin.brazil_href``."""
+        return f"/canada?lang={self.lang}"

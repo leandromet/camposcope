@@ -100,11 +100,21 @@ def header() -> rx.Component:
             align="center",
         ),
         rx.spacer(),
+        rx.link(
+            rx.button(
+                rx.text("🇨🇦", font_size="0.95rem"),
+                rx.text(AppState.tr["go_to_canada"],
+                        display=["none", "none", "block", "block"]),
+                size="1", variant="soft", color_scheme="gray",
+                aria_label=AppState.tr["go_to_canada"],
+            ),
+            href=AppState.canada_href,
+        ),
         export_dialog(),
         cite_dialog(),
         rx.segmented_control.root(
-            rx.segmented_control.item("PT", value="pt"),
-            rx.segmented_control.item("EN", value="en"),
+            rx.segmented_control.item("🇧🇷 PT", value="pt"),
+            rx.segmented_control.item("🇨🇦 EN", value="en"),
             value=AppState.lang,
             on_change=AppState.set_lang,
             size="1",

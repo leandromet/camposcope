@@ -9,6 +9,7 @@ from __future__ import annotations
 TRANSLATIONS_EN: dict[str, str] = {
     # --- header --------------------------------------------------------- #
     "app_name": "Camposcope - Earth Engine for the CAR",
+    "go_to_canada": "Canada",
 
     # --- search panel ----------------------------------------------------- #
     "search_title": "Search",

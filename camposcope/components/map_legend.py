@@ -186,14 +186,14 @@ def _fire_legend() -> rx.Component:
         _header(AppState.tr["legend_fogo_frequencia"]),
         rx.hstack(
             rx.box(width="60px", height="8px", border_radius="2px",
-                  background="linear-gradient(to right, #ffffff, #ffffb2, "
-                            "#fecc5c, #fd8d3c, #f03b20, #bd0026)"),
+                  background="linear-gradient(to right, #ffffb2, "
+                            "#fecc5c, #fd8d3c, #f03b20, #bd0026, #800026)"),
             spacing="2", align="center",
         ),
         rx.hstack(
-            rx.text("0", size="1", color="var(--gray-11)"),
+            rx.text("1", size="1", color="var(--gray-11)"),
             rx.spacer(),
-            rx.text("41", size="1", color="var(--gray-11)"),
+            rx.text("15+", size="1", color="var(--gray-11)"),
             width="100%",
         ),
         rx.text(AppState.tr["legend_fogo_ocorrencias"], size="1", color="var(--gray-11)"),

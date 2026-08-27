@@ -1,0 +1,3217 @@
+{
+ "generated_at": "2026-08-27T17:24:03Z",
+ "source": {
+  "municipalities": "pub:WHSE_LEGAL_ADMIN_BOUNDARIES.ABMS_MUNICIPALITIES_SP",
+  "regional_districts": "pub:WHSE_LEGAL_ADMIN_BOUNDARIES.ABMS_REGIONAL_DISTRICTS_SP",
+  "parcel_fabric": "pub:WHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW"
+ },
+ "verified": true,
+ "rural": {
+  "name": "Rural (outside any municipality)",
+  "short_name": "Rural",
+  "pmbc_key": "Rural",
+  "parcel_count": 514851,
+  "bounds": null,
+  "regional_district": ""
+ },
+ "regional_districts": [
+  {
+   "name": "Regional District of Bulkley-Nechako",
+   "short_name": "RDBN",
+   "regional_district": "",
+   "bounds": [
+    [
+     52.98651686,
+     -128.4768325
+    ],
+    [
+     56.00064917,
+     -123.28027198
+    ]
+   ],
+   "pmbc_key": "Regional District of Bulkley-Nechako",
+   "parcel_count": 48887
+  },
+  {
+   "name": "Cariboo Regional District",
+   "short_name": "CRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     50.87591917,
+     -126.65052064
+    ],
+    [
+     53.54035287,
+     -120.13945399
+    ]
+   ],
+   "pmbc_key": "Cariboo Regional District",
+   "parcel_count": 51899
+  },
+  {
+   "name": "Regional District of Fraser-Fort George",
+   "short_name": "RDFFG",
+   "regional_district": "",
+   "bounds": [
+    [
+     52.17598709,
+     -124.02860266
+    ],
+    [
+     55.99319019,
+     -118.19499726
+    ]
+   ],
+   "pmbc_key": "Regional District of Fraser-Fort George",
+   "parcel_count": 73853
+  },
+  {
+   "name": "Regional District of Kitimat-Stikine",
+   "short_name": "RDKS",
+   "regional_district": "",
+   "bounds": [
+    [
+     51.60830242,
+     -133.06965007
+    ],
+    [
+     59.00000002,
+     -126.63830577
+    ]
+   ],
+   "pmbc_key": "Regional District of Kitimat-Stikine",
+   "parcel_count": 36445
+  },
+  {
+   "name": "Peace River Regional District",
+   "short_name": "PRRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     53.7964056,
+     -127.73850443
+    ],
+    [
+     58.02837114,
+     -120.00121557
+    ]
+   ],
+   "pmbc_key": "Peace River Regional District",
+   "parcel_count": 66371
+  },
+  {
+   "name": "North Coast Regional District",
+   "short_name": "NCRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     51.00004725,
+     -133.226028
+    ],
+    [
+     54.73981744,
+     -129.02658676
+    ]
+   ],
+   "pmbc_key": "North Coast Regional District",
+   "parcel_count": 27390
+  },
+  {
+   "name": "Regional District of Central Okanagan",
+   "short_name": "RDCO",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.6705784,
+     -120.05986674
+    ],
+    [
+     50.23527833,
+     -118.7973846
+    ]
+   ],
+   "pmbc_key": "Regional District of Central Okanagan",
+   "parcel_count": 103825
+  },
+  {
+   "name": "Fraser Valley Regional District",
+   "short_name": "FVRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.99729977,
+     -123.00467391
+    ],
+    [
+     50.15051557,
+     -120.81077094
+    ]
+   ],
+   "pmbc_key": "Fraser Valley Regional District",
+   "parcel_count": 133367
+  },
+  {
+   "name": "Metro Vancouver Regional District",
+   "short_name": "MVRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.0020586,
+     -123.71481166
+    ],
+    [
+     49.56996797,
+     -122.408051
+    ]
+   ],
+   "pmbc_key": "Metro Vancouver Regional District",
+   "parcel_count": 1055676
+  },
+  {
+   "name": "Regional District of Okanagan-Similkameen",
+   "short_name": "RDOS",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.99944415,
+     -121.09969455
+    ],
+    [
+     49.91363043,
+     -119.17510901
+    ]
+   ],
+   "pmbc_key": "Regional District of Okanagan-Similkameen",
+   "parcel_count": 54525
+  },
+  {
+   "name": "Squamish-Lillooet Regional District",
+   "short_name": "SLRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.48291242,
+     -124.01006421
+    ],
+    [
+     51.2103038,
+     -121.62729046
+    ]
+   ],
+   "pmbc_key": "Squamish-Lillooet Regional District",
+   "parcel_count": 39416
+  },
+  {
+   "name": "Thompson-Nicola Regional District",
+   "short_name": "TNRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.60990786,
+     -122.67742446
+    ],
+    [
+     52.87691307,
+     -118.78770707
+    ]
+   ],
+   "pmbc_key": "Thompson-Nicola Regional District",
+   "parcel_count": 81787
+  },
+  {
+   "name": "Regional District of Central Kootenay",
+   "short_name": "RDCK",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.99880938,
+     -118.49705763
+    ],
+    [
+     51.06473244,
+     -116.02693351
+    ]
+   ],
+   "pmbc_key": "Regional District of Central Kootenay",
+   "parcel_count": 57845
+  },
+  {
+   "name": "Columbia Shuswap Regional District",
+   "short_name": "CSRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     50.40182768,
+     -119.71070297
+    ],
+    [
+     52.496883,
+     -116.25464739
+    ]
+   ],
+   "pmbc_key": "Columbia Shuswap Regional District",
+   "parcel_count": 47559
+  },
+  {
+   "name": "Regional District of East Kootenay",
+   "short_name": "RDEK",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.99886492,
+     -116.79698876
+    ],
+    [
+     51.33425038,
+     -114.05414853
+    ]
+   ],
+   "pmbc_key": "Regional District of East Kootenay",
+   "parcel_count": 58710
+  },
+  {
+   "name": "Regional District of Kootenay Boundary",
+   "short_name": "RDKB",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.00004233,
+     -119.37724494
+    ],
+    [
+     49.83009285,
+     -117.46587302
+    ]
+   ],
+   "pmbc_key": "Regional District of Kootenay Boundary",
+   "parcel_count": 36443
+  },
+  {
+   "name": "Regional District of North Okanagan",
+   "short_name": "RDNO",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.81197405,
+     -119.76403107
+    ],
+    [
+     50.93727927,
+     -118.16252237
+    ]
+   ],
+   "pmbc_key": "Regional District of North Okanagan",
+   "parcel_count": 46991
+  },
+  {
+   "name": "Regional District of Alberni-Clayoquot",
+   "short_name": "RDAC",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.62497963,
+     -126.71132645
+    ],
+    [
+     49.60907081,
+     -124.53941093
+    ]
+   ],
+   "pmbc_key": "Regional District of Alberni-Clayoquot",
+   "parcel_count": 25915
+  },
+  {
+   "name": "Capital Regional District",
+   "short_name": "CAPRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.22483457,
+     -124.50290808
+    ],
+    [
+     49.01702686,
+     -123.00893381
+    ]
+   ],
+   "pmbc_key": "Capital Regional District",
+   "parcel_count": 183153
+  },
+  {
+   "name": "Central Coast Regional District",
+   "short_name": "CCRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     51.00000001,
+     -129.44793764
+    ],
+    [
+     53.30519842,
+     -125.34419992
+    ]
+   ],
+   "pmbc_key": "Central Coast Regional District",
+   "parcel_count": 2468
+  },
+  {
+   "name": "Comox Valley Regional District",
+   "short_name": "CMXRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.4048794,
+     -125.55096588
+    ],
+    [
+     49.92166707,
+     -124.48141966
+    ]
+   ],
+   "pmbc_key": "Comox Valley Regional District",
+   "parcel_count": 37996
+  },
+  {
+   "name": "Cowichan Valley Regional District",
+   "short_name": "CVRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.43258294,
+     -124.86961511
+    ],
+    [
+     49.15386283,
+     -123.32277483
+    ]
+   ],
+   "pmbc_key": "Cowichan Valley Regional District",
+   "parcel_count": 49882
+  },
+  {
+   "name": "Regional District of Mount Waddington",
+   "short_name": "RDMW",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.90665998,
+     -129.44793764
+    ],
+    [
+     52.05204793,
+     -125.20235391
+    ]
+   ],
+   "pmbc_key": "Regional District of Mount Waddington",
+   "parcel_count": 9909
+  },
+  {
+   "name": "Regional District of Nanaimo",
+   "short_name": "RDN",
+   "regional_district": "",
+   "bounds": [
+    [
+     48.97987134,
+     -124.96751229
+    ],
+    [
+     49.47612656,
+     -123.43002743
+    ]
+   ],
+   "pmbc_key": "Regional District of Nanaimo",
+   "parcel_count": 88179
+  },
+  {
+   "name": "qathet Regional District",
+   "short_name": "qRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.36468325,
+     -124.99182372
+    ],
+    [
+     50.8620367,
+     -123.72960069
+    ]
+   ],
+   "pmbc_key": "qathet Regional District",
+   "parcel_count": 14143
+  },
+  {
+   "name": "Sunshine Coast Regional District",
+   "short_name": "SCRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.29737261,
+     -124.28425972
+    ],
+    [
+     50.36677733,
+     -123.24675326
+    ]
+   ],
+   "pmbc_key": "Sunshine Coast Regional District",
+   "parcel_count": 23383
+  },
+  {
+   "name": "Strathcona Regional District",
+   "short_name": "STRD",
+   "regional_district": "",
+   "bounds": [
+    [
+     49.47803437,
+     -127.98992163
+    ],
+    [
+     51.3271584,
+     -123.68505054
+    ]
+   ],
+   "pmbc_key": "Strathcona Regional District",
+   "parcel_count": 27731
+  },
+  {
+   "name": "Stikine Region (Unincorporated)",
+   "short_name": "Stikine Region",
+   "regional_district": "",
+   "bounds": [
+    [
+     56.00000002,
+     -139.06130588
+    ],
+    [
+     60.00192782,
+     -124.45098748
+    ]
+   ],
+   "pmbc_key": "Stikine Region",
+   "parcel_count": 1890
+  }
+ ],
+ "municipalities": [
+  {
+   "name": "Village of Valemount",
+   "short_name": "Valemount",
+   "regional_district": "Regional District of Fraser-Fort George",
+   "bounds": [
+    [
+     52.81525784,
+     -119.28217374
+    ],
+    [
+     52.84651283,
+     -119.24636812
+    ]
+   ],
+   "pmbc_key": "Valemount, Village of",
+   "parcel_count": 879
+  },
+  {
+   "name": "District of Kitimat",
+   "short_name": "Kitimat",
+   "regional_district": "Regional District of Kitimat-Stikine",
+   "bounds": [
+    [
+     53.79033181,
+     -128.92355275
+    ],
+    [
+     54.10647957,
+     -128.5365061
+    ]
+   ],
+   "pmbc_key": "Kitimat, District of",
+   "parcel_count": 4782
+  },
+  {
+   "name": "The Corporation of the Village of Hazelton",
+   "short_name": "Hazelton",
+   "regional_district": "Regional District of Kitimat-Stikine",
+   "bounds": [
+    [
+     55.24557022,
+     -127.68509707
+    ],
+    [
+     55.27237947,
+     -127.62867622
+    ]
+   ],
+   "pmbc_key": "Hazelton, The Corporation of the Village of",
+   "parcel_count": 2432
+  },
+  {
+   "name": "District of New Hazelton",
+   "short_name": "New Hazelton",
+   "regional_district": "Regional District of Kitimat-Stikine",
+   "bounds": [
+    [
+     55.12559517,
+     -127.78009985
+    ],
+    [
+     55.26746002,
+     -127.53979941
+    ]
+   ],
+   "pmbc_key": "New Hazelton, District of",
+   "parcel_count": 6272
+  },
+  {
+   "name": "District of Stewart",
+   "short_name": "Stewart",
+   "regional_district": "Regional District of Kitimat-Stikine",
+   "bounds": [
+    [
+     55.87182011,
+     -130.46802914
+    ],
+    [
+     56.27429368,
+     -129.85726271
+    ]
+   ],
+   "pmbc_key": "Stewart, District of",
+   "parcel_count": 2931
+  },
+  {
+   "name": "City of Terrace",
+   "short_name": "Terrace",
+   "regional_district": "Regional District of Kitimat-Stikine",
+   "bounds": [
+    [
+     54.42540967,
+     -128.662441
+    ],
+    [
+     54.54266873,
+     -128.51299084
+    ]
+   ],
+   "pmbc_key": "Terrace, City of",
+   "parcel_count": 5463
+  },
+  {
+   "name": "Northern Rockies Regional Municipality",
+   "short_name": "NRRM",
+   "regional_district": "-",
+   "bounds": [
+    [
+     58.00000005,
+     -127.81838001
+    ],
+    [
+     60.00478256,
+     -120.00127227
+    ]
+   ],
+   "pmbc_key": "Northern Rockies Regional Municipality",
+   "parcel_count": 7121
+  },
+  {
+   "name": "District of Tumbler Ridge",
+   "short_name": "Tumbler Ridge",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     54.80198811,
+     -121.62500494
+    ],
+    [
+     55.24566563,
+     -120.81051199
+    ]
+   ],
+   "pmbc_key": "Tumbler Ridge, District of",
+   "parcel_count": 2428
+  },
+  {
+   "name": "District of Chetwynd",
+   "short_name": "Chetwynd",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     55.56842766,
+     -122.26402434
+    ],
+    [
+     55.75002061,
+     -121.29098122
+    ]
+   ],
+   "pmbc_key": "Chetwynd, District of",
+   "parcel_count": 1455
+  },
+  {
+   "name": "The Corporation of the City of Dawson Creek",
+   "short_name": "Dawson Creek",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     55.73044301,
+     -120.30213965
+    ],
+    [
+     55.78860912,
+     -120.14695137
+    ]
+   ],
+   "pmbc_key": "Dawson Creek, The Corporation of the City of",
+   "parcel_count": 5902
+  },
+  {
+   "name": "City of Fort St John",
+   "short_name": "Fort St John",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     56.21006978,
+     -120.90001847
+    ],
+    [
+     56.27923498,
+     -120.74215965
+    ]
+   ],
+   "pmbc_key": "Fort St. John, City of",
+   "parcel_count": 9849
+  },
+  {
+   "name": "District of Hudsons Hope",
+   "short_name": "Hudson's Hope",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     55.87135977,
+     -122.30672713
+    ],
+    [
+     56.15965859,
+     -121.74514161
+    ]
+   ],
+   "pmbc_key": "Hudson's Hope, District of",
+   "parcel_count": 1468
+  },
+  {
+   "name": "The Corporation of the Village of Pouce Coupe",
+   "short_name": "Pouce Coupe",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     55.71068319,
+     -120.14667647
+    ],
+    [
+     55.73741261,
+     -120.11167855
+    ]
+   ],
+   "pmbc_key": "Pouce Coupe, The Corporation of the Village of",
+   "parcel_count": 579
+  },
+  {
+   "name": "District of Taylor",
+   "short_name": "Taylor",
+   "regional_district": "Peace River Regional District",
+   "bounds": [
+    [
+     56.13651376,
+     -120.73418179
+    ],
+    [
+     56.17373363,
+     -120.63633168
+    ]
+   ],
+   "pmbc_key": "Taylor, District of",
+   "parcel_count": 895
+  },
+  {
+   "name": "Village of Daajing Giids",
+   "short_name": "Daajing Giids",
+   "regional_district": "North Coast Regional District",
+   "bounds": [
+    [
+     53.21014575,
+     -132.16499902
+    ],
+    [
+     53.27706717,
+     -132.00344577
+    ]
+   ],
+   "pmbc_key": "Daajing Giids, Village of",
+   "parcel_count": 1934
+  },
+  {
+   "name": "Village of Masset",
+   "short_name": "Masset",
+   "regional_district": "North Coast Regional District",
+   "bounds": [
+    [
+     53.99967106,
+     -132.16713198
+    ],
+    [
+     54.04064655,
+     -132.02708291
+    ]
+   ],
+   "pmbc_key": "Masset, Village of",
+   "parcel_count": 1354
+  },
+  {
+   "name": "Village of Port Clements",
+   "short_name": "Port Clements",
+   "regional_district": "North Coast Regional District",
+   "bounds": [
+    [
+     53.6014488,
+     -132.33687279
+    ],
+    [
+     53.71285218,
+     -132.13984971
+    ]
+   ],
+   "pmbc_key": "Port Clements, Village of",
+   "parcel_count": 598
+  },
+  {
+   "name": "District of Port Edward",
+   "short_name": "Port Edward",
+   "regional_district": "North Coast Regional District",
+   "bounds": [
+    [
+     54.14667966,
+     -130.30497054
+    ],
+    [
+     54.26185781,
+     -129.94858944
+    ]
+   ],
+   "pmbc_key": "Port Edward, District of",
+   "parcel_count": 2234
+  },
+  {
+   "name": "City of Prince Rupert",
+   "short_name": "Prince Rupert",
+   "regional_district": "North Coast Regional District",
+   "bounds": [
+    [
+     54.2016048,
+     -130.36571132
+    ],
+    [
+     54.38384136,
+     -130.23614696
+    ]
+   ],
+   "pmbc_key": "Prince Rupert, City of",
+   "parcel_count": 10046
+  },
+  {
+   "name": "City of Kelowna",
+   "short_name": "Kelowna",
+   "regional_district": "Regional District of Central Okanagan",
+   "bounds": [
+    [
+     49.773437,
+     -119.58872986
+    ],
+    [
+     50.02541174,
+     -119.31945571
+    ]
+   ],
+   "pmbc_key": "Kelowna, City of",
+   "parcel_count": 69804
+  },
+  {
+   "name": "District of Lake Country",
+   "short_name": "Lake Country",
+   "regional_district": "Regional District of Central Okanagan",
+   "bounds": [
+    [
+     50.00531371,
+     -119.4858418
+    ],
+    [
+     50.15157701,
+     -119.2893442
+    ]
+   ],
+   "pmbc_key": "Lake Country, District of",
+   "parcel_count": 7971
+  },
+  {
+   "name": "The Corporation of the District of Peachland",
+   "short_name": "Peachland",
+   "regional_district": "Regional District of Central Okanagan",
+   "bounds": [
+    [
+     49.73989731,
+     -119.80718304
+    ],
+    [
+     49.80575488,
+     -119.66282351
+    ]
+   ],
+   "pmbc_key": "Peachland, The Corporation of the District of",
+   "parcel_count": 3185
+  },
+  {
+   "name": "City of West Kelowna",
+   "short_name": "West Kelowna",
+   "regional_district": "Regional District of Central Okanagan",
+   "bounds": [
+    [
+     49.78701201,
+     -119.72660185
+    ],
+    [
+     49.94523944,
+     -119.50696994
+    ]
+   ],
+   "pmbc_key": "West Kelowna, City of",
+   "parcel_count": 16951
+  },
+  {
+   "name": "City of Abbotsford",
+   "short_name": "Abbotsford",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.00223466,
+     -122.46237826
+    ],
+    [
+     49.17194133,
+     -122.07299034
+    ]
+   ],
+   "pmbc_key": "Abbotsford, City of",
+   "parcel_count": 56354
+  },
+  {
+   "name": "City of Chilliwack",
+   "short_name": "Chilliwack",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.04591756,
+     -122.1243703
+    ],
+    [
+     49.2256071,
+     -121.77724718
+    ]
+   ],
+   "pmbc_key": "Chilliwack, City of",
+   "parcel_count": 39047
+  },
+  {
+   "name": "The Corporation of the Village of Burns Lake",
+   "short_name": "Burns Lake",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.17711331,
+     -125.82880471
+    ],
+    [
+     54.29494382,
+     -125.48270711
+    ]
+   ],
+   "pmbc_key": "Burns Lake, The Corporation of the Village of",
+   "parcel_count": 915
+  },
+  {
+   "name": "District of Fort St James",
+   "short_name": "Fort St James",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.43888669,
+     -124.30507781
+    ],
+    [
+     54.49673645,
+     -124.15396502
+    ]
+   ],
+   "pmbc_key": "Fort St. James, District of",
+   "parcel_count": 1013
+  },
+  {
+   "name": "Village of Fraser Lake",
+   "short_name": "Fraser Lake",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.03423317,
+     -125.10399029
+    ],
+    [
+     54.06853114,
+     -124.7456704
+    ]
+   ],
+   "pmbc_key": "Fraser Lake, Village of",
+   "parcel_count": 543
+  },
+  {
+   "name": "Village of Granisle",
+   "short_name": "Granisle",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.87545029,
+     -126.27825322
+    ],
+    [
+     55.02331428,
+     -126.1363597
+    ]
+   ],
+   "pmbc_key": "Granisle, Village of",
+   "parcel_count": 498
+  },
+  {
+   "name": "District of Houston",
+   "short_name": "Houston",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.35631642,
+     -126.75256283
+    ],
+    [
+     54.43999017,
+     -126.58185782
+    ]
+   ],
+   "pmbc_key": "Houston, District of",
+   "parcel_count": 1764
+  },
+  {
+   "name": "Town of Smithers",
+   "short_name": "Smithers",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.74588907,
+     -127.20158245
+    ],
+    [
+     54.83600277,
+     -127.1267492
+    ]
+   ],
+   "pmbc_key": "Smithers, Town of",
+   "parcel_count": 4786
+  },
+  {
+   "name": "The Corporation of the Village of Telkwa",
+   "short_name": "Telkwa",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     54.65944654,
+     -127.08163505
+    ],
+    [
+     54.71121893,
+     -127.03383849
+    ]
+   ],
+   "pmbc_key": "Telkwa, The Corporation of the Village of",
+   "parcel_count": 1488
+  },
+  {
+   "name": "District of Vanderhoof",
+   "short_name": "Vanderhoof",
+   "regional_district": "Regional District of Bulkley-Nechako",
+   "bounds": [
+    [
+     53.9837017,
+     -124.36850906
+    ],
+    [
+     54.05646092,
+     -123.92306266
+    ]
+   ],
+   "pmbc_key": "Vanderhoof, District of",
+   "parcel_count": 2746
+  },
+  {
+   "name": "District of 100 Mile House",
+   "short_name": "100 Mile House",
+   "regional_district": "Cariboo Regional District",
+   "bounds": [
+    [
+     51.60174152,
+     -121.39697391
+    ],
+    [
+     51.67586189,
+     -121.2342642
+    ]
+   ],
+   "pmbc_key": "100 Mile House, District of",
+   "parcel_count": 1208
+  },
+  {
+   "name": "City of Quesnel",
+   "short_name": "Quesnel",
+   "regional_district": "Cariboo Regional District",
+   "bounds": [
+    [
+     52.93922627,
+     -122.54086423
+    ],
+    [
+     53.03425527,
+     -122.3962894
+    ]
+   ],
+   "pmbc_key": "Quesnel, City of",
+   "parcel_count": 5188
+  },
+  {
+   "name": "District of Wells",
+   "short_name": "Wells",
+   "regional_district": "Cariboo Regional District",
+   "bounds": [
+    [
+     53.03003684,
+     -121.77766201
+    ],
+    [
+     53.16536858,
+     -121.51389305
+    ]
+   ],
+   "pmbc_key": "Wells, District of",
+   "parcel_count": 543
+  },
+  {
+   "name": "City of Williams Lake",
+   "short_name": "Williams Lake",
+   "regional_district": "Cariboo Regional District",
+   "bounds": [
+    [
+     52.09956885,
+     -122.19992027
+    ],
+    [
+     52.19679264,
+     -122.02432533
+    ]
+   ],
+   "pmbc_key": "Williams Lake, City of",
+   "parcel_count": 4541
+  },
+  {
+   "name": "District of Mackenzie",
+   "short_name": "Mackenzie",
+   "regional_district": "Regional District of Fraser-Fort George",
+   "bounds": [
+    [
+     55.2191772,
+     -123.26181815
+    ],
+    [
+     55.39646258,
+     -123.0140394
+    ]
+   ],
+   "pmbc_key": "Mackenzie, District of",
+   "parcel_count": 1759
+  },
+  {
+   "name": "The Corporation of the Village of McBride",
+   "short_name": "McBride",
+   "regional_district": "Regional District of Fraser-Fort George",
+   "bounds": [
+    [
+     53.29077574,
+     -120.18066123
+    ],
+    [
+     53.32087023,
+     -120.14636765
+    ]
+   ],
+   "pmbc_key": "McBride, The Corporation of the Village of",
+   "parcel_count": 516
+  },
+  {
+   "name": "City of Prince George",
+   "short_name": "Prince George",
+   "regional_district": "Regional District of Fraser-Fort George",
+   "bounds": [
+    [
+     53.8126077,
+     -122.89936984
+    ],
+    [
+     54.04174962,
+     -122.60433309
+    ]
+   ],
+   "pmbc_key": "Prince George, City of",
+   "parcel_count": 37845
+  },
+  {
+   "name": "District of Logan Lake",
+   "short_name": "Logan Lake",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.38678125,
+     -121.29738099
+    ],
+    [
+     50.57620437,
+     -120.7864205
+    ]
+   ],
+   "pmbc_key": "Logan Lake, District of",
+   "parcel_count": 1672
+  },
+  {
+   "name": "District of Barriere",
+   "short_name": "Barriere",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     51.13748814,
+     -120.15198338
+    ],
+    [
+     51.20553803,
+     -120.09692993
+    ]
+   ],
+   "pmbc_key": "Barriere, District of",
+   "parcel_count": 968
+  },
+  {
+   "name": "Village of Cache Creek",
+   "short_name": "Cache Creek",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.77429259,
+     -121.33860751
+    ],
+    [
+     50.81811497,
+     -121.28987265
+    ]
+   ],
+   "pmbc_key": "Cache Creek, Village of",
+   "parcel_count": 540
+  },
+  {
+   "name": "District of Clearwater",
+   "short_name": "Clearwater",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     51.57559651,
+     -120.12377801
+    ],
+    [
+     51.69402206,
+     -119.73114061
+    ]
+   ],
+   "pmbc_key": "Clearwater, District of",
+   "parcel_count": 1500
+  },
+  {
+   "name": "Village of Lytton",
+   "short_name": "Lytton",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.19743631,
+     -121.58610883
+    ],
+    [
+     50.24835185,
+     -121.55551692
+    ]
+   ],
+   "pmbc_key": "Lytton, The Corporation of the Village of",
+   "parcel_count": 273
+  },
+  {
+   "name": "City of Merritt",
+   "short_name": "Merritt",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.07918863,
+     -120.82377609
+    ],
+    [
+     50.13477202,
+     -120.73555228
+    ]
+   ],
+   "pmbc_key": "Merritt, City of",
+   "parcel_count": 3682
+  },
+  {
+   "name": "Sun Peaks Mountain Resort Municipality",
+   "short_name": "Sun Peaks",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.85878945,
+     -119.96133651
+    ],
+    [
+     50.9245033,
+     -119.82933069
+    ]
+   ],
+   "pmbc_key": "Sun Peaks, Mountain Resort Municipality",
+   "parcel_count": 2040
+  },
+  {
+   "name": "The Corporation of the City of Nelson",
+   "short_name": "Nelson",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.44156516,
+     -117.52484316
+    ],
+    [
+     49.51745682,
+     -117.26178719
+    ]
+   ],
+   "pmbc_key": "Nelson, The Corporation of the City of",
+   "parcel_count": 7012
+  },
+  {
+   "name": "Village of Slocan",
+   "short_name": "Slocan",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.76112682,
+     -117.47550532
+    ],
+    [
+     49.77203852,
+     -117.46336933
+    ]
+   ],
+   "pmbc_key": "Slocan, Village of",
+   "parcel_count": 735
+  },
+  {
+   "name": "The Corporation of the Village of Salmo",
+   "short_name": "Salmo",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.17883506,
+     -117.29404822
+    ],
+    [
+     49.19873524,
+     -117.27196635
+    ]
+   ],
+   "pmbc_key": "Salmo, The Corporation of the Village of",
+   "parcel_count": 849
+  },
+  {
+   "name": "Village of Harrison Hot Springs",
+   "short_name": "Harrison Hot Springs",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.28045369,
+     -121.81206012
+    ],
+    [
+     49.31391232,
+     -121.76653245
+    ]
+   ],
+   "pmbc_key": "Harrison Hot Springs, Village of",
+   "parcel_count": 1524
+  },
+  {
+   "name": "District of Hope",
+   "short_name": "Hope",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.34783862,
+     -121.57567135
+    ],
+    [
+     49.4297035,
+     -121.35709529
+    ]
+   ],
+   "pmbc_key": "Hope, District of",
+   "parcel_count": 3924
+  },
+  {
+   "name": "District of Kent",
+   "short_name": "Kent",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.20462236,
+     -121.97496962
+    ],
+    [
+     49.36061767,
+     -121.60458883
+    ]
+   ],
+   "pmbc_key": "Kent, The Corporation of the District of",
+   "parcel_count": 3437
+  },
+  {
+   "name": "City of Mission",
+   "short_name": "Mission",
+   "regional_district": "Fraser Valley Regional District",
+   "bounds": [
+    [
+     49.10941966,
+     -122.42463936
+    ],
+    [
+     49.36007603,
+     -122.22490206
+    ]
+   ],
+   "pmbc_key": "Mission, City of",
+   "parcel_count": 17997
+  },
+  {
+   "name": "Village of Anmore",
+   "short_name": "Anmore",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.29942491,
+     -122.89464261
+    ],
+    [
+     49.38274122,
+     -122.82254466
+    ]
+   ],
+   "pmbc_key": "Anmore, Village of",
+   "parcel_count": 988
+  },
+  {
+   "name": "Village of Belcarra",
+   "short_name": "Belcarra",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.31070387,
+     -122.93677936
+    ],
+    [
+     49.35624129,
+     -122.87803365
+    ]
+   ],
+   "pmbc_key": "Belcarra, Village of",
+   "parcel_count": 411
+  },
+  {
+   "name": "Bowen Island Municipality",
+   "short_name": "Bowen Island",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.33094691,
+     -123.43605811
+    ],
+    [
+     49.42269187,
+     -123.30395446
+    ]
+   ],
+   "pmbc_key": "Bowen Island, Municipality",
+   "parcel_count": 2920
+  },
+  {
+   "name": "City of Coquitlam",
+   "short_name": "Coquitlam",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.21987875,
+     -122.89355095
+    ],
+    [
+     49.35132582,
+     -122.61951607
+    ]
+   ],
+   "pmbc_key": "Coquitlam, City of",
+   "parcel_count": 61592
+  },
+  {
+   "name": "City of Delta",
+   "short_name": "Delta",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.0020586,
+     -123.30940619
+    ],
+    [
+     49.19401546,
+     -122.89015018
+    ]
+   ],
+   "pmbc_key": "Delta, City of",
+   "parcel_count": 38577
+  },
+  {
+   "name": "City of Langley",
+   "short_name": "Langley - City",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.08196981,
+     -122.67997213
+    ],
+    [
+     49.11543024,
+     -122.63787267
+    ]
+   ],
+   "pmbc_key": "Langley, City of",
+   "parcel_count": 13045
+  },
+  {
+   "name": "City of Maple Ridge",
+   "short_name": "Maple Ridge",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.16722405,
+     -122.67172608
+    ],
+    [
+     49.35326876,
+     -122.408051
+    ]
+   ],
+   "pmbc_key": "Maple Ridge, City of",
+   "parcel_count": 37207
+  },
+  {
+   "name": "City of New Westminster",
+   "short_name": "New Westminster",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.1750281,
+     -122.96007258
+    ],
+    [
+     49.23806587,
+     -122.87503319
+    ]
+   ],
+   "pmbc_key": "New Westminster, The Corporation of the City of",
+   "parcel_count": 29554
+  },
+  {
+   "name": "City of Pitt Meadows",
+   "short_name": "Pitt Meadows",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.19638067,
+     -122.76812864
+    ],
+    [
+     49.35326134,
+     -122.57900932
+    ]
+   ],
+   "pmbc_key": "Pitt Meadows, City of",
+   "parcel_count": 7769
+  },
+  {
+   "name": "City of Port Coquitlam",
+   "short_name": "Port Coquitlam",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.21346586,
+     -122.8073553
+    ],
+    [
+     49.28930198,
+     -122.7024177
+    ]
+   ],
+   "pmbc_key": "Port Coquitlam, The Corporation of the City of",
+   "parcel_count": 23779
+  },
+  {
+   "name": "City of Surrey",
+   "short_name": "Surrey",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.00208327,
+     -122.95694216
+    ],
+    [
+     49.22083033,
+     -122.67911062
+    ]
+   ],
+   "pmbc_key": "Surrey, City of",
+   "parcel_count": 201547
+  },
+  {
+   "name": "City of White Rock",
+   "short_name": "White Rock",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.00212067,
+     -122.84545904
+    ],
+    [
+     49.03123015,
+     -122.77919761
+    ]
+   ],
+   "pmbc_key": "White Rock, The Corporation of the City of",
+   "parcel_count": 10700
+  },
+  {
+   "name": "Village of Lions Bay",
+   "short_name": "Lions Bay",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.44696169,
+     -123.25023377
+    ],
+    [
+     49.47737353,
+     -123.22817816
+    ]
+   ],
+   "pmbc_key": "Lions Bay, Village of",
+   "parcel_count": 786
+  },
+  {
+   "name": "The Corporation of the Township of Langley",
+   "short_name": "Langley - District",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.00212124,
+     -122.6805452
+    ],
+    [
+     49.21047017,
+     -122.45937729
+    ]
+   ],
+   "pmbc_key": "Langley, The Corporation of the Township of",
+   "parcel_count": 58552
+  },
+  {
+   "name": "Village of Keremeos",
+   "short_name": "Keremeos",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.19825045,
+     -119.83730729
+    ],
+    [
+     49.21317801,
+     -119.81314584
+    ]
+   ],
+   "pmbc_key": "Keremeos, The Corporation of the Village of",
+   "parcel_count": 969
+  },
+  {
+   "name": "Town of Osoyoos",
+   "short_name": "Osoyoos",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.00501164,
+     -119.50671735
+    ],
+    [
+     49.04558003,
+     -119.4307795
+    ]
+   ],
+   "pmbc_key": "Osoyoos, Town of",
+   "parcel_count": 4896
+  },
+  {
+   "name": "The Corporation of the City of Penticton",
+   "short_name": "Penticton",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.42245743,
+     -119.61641832
+    ],
+    [
+     49.55592001,
+     -119.51436378
+    ]
+   ],
+   "pmbc_key": "Penticton, The Corporation of the City of",
+   "parcel_count": 18043
+  },
+  {
+   "name": "Town of Princeton",
+   "short_name": "Princeton",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.27601046,
+     -120.5680011
+    ],
+    [
+     49.48353749,
+     -120.4677542
+    ]
+   ],
+   "pmbc_key": "Princeton, Town of",
+   "parcel_count": 2443
+  },
+  {
+   "name": "Town of Oliver",
+   "short_name": "Oliver",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.16804821,
+     -119.5769734
+    ],
+    [
+     49.20485672,
+     -119.5344582
+    ]
+   ],
+   "pmbc_key": "Oliver, Town of",
+   "parcel_count": 2832
+  },
+  {
+   "name": "The Corporation of the District of Summerland",
+   "short_name": "Summerland",
+   "regional_district": "Regional District of Okanagan-Similkameen",
+   "bounds": [
+    [
+     49.5479406,
+     -119.80521609
+    ],
+    [
+     49.71220903,
+     -119.61658593
+    ]
+   ],
+   "pmbc_key": "Summerland, The Corporation of the District of",
+   "parcel_count": 6724
+  },
+  {
+   "name": "District of Lillooet",
+   "short_name": "Lillooet",
+   "regional_district": "Squamish-Lillooet Regional District",
+   "bounds": [
+    [
+     50.64760382,
+     -122.00237609
+    ],
+    [
+     50.73770202,
+     -121.86575723
+    ]
+   ],
+   "pmbc_key": "Lillooet, District of",
+   "parcel_count": 1653
+  },
+  {
+   "name": "District of Squamish",
+   "short_name": "Squamish",
+   "regional_district": "Squamish-Lillooet Regional District",
+   "bounds": [
+    [
+     49.63869356,
+     -123.26034073
+    ],
+    [
+     49.87285947,
+     -123.01690713
+    ]
+   ],
+   "pmbc_key": "Squamish, District of",
+   "parcel_count": 12760
+  },
+  {
+   "name": "Resort Municipality of Whistler",
+   "short_name": "Whistler",
+   "regional_district": "Squamish-Lillooet Regional District",
+   "bounds": [
+    [
+     50.0267601,
+     -123.15340781
+    ],
+    [
+     50.17612884,
+     -122.8588426
+    ]
+   ],
+   "pmbc_key": "Whistler, Resort Municipality of",
+   "parcel_count": 16170
+  },
+  {
+   "name": "Village of Pemberton",
+   "short_name": "Pemberton",
+   "regional_district": "Squamish-Lillooet Regional District",
+   "bounds": [
+    [
+     50.24210196,
+     -122.99072738
+    ],
+    [
+     50.34073811,
+     -122.72263122
+    ]
+   ],
+   "pmbc_key": "Pemberton, Village of",
+   "parcel_count": 2098
+  },
+  {
+   "name": "The Corporation of the Village of Ashcroft",
+   "short_name": "Ashcroft",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.64698654,
+     -121.41352711
+    ],
+    [
+     50.75239614,
+     -121.22302143
+    ]
+   ],
+   "pmbc_key": "Ashcroft, The Corporation of the Village of",
+   "parcel_count": 1096
+  },
+  {
+   "name": "Village of Chase",
+   "short_name": "Chase",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.806252,
+     -119.70955562
+    ],
+    [
+     50.96554778,
+     -119.67311841
+    ]
+   ],
+   "pmbc_key": "Chase, Village of",
+   "parcel_count": 1468
+  },
+  {
+   "name": "Village of Clinton",
+   "short_name": "Clinton",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     51.07450166,
+     -121.60384905
+    ],
+    [
+     51.20110315,
+     -121.49127902
+    ]
+   ],
+   "pmbc_key": "Clinton, Village of",
+   "parcel_count": 518
+  },
+  {
+   "name": "City of Kamloops",
+   "short_name": "Kamloops",
+   "regional_district": "Thompson-Nicola Regional District",
+   "bounds": [
+    [
+     50.61550845,
+     -120.54243913
+    ],
+    [
+     50.86642845,
+     -120.04182238
+    ]
+   ],
+   "pmbc_key": "Kamloops, City of",
+   "parcel_count": 40172
+  },
+  {
+   "name": "Village of Midway",
+   "short_name": "Midway",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.00007623,
+     -118.84997368
+    ],
+    [
+     49.01835061,
+     -118.75034731
+    ]
+   ],
+   "pmbc_key": "Midway, Village of",
+   "parcel_count": 786
+  },
+  {
+   "name": "Village of Montrose",
+   "short_name": "Montrose",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.0716185,
+     -117.6050921
+    ],
+    [
+     49.08448143,
+     -117.579061
+    ]
+   ],
+   "pmbc_key": "Montrose, The Corporation of the Village of",
+   "parcel_count": 512
+  },
+  {
+   "name": "City of Rossland",
+   "short_name": "Rossland",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.05958776,
+     -117.89431632
+    ],
+    [
+     49.18619333,
+     -117.76768303
+    ]
+   ],
+   "pmbc_key": "Rossland, The Corporation of the City of",
+   "parcel_count": 4070
+  },
+  {
+   "name": "City of Trail",
+   "short_name": "Trail",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.02802748,
+     -117.7588961
+    ],
+    [
+     49.1467643,
+     -117.6107966
+    ]
+   ],
+   "pmbc_key": "Trail, City of",
+   "parcel_count": 5447
+  },
+  {
+   "name": "Village of Warfield",
+   "short_name": "Warfield",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.0876427,
+     -117.76193884
+    ],
+    [
+     49.10207039,
+     -117.72878683
+    ]
+   ],
+   "pmbc_key": "Warfield, The Corporation of the Village of",
+   "parcel_count": 961
+  },
+  {
+   "name": "The Corporation of the Village of Fruitvale",
+   "short_name": "Fruitvale",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.09732433,
+     -117.56777107
+    ],
+    [
+     49.12417335,
+     -117.53839439
+    ]
+   ],
+   "pmbc_key": "Fruitvale, The Corporation of the Village of",
+   "parcel_count": 960
+  },
+  {
+   "name": "City of Armstrong",
+   "short_name": "Armstrong",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.42970085,
+     -119.21734713
+    ],
+    [
+     50.45618389,
+     -119.18152295
+    ]
+   ],
+   "pmbc_key": "Armstrong, City of",
+   "parcel_count": 2813
+  },
+  {
+   "name": "The Corporation of the District of Coldstream",
+   "short_name": "Coldstream",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.19461154,
+     -119.28989935
+    ],
+    [
+     50.25297087,
+     -119.05742746
+    ]
+   ],
+   "pmbc_key": "Coldstream, The Corporation of the District of",
+   "parcel_count": 5227
+  },
+  {
+   "name": "The Corporation of the City of Enderby",
+   "short_name": "Enderby",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.54294373,
+     -119.16251339
+    ],
+    [
+     50.57028089,
+     -119.123752
+    ]
+   ],
+   "pmbc_key": "Enderby, The Corporation of the City of",
+   "parcel_count": 1730
+  },
+  {
+   "name": "The Corporation of the Village of Lumby",
+   "short_name": "Lumby",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.23663103,
+     -118.98893853
+    ],
+    [
+     50.26373426,
+     -118.94824656
+    ]
+   ],
+   "pmbc_key": "Lumby, The Corporation of the Village of",
+   "parcel_count": 1155
+  },
+  {
+   "name": "The Corporation of the Township of Spallumcheen",
+   "short_name": "Spallumcheen",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.33999089,
+     -119.33076893
+    ],
+    [
+     50.55405942,
+     -119.08149797
+    ]
+   ],
+   "pmbc_key": "Spallumcheen, The Corporation of the Township of",
+   "parcel_count": 2840
+  },
+  {
+   "name": "The Corporation of the City of Vernon",
+   "short_name": "Vernon",
+   "regional_district": "Regional District of North Okanagan",
+   "bounds": [
+    [
+     50.15152902,
+     -119.45398899
+    ],
+    [
+     50.32151556,
+     -119.20520681
+    ]
+   ],
+   "pmbc_key": "Vernon, The Corporation of the City of",
+   "parcel_count": 22168
+  },
+  {
+   "name": "City of Port Alberni",
+   "short_name": "Port Alberni",
+   "regional_district": "Regional District of Alberni-Clayoquot",
+   "bounds": [
+    [
+     49.2110294,
+     -124.85310996
+    ],
+    [
+     49.27494136,
+     -124.76123278
+    ]
+   ],
+   "pmbc_key": "Port Alberni, City of",
+   "parcel_count": 10656
+  },
+  {
+   "name": "Corporation of the Village of Tofino",
+   "short_name": "Tofino",
+   "regional_district": "Regional District of Alberni-Clayoquot",
+   "bounds": [
+    [
+     49.09365371,
+     -125.92616229
+    ],
+    [
+     49.16671222,
+     -125.84463215
+    ]
+   ],
+   "pmbc_key": "Tofino, District of",
+   "parcel_count": 1499
+  },
+  {
+   "name": "District of Ucluelet",
+   "short_name": "Ucluelet",
+   "regional_district": "Regional District of Alberni-Clayoquot",
+   "bounds": [
+    [
+     48.91858961,
+     -125.59655218
+    ],
+    [
+     48.96405428,
+     -125.51933524
+    ]
+   ],
+   "pmbc_key": "Ucluelet, District of",
+   "parcel_count": 1900
+  },
+  {
+   "name": "The Corporation of the District of Central Saanich",
+   "short_name": "Central Saanich",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.55030451,
+     -123.48530491
+    ],
+    [
+     48.61376313,
+     -123.3578774
+    ]
+   ],
+   "pmbc_key": "Central Saanich, The Corporation of the District of",
+   "parcel_count": 7522
+  },
+  {
+   "name": "City of Colwood",
+   "short_name": "Colwood",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.39822804,
+     -123.51837268
+    ],
+    [
+     48.45562763,
+     -123.44230693
+    ]
+   ],
+   "pmbc_key": "Colwood, City of",
+   "parcel_count": 9445
+  },
+  {
+   "name": "Corporation of the Township of Esquimalt",
+   "short_name": "Esquimalt",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.4144428,
+     -123.44339734
+    ],
+    [
+     48.45228843,
+     -123.39009834
+    ]
+   ],
+   "pmbc_key": "Esquimalt, Corporation of the Township of",
+   "parcel_count": 6581
+  },
+  {
+   "name": "District of Highlands",
+   "short_name": "Highlands",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.47488569,
+     -123.55058791
+    ],
+    [
+     48.56046948,
+     -123.45610979
+    ]
+   ],
+   "pmbc_key": "Highlands, District of",
+   "parcel_count": 1162
+  },
+  {
+   "name": "City of Langford",
+   "short_name": "Langford",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.40288035,
+     -123.57538018
+    ],
+    [
+     48.50932536,
+     -123.46784199
+    ]
+   ],
+   "pmbc_key": "Langford, City of",
+   "parcel_count": 23723
+  },
+  {
+   "name": "District of Metchosin",
+   "short_name": "Metchosin",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.30621288,
+     -123.64476356
+    ],
+    [
+     48.42590414,
+     -123.47303646
+    ]
+   ],
+   "pmbc_key": "Metchosin, District of",
+   "parcel_count": 2041
+  },
+  {
+   "name": "District of North Saanich",
+   "short_name": "North Saanich",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.61198683,
+     -123.49302026
+    ],
+    [
+     48.70217312,
+     -123.39210192
+    ]
+   ],
+   "pmbc_key": "North Saanich, District of",
+   "parcel_count": 5774
+  },
+  {
+   "name": "The Corporation of the District of Oak Bay",
+   "short_name": "Oak Bay",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.39175057,
+     -123.32931434
+    ],
+    [
+     48.4679256,
+     -123.28636364
+    ]
+   ],
+   "pmbc_key": "Oak Bay, The Corporation of the District of",
+   "parcel_count": 7304
+  },
+  {
+   "name": "The Corporation of the District of Saanich",
+   "short_name": "Saanich",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.43338852,
+     -123.47796086
+    ],
+    [
+     48.55800596,
+     -123.26043176
+    ]
+   ],
+   "pmbc_key": "Saanich, The Corporation of the District of",
+   "parcel_count": 44233
+  },
+  {
+   "name": "Town of Sidney",
+   "short_name": "Sidney",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.6340855,
+     -123.41799937
+    ],
+    [
+     48.6723286,
+     -123.38833646
+    ]
+   ],
+   "pmbc_key": "Sidney, Town of",
+   "parcel_count": 7330
+  },
+  {
+   "name": "District of Sooke",
+   "short_name": "Sooke",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.33588262,
+     -123.78493418
+    ],
+    [
+     48.47437515,
+     -123.59557229
+    ]
+   ],
+   "pmbc_key": "Sooke, District of",
+   "parcel_count": 7957
+  },
+  {
+   "name": "The Corporation of the City of Victoria",
+   "short_name": "Victoria",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.40289787,
+     -123.39609049
+    ],
+    [
+     48.45050139,
+     -123.32243149
+    ]
+   ],
+   "pmbc_key": "Victoria, The Corporation of the City of",
+   "parcel_count": 36655
+  },
+  {
+   "name": "Town of View Royal",
+   "short_name": "View Royal",
+   "regional_district": "Capital Regional District",
+   "bounds": [
+    [
+     48.43572826,
+     -123.49747422
+    ],
+    [
+     48.49873724,
+     -123.41869622
+    ]
+   ],
+   "pmbc_key": "View Royal, Town of",
+   "parcel_count": 4685
+  },
+  {
+   "name": "Village of Cumberland",
+   "short_name": "Cumberland",
+   "regional_district": "Comox Valley Regional District",
+   "bounds": [
+    [
+     49.58838657,
+     -125.09972821
+    ],
+    [
+     49.65729097,
+     -124.99408751
+    ]
+   ],
+   "pmbc_key": "Cumberland, The Corporation of the Village of",
+   "parcel_count": 2003
+  },
+  {
+   "name": "Town of Comox",
+   "short_name": "Comox",
+   "regional_district": "Comox Valley Regional District",
+   "bounds": [
+    [
+     49.66338298,
+     -124.95739106
+    ],
+    [
+     49.72921926,
+     -124.85463539
+    ]
+   ],
+   "pmbc_key": "Comox, Town of",
+   "parcel_count": 6787
+  },
+  {
+   "name": "The Corporation of the City of Courtenay",
+   "short_name": "Courtenay",
+   "regional_district": "Comox Valley Regional District",
+   "bounds": [
+    [
+     49.64712467,
+     -125.03198947
+    ],
+    [
+     49.74098776,
+     -124.93314553
+    ]
+   ],
+   "pmbc_key": "Courtenay, The Corporation of the City of",
+   "parcel_count": 14990
+  },
+  {
+   "name": "The Corporation of the City of Duncan",
+   "short_name": "Duncan",
+   "regional_district": "Cowichan Valley Regional District",
+   "bounds": [
+    [
+     48.77165726,
+     -123.71944427
+    ],
+    [
+     48.78846812,
+     -123.68486115
+    ]
+   ],
+   "pmbc_key": "Duncan, The Corporation of the City of",
+   "parcel_count": 2550
+  },
+  {
+   "name": "Town of Ladysmith",
+   "short_name": "Ladysmith",
+   "regional_district": "Cowichan Valley Regional District",
+   "bounds": [
+    [
+     48.93609882,
+     -123.84711936
+    ],
+    [
+     49.01165234,
+     -123.77070219
+    ]
+   ],
+   "pmbc_key": "Ladysmith, Town of",
+   "parcel_count": 4854
+  },
+  {
+   "name": "Town of Lake Cowichan",
+   "short_name": "Lake Cowichan",
+   "regional_district": "Cowichan Valley Regional District",
+   "bounds": [
+    [
+     48.81036975,
+     -124.11398053
+    ],
+    [
+     48.84141943,
+     -124.00422772
+    ]
+   ],
+   "pmbc_key": "Lake Cowichan, Town of",
+   "parcel_count": 2216
+  },
+  {
+   "name": "The Corporation of the District of North Cowichan",
+   "short_name": "North Cowichan",
+   "regional_district": "Cowichan Valley Regional District",
+   "bounds": [
+    [
+     48.75303314,
+     -123.78436306
+    ],
+    [
+     48.93661162,
+     -123.55383004
+    ]
+   ],
+   "pmbc_key": "North Cowichan, The Corporation of the District of",
+   "parcel_count": 16790
+  },
+  {
+   "name": "The Corporation of the Village of Alert Bay",
+   "short_name": "Alert Bay",
+   "regional_district": "Regional District of Mount Waddington",
+   "bounds": [
+    [
+     50.57364894,
+     -126.93536843
+    ],
+    [
+     50.59605614,
+     -126.90142043
+    ]
+   ],
+   "pmbc_key": "Alert Bay, The Corporation of the Village of",
+   "parcel_count": 444
+  },
+  {
+   "name": "The Corporation of the Village of Silverton",
+   "short_name": "Silverton",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.948438,
+     -117.3646275
+    ],
+    [
+     49.95809345,
+     -117.35308697
+    ]
+   ],
+   "pmbc_key": "Silverton, The Corporation of the Village of",
+   "parcel_count": 388
+  },
+  {
+   "name": "Town of Creston",
+   "short_name": "Creston",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.08824334,
+     -116.53705429
+    ],
+    [
+     49.12816656,
+     -116.49187856
+    ]
+   ],
+   "pmbc_key": "Creston, Town of",
+   "parcel_count": 3182
+  },
+  {
+   "name": "Village of Kaslo",
+   "short_name": "Kaslo",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.90120413,
+     -116.9535768
+    ],
+    [
+     49.91958818,
+     -116.89430558
+    ]
+   ],
+   "pmbc_key": "Kaslo, Village of",
+   "parcel_count": 2239
+  },
+  {
+   "name": "Village of New Denver",
+   "short_name": "New Denver",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.9805578,
+     -117.38433986
+    ],
+    [
+     50.00148036,
+     -117.35555775
+    ]
+   ],
+   "pmbc_key": "New Denver, The Corporation of the Village of",
+   "parcel_count": 760
+  },
+  {
+   "name": "Village of Nakusp",
+   "short_name": "Nakusp",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     50.22873136,
+     -117.83253931
+    ],
+    [
+     50.29974515,
+     -117.68161431
+    ]
+   ],
+   "pmbc_key": "Nakusp, Village of",
+   "parcel_count": 1316
+  },
+  {
+   "name": "City of Castlegar",
+   "short_name": "Castlegar",
+   "regional_district": "Regional District of Central Kootenay",
+   "bounds": [
+    [
+     49.2375725,
+     -117.78434096
+    ],
+    [
+     49.34210333,
+     -117.61002475
+    ]
+   ],
+   "pmbc_key": "Castlegar, City of",
+   "parcel_count": 4108
+  },
+  {
+   "name": "Town of Golden",
+   "short_name": "Golden",
+   "regional_district": "Columbia Shuswap Regional District",
+   "bounds": [
+    [
+     51.27604802,
+     -116.99345749
+    ],
+    [
+     51.32202555,
+     -116.94232252
+    ]
+   ],
+   "pmbc_key": "Golden, Town of",
+   "parcel_count": 2795
+  },
+  {
+   "name": "City of Revelstoke",
+   "short_name": "Revelstoke",
+   "regional_district": "Columbia Shuswap Regional District",
+   "bounds": [
+    [
+     50.92496514,
+     -118.24796899
+    ],
+    [
+     51.0633841,
+     -118.13733147
+    ]
+   ],
+   "pmbc_key": "Revelstoke, City of",
+   "parcel_count": 5986
+  },
+  {
+   "name": "City of Salmon Arm",
+   "short_name": "Salmon Arm",
+   "regional_district": "Columbia Shuswap Regional District",
+   "bounds": [
+    [
+     50.63420593,
+     -119.3890314
+    ],
+    [
+     50.77139385,
+     -119.18132474
+    ]
+   ],
+   "pmbc_key": "Salmon Arm, City of",
+   "parcel_count": 9445
+  },
+  {
+   "name": "The Corporation of the District of Sicamous",
+   "short_name": "Sicamous",
+   "regional_district": "Columbia Shuswap Regional District",
+   "bounds": [
+    [
+     50.80147194,
+     -119.01856171
+    ],
+    [
+     50.85607016,
+     -118.93950641
+    ]
+   ],
+   "pmbc_key": "Sicamous, District of",
+   "parcel_count": 2924
+  },
+  {
+   "name": "Village of Canal Flats",
+   "short_name": "Canal Flats",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     50.13679878,
+     -115.85252245
+    ],
+    [
+     50.19368298,
+     -115.7852238
+    ]
+   ],
+   "pmbc_key": "Canal Flats, Village of",
+   "parcel_count": 668
+  },
+  {
+   "name": "The Corporation of the City of Cranbrook",
+   "short_name": "Cranbrook",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     49.48315765,
+     -115.81954267
+    ],
+    [
+     49.62639726,
+     -115.72766192
+    ]
+   ],
+   "pmbc_key": "Cranbrook, The Corporation of the City of",
+   "parcel_count": 10982
+  },
+  {
+   "name": "District of Elkford",
+   "short_name": "Elkford",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     49.95987716,
+     -114.94863759
+    ],
+    [
+     50.23370476,
+     -114.79485662
+    ]
+   ],
+   "pmbc_key": "Elkford, District of",
+   "parcel_count": 1930
+  },
+  {
+   "name": "The Corporation of the City of Fernie",
+   "short_name": "Fernie",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     49.47499143,
+     -115.09072047
+    ],
+    [
+     49.53079135,
+     -115.03213596
+    ]
+   ],
+   "pmbc_key": "Fernie, The Corporation of the City of",
+   "parcel_count": 4242
+  },
+  {
+   "name": "District of Invermere",
+   "short_name": "Invermere",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     50.47322265,
+     -116.05535804
+    ],
+    [
+     50.52917831,
+     -116.01629479
+    ]
+   ],
+   "pmbc_key": "Invermere, District of",
+   "parcel_count": 3850
+  },
+  {
+   "name": "City of Kimberley",
+   "short_name": "Kimberley",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     49.62292333,
+     -116.05853241
+    ],
+    [
+     49.73181585,
+     -115.9111963
+    ]
+   ],
+   "pmbc_key": "Kimberley, City of",
+   "parcel_count": 5995
+  },
+  {
+   "name": "Village of Radium Hot Springs",
+   "short_name": "Radium Hot Springs",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     50.60917724,
+     -116.10237284
+    ],
+    [
+     50.64854369,
+     -116.0635331
+    ]
+   ],
+   "pmbc_key": "Radium Hot Springs, Village of",
+   "parcel_count": 1857
+  },
+  {
+   "name": "District of Sparwood",
+   "short_name": "Sparwood",
+   "regional_district": "Regional District of East Kootenay",
+   "bounds": [
+    [
+     49.47244859,
+     -114.9147442
+    ],
+    [
+     49.96557101,
+     -114.62615631
+    ]
+   ],
+   "pmbc_key": "Sparwood, District of",
+   "parcel_count": 2173
+  },
+  {
+   "name": "City of Grand Forks",
+   "short_name": "Grand Forks",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.01464915,
+     -118.47496182
+    ],
+    [
+     49.05178384,
+     -118.41907812
+    ]
+   ],
+   "pmbc_key": "Grand Forks, The Corporation of the City of",
+   "parcel_count": 3424
+  },
+  {
+   "name": "City of Greenwood",
+   "short_name": "Greenwood",
+   "regional_district": "Regional District of Kootenay Boundary",
+   "bounds": [
+    [
+     49.07942772,
+     -118.68405914
+    ],
+    [
+     49.10842141,
+     -118.67214584
+    ]
+   ],
+   "pmbc_key": "Greenwood, The Corporation of the City of",
+   "parcel_count": 1680
+  },
+  {
+   "name": "Village of Port Alice",
+   "short_name": "Port Alice",
+   "regional_district": "Regional District of Mount Waddington",
+   "bounds": [
+    [
+     50.37588075,
+     -127.51810342
+    ],
+    [
+     50.44844021,
+     -127.43629482
+    ]
+   ],
+   "pmbc_key": "Port Alice, Village of",
+   "parcel_count": 557
+  },
+  {
+   "name": "District of Port Hardy",
+   "short_name": "Port Hardy",
+   "regional_district": "Regional District of Mount Waddington",
+   "bounds": [
+    [
+     50.59224949,
+     -127.52402436
+    ],
+    [
+     50.73389248,
+     -127.32443813
+    ]
+   ],
+   "pmbc_key": "Port Hardy, District of",
+   "parcel_count": 2313
+  },
+  {
+   "name": "Town of Port McNeill",
+   "short_name": "Port McNeill",
+   "regional_district": "Regional District of Mount Waddington",
+   "bounds": [
+    [
+     50.57215141,
+     -127.17031792
+    ],
+    [
+     50.61594266,
+     -127.04348879
+    ]
+   ],
+   "pmbc_key": "Port McNeill, Town of",
+   "parcel_count": 1058
+  },
+  {
+   "name": "City of Parksville",
+   "short_name": "Parksville",
+   "regional_district": "Regional District of Nanaimo",
+   "bounds": [
+    [
+     49.29770952,
+     -124.35309645
+    ],
+    [
+     49.34482726,
+     -124.24395258
+    ]
+   ],
+   "pmbc_key": "Parksville, City of",
+   "parcel_count": 8145
+  },
+  {
+   "name": "District of Lantzville",
+   "short_name": "Lantzville",
+   "regional_district": "Regional District of Nanaimo",
+   "bounds": [
+    [
+     49.19925653,
+     -124.14828415
+    ],
+    [
+     49.26014456,
+     -124.05398653
+    ]
+   ],
+   "pmbc_key": "Lantzville, District of",
+   "parcel_count": 2022
+  },
+  {
+   "name": "City of Nanaimo",
+   "short_name": "Nanaimo",
+   "regional_district": "Regional District of Nanaimo",
+   "bounds": [
+    [
+     49.0972973,
+     -124.06503689
+    ],
+    [
+     49.25163265,
+     -123.80073798
+    ]
+   ],
+   "pmbc_key": "Nanaimo, City of",
+   "parcel_count": 47851
+  },
+  {
+   "name": "Town of Qualicum Beach",
+   "short_name": "Qualicum Beach",
+   "regional_district": "Regional District of Nanaimo",
+   "bounds": [
+    [
+     49.32647946,
+     -124.48698932
+    ],
+    [
+     49.36533239,
+     -124.37902609
+    ]
+   ],
+   "pmbc_key": "Qualicum Beach, Town of",
+   "parcel_count": 5576
+  },
+  {
+   "name": "City of Powell River",
+   "short_name": "Powell River",
+   "regional_district": "qathet Regional District",
+   "bounds": [
+    [
+     49.79382432,
+     -124.60799847
+    ],
+    [
+     49.90773246,
+     -124.48706178
+    ]
+   ],
+   "pmbc_key": "Powell River, City of",
+   "parcel_count": 6806
+  },
+  {
+   "name": "Town of Gibsons",
+   "short_name": "Gibsons",
+   "regional_district": "Sunshine Coast Regional District",
+   "bounds": [
+    [
+     49.38472655,
+     -123.53757445
+    ],
+    [
+     49.41425361,
+     -123.49551594
+    ]
+   ],
+   "pmbc_key": "Gibsons, Town of",
+   "parcel_count": 2764
+  },
+  {
+   "name": "District of Sechelt",
+   "short_name": "Sechelt",
+   "regional_district": "Sunshine Coast Regional District",
+   "bounds": [
+    [
+     49.4318768,
+     -123.8510932
+    ],
+    [
+     49.55032334,
+     -123.6753521
+    ]
+   ],
+   "pmbc_key": "Sechelt, District of",
+   "parcel_count": 6414
+  },
+  {
+   "name": "City of Campbell River",
+   "short_name": "Campbell River",
+   "regional_district": "Strathcona Regional District",
+   "bounds": [
+    [
+     49.90161893,
+     -125.49149865
+    ],
+    [
+     50.1187746,
+     -125.1938125
+    ]
+   ],
+   "pmbc_key": "Campbell River, City of",
+   "parcel_count": 16721
+  },
+  {
+   "name": "Village of Gold River",
+   "short_name": "Gold River",
+   "regional_district": "Strathcona Regional District",
+   "bounds": [
+    [
+     49.67227811,
+     -126.13798348
+    ],
+    [
+     49.79564599,
+     -126.04075397
+    ]
+   ],
+   "pmbc_key": "Gold River, Village of",
+   "parcel_count": 781
+  },
+  {
+   "name": "Village of Sayward",
+   "short_name": "Sayward",
+   "regional_district": "Strathcona Regional District",
+   "bounds": [
+    [
+     50.35743881,
+     -125.96753039
+    ],
+    [
+     50.40264314,
+     -125.92558861
+    ]
+   ],
+   "pmbc_key": "Sayward, Village of",
+   "parcel_count": 260
+  },
+  {
+   "name": "Village of Tahsis",
+   "short_name": "Tahsis",
+   "regional_district": "Strathcona Regional District",
+   "bounds": [
+    [
+     49.88846917,
+     -126.67215999
+    ],
+    [
+     49.94640827,
+     -126.62861973
+    ]
+   ],
+   "pmbc_key": "Tahsis, Village of",
+   "parcel_count": 515
+  },
+  {
+   "name": "The Corporation of the Village of Zeballos",
+   "short_name": "Zeballos",
+   "regional_district": "Strathcona Regional District",
+   "bounds": [
+    [
+     49.9688916,
+     -126.8660376
+    ],
+    [
+     49.99261836,
+     -126.84079017
+    ]
+   ],
+   "pmbc_key": "Zeballos, The Corporation of the Village of",
+   "parcel_count": 215
+  },
+  {
+   "name": "City of Burnaby",
+   "short_name": "Burnaby",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.18002912,
+     -123.02357787
+    ],
+    [
+     49.29933172,
+     -122.89257309
+    ]
+   ],
+   "pmbc_key": "Burnaby, City of",
+   "parcel_count": 106990
+  },
+  {
+   "name": "City of Richmond",
+   "short_name": "Richmond",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.08824111,
+     -123.31350268
+    ],
+    [
+     49.26173319,
+     -122.95697794
+    ]
+   ],
+   "pmbc_key": "Richmond, City of",
+   "parcel_count": 96115
+  },
+  {
+   "name": "City of Vancouver",
+   "short_name": "Vancouver",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.19878689,
+     -123.22479046
+    ],
+    [
+     49.31637393,
+     -123.02324893
+    ]
+   ],
+   "pmbc_key": "Vancouver, City of",
+   "parcel_count": 257206
+  },
+  {
+   "name": "District Municipality of West Vancouver",
+   "short_name": "West Vancouver",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.31094636,
+     -123.29773773
+    ],
+    [
+     49.40739291,
+     -123.11718643
+    ]
+   ],
+   "pmbc_key": "West Vancouver, The Corporation of the District of",
+   "parcel_count": 19034
+  },
+  {
+   "name": "The Corporation of the District of North Vancouver",
+   "short_name": "North Vancouver - District",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.29465247,
+     -123.12778232
+    ],
+    [
+     49.41380562,
+     -122.876403
+    ]
+   ],
+   "pmbc_key": "North Vancouver, The Corporation of the District of",
+   "parcel_count": 37803
+  },
+  {
+   "name": "City of Port Moody",
+   "short_name": "Port Moody",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.27043465,
+     -122.94406195
+    ],
+    [
+     49.32994144,
+     -122.82111409
+    ]
+   ],
+   "pmbc_key": "Port Moody, City of",
+   "parcel_count": 15391
+  },
+  {
+   "name": "City of North Vancouver",
+   "short_name": "North Vancouver - City",
+   "regional_district": "Metro Vancouver Regional District",
+   "bounds": [
+    [
+     49.29598871,
+     -123.10259928
+    ],
+    [
+     49.33564936,
+     -123.03813838
+    ]
+   ],
+   "pmbc_key": "North Vancouver, The Corporation of the City of",
+   "parcel_count": 24055
+  }
+ ]
+}

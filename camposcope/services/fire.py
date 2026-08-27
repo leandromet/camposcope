@@ -66,7 +66,22 @@ FIRE_YEARS = list(range(FIRE_YEAR_START, FIRE_YEAR_END + 1))
 #: The full-period band inside the 81-band frequency asset (see module
 #: docstring — the other 80 bands are partial windows, unused here).
 _FIRE_FREQUENCY_BAND = f"fire_frequency_{FIRE_YEAR_START}_{FIRE_YEAR_END}"
-_FIRE_FREQUENCY_MAX = 41  # one possible fire per year across the 41-year period
+
+#: The map layer's colour-ramp ceiling — calibrated against the *observed*
+#: national distribution, not the theoretical "one fire per year across 41
+#: years" reading the old value of 41 came from. Sampled nationally
+#: (``ee.Reducer.frequencyHistogram()`` over Brazil's bbox, 1 km) on
+#: 2026-08-27: 39.4% of burnt pixels sit at frequency 1 alone, 70% by
+#: frequency 3, 97.5% by frequency 15 — a ceiling of 41 compresses that
+#: entire real range into the bottom third of the palette, which is exactly
+#: what produced this layer's reported bug: real fire signal reading as a
+#: pale, near-invisible wash instead of a red gradient (the same root cause
+#: fixed on the Canada page's MODIS layer — see
+#: ``canada/services/fire.py::FIRE_FREQUENCY_MAX``). 15 keeps the palette
+#: legible for the vast majority of burnt ground; the rare pixel above it
+#: (2.5%, up to 74 real pixels at the true max of 41) simply clips to the
+#: top colour rather than reading as "no fire."
+_FIRE_FREQUENCY_MAX = 15
 _FIRE_LAST_YEAR_BAND = f"classification_{FIRE_YEAR_END}"
 
 

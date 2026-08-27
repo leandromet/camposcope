@@ -10,6 +10,8 @@ import logging
 import reflex as rx
 
 from .api import register as register_api
+from .canada.pages.index import canada_index
+from .canada.state import CanadaState
 from .components.layout import ACCENT
 from .config.settings import GA_MEASUREMENT_ID
 from .pages.index import index
@@ -68,6 +70,24 @@ app.add_page(
     on_load=AppState.on_load,
 )
 
-# The biome polygons are fetched by the browser over HTTP, not pushed through
-# the WebSocket — see camposcope/api/__init__.py for why.
+# The Canada page is a self-contained sibling under camposcope/canada/ — its
+# own state root, services, components and translations. It shares Earth
+# Engine access, the tile cache, the ODS writer and the Leaflet component, and
+# nothing else: the two cadastres, legends and years differ, so a shared state
+# root would mean every var carrying a "which country" qualifier. See
+# camposcope/canada/__init__.py for the full substitution table.
+app.add_page(
+    canada_index,
+    route="/canada",
+    title="Camposcope Canada — Earth Engine for Rural Properties",
+    description=(
+        "Rural property analysis from the ParcelMap BC parcel fabric, the "
+        "AAFC Annual Crop Inventory, Hansen Global Forest Change and NTEMS "
+        "VLCE2, on Earth Engine."
+    ),
+    on_load=CanadaState.on_load,
+)
+
+# The biome and ecozone polygons are fetched by the browser over HTTP, not
+# pushed through the WebSocket — see camposcope/api/__init__.py for why.
 register_api(app)
