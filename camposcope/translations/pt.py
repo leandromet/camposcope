@@ -72,6 +72,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "tab_transicoes": "Transições",
     "tab_floresta": "Floresta",
     "tab_biomassa": "Biomassa",
+    "tab_paisagem": "Paisagem",
     "tab_fogo": "Fogo",
     "tab_validacao": "Validação",
 
@@ -117,6 +118,38 @@ TRANSLATIONS_PT: dict[str, str] = {
     "biomassa_col_mg_ha": "Mg/ha",
     "biomassa_col_total_mg": "Total (Mg)",
     "biomassa_attribution": "ESA CCI Biomass v6.0 — Santoro & Cartus (2025) · escala 100 m.",
+
+    # --- Paisagem tab ------------------------------------------------------ #
+    "paisagem_ano": "Ano",
+    "paisagem_col_zona": "Zona",
+    "paisagem_col_area": "Área (ha)",
+    "paisagem_col_fragmentos": "Fragmentos",
+    "paisagem_col_densidade": "Densidade",
+    "paisagem_col_maior": "Maior fragmento (%)",
+    "paisagem_col_borda": "Densidade de borda",
+    "paisagem_col_meff": "Meff (ha)",
+    "paisagem_col_shannon": "Shannon",
+    "paisagem_col_simpson": "Simpson",
+    "paisagem_col_evenness": "Equitabilidade",
+    "paisagem_empty": "Métricas ainda não calculadas.",
+    "paisagem_attribution": (
+        "MapBiomas Coleção 10.1 — métricas de fragmentação (NP, PD, LPI, ED, "
+        "Meff) por zona, escala 30 m."
+    ),
+    "connectivity_hint": (
+        "Distância ao fragmento de floresta mais próximo — mais lento "
+        "(vetorização + busca local), calculado só quando solicitado."
+    ),
+    "connectivity_run_button": "Calcular conectividade (mais lento)",
+    "connectivity_empty": "Ainda não calculada — clique para rodar.",
+    "connectivity_n_fragments": "Fragmentos",
+    "connectivity_enn_mean": "Dist. média viz. mais próx. (m)",
+    "connectivity_enn_median": "Mediana (m)",
+    "connectivity_degraded": (
+        "Uma ou mais zonas tinham mais fragmentos de floresta do que o "
+        "limite processado; a distância considerou apenas os primeiros "
+        "retornados pelo Earth Engine, não a totalidade."
+    ),
 
     # --- Fogo tab --------------------------------------------------------------- #
     "fogo_intro": (
@@ -196,6 +229,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_no_coverage": "Sem cobertura SPOT nesta zona.",
     "legend_spot_before_cutoff": "antes de 22/07/2008",
     "legend_biomassa_esa": "Biomassa — ESA CCI",
+    "legend_paisagem_fragmentos": "Fragmentos da paisagem",
     "legend_fogo_frequencia": "Fogo — Frequência",
     "legend_fogo_ocorrencias": "ocorrências (1985–2025)",
     "legend_mapbiomas_comparacao": "MapBiomas — comparação",
@@ -254,6 +288,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     ),
     "erro_perda_florestal": "Não foi possível calcular a perda florestal: {detail}",
     "erro_biomassa": "Não foi possível calcular a biomassa: {detail}",
+    "erro_paisagem": "Não foi possível calcular as métricas de paisagem: {detail}",
+    "erro_connectivity": "Não foi possível calcular a conectividade: {detail}",
     "erro_fogo": "Não foi possível calcular a análise de fogo: {detail}",
     "erro_spot_cobertura": "Não foi possível verificar a cobertura SPOT: {detail}",
     "erro_comparacao_ibge": "Não foi possível calcular a comparação: {detail}",

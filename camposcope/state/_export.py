@@ -115,6 +115,10 @@ class ExportMixin(rx.State, mixin=True):
             hansen_provenance=plain(self.hansen_provenance),
             biomass_rows=plain(self.biomass_rows),
             biomass_provenance=plain(self.biomass_provenance),
+            landscape_rows=plain(self.landscape_rows),
+            landscape_provenance=plain(self.landscape_provenance),
+            connectivity_rows=plain(self.connectivity_rows),
+            connectivity_provenance=plain(self.connectivity_provenance),
             sankey_transitions=plain(self.sankey_transitions),
             sankey_zone_label=self.sankey_zone_label,
             sankey_year_a=self.sankey_year_a,
@@ -246,6 +250,28 @@ class ExportMixin(rx.State, mixin=True):
             data=_records_to_csv(rows, ["zone_key", "zone_label", "year",
                                        "agb_mean_mgha", "total_biomass_mg"]),
             filename="camposcope_biomassa.csv", mime_type="text/csv")
+
+    def download_paisagem_csv(self):
+        rows = plain(self.landscape_rows)
+        if not rows:
+            return None
+        return rx.download(
+            data=_records_to_csv(rows, ["zone_key", "zone_label", "area_ha",
+                                       "patches", "patch_density",
+                                       "largest_patch_ha", "largest_patch_pct",
+                                       "edge_m", "edge_density", "mean_patch_ha",
+                                       "patch_area_sq_ha", "meff_ha", "shannon",
+                                       "simpson", "simpson_evenness"]),
+            filename="camposcope_paisagem.csv", mime_type="text/csv")
+
+    def download_connectivity_csv(self):
+        rows = plain(self.connectivity_rows)
+        if not rows:
+            return None
+        return rx.download(
+            data=_records_to_csv(rows, ["zone_key", "zone_label", "n_fragments",
+                                       "enn_mean_m", "enn_median_m"]),
+            filename="camposcope_conectividade.csv", mime_type="text/csv")
 
     def download_transicoes_csv(self):
         from ..config import mapbiomas as mb

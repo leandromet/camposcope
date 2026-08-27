@@ -122,6 +122,10 @@ def imovel_report_html(
     hansen_provenance: dict[str, Any] | None = None,
     biomass_rows: list[dict[str, Any]] | None = None,
     biomass_provenance: dict[str, Any] | None = None,
+    landscape_rows: list[dict[str, Any]] | None = None,
+    landscape_provenance: dict[str, Any] | None = None,
+    connectivity_rows: list[dict[str, Any]] | None = None,
+    connectivity_provenance: dict[str, Any] | None = None,
     sankey_transitions: dict[str, dict[str, float]] | None = None,
     sankey_zone_label: str = "",
     sankey_year_a: int = 0,
@@ -146,6 +150,8 @@ def imovel_report_html(
     history_rows = history_rows or []
     hansen_loss_rows = hansen_loss_rows or []
     biomass_rows = biomass_rows or []
+    landscape_rows = landscape_rows or []
+    connectivity_rows = connectivity_rows or []
     sankey_transitions = sankey_transitions or {}
     fire_rows = fire_rows or []
     fire_annual_rows = fire_annual_rows or []
@@ -228,6 +234,14 @@ def imovel_report_html(
                     (f"Biomassa acima do solo (ESA CCI) — {zl}." if lang == "pt"
                      else f"Above-ground biomass (ESA CCI) — {zl}."),
                 )
+
+        if landscape_rows:
+            add_figure(
+                charts.landscape_meff_figure(landscape_rows, lang),
+                "cs-paisagem",
+                ("Tamanho efetivo de malha (Meff) por zona." if lang == "pt"
+                 else "Effective mesh size (Meff) per zone."),
+            )
 
         for zone in zones:
             zk, zl = zone["zone_key"], zone["zone_label"]
@@ -341,6 +355,38 @@ def imovel_report_html(
             else "Biomass not computed yet.",
         )
 
+        landscape_df = pd.DataFrame(landscape_rows)
+        add_table(
+            landscape_df,
+            {"zone_label": "Zona" if lang == "pt" else "Zone",
+             "area_ha": "Área (ha)" if lang == "pt" else "Area (ha)",
+             "patches": "Fragmentos" if lang == "pt" else "Patches",
+             "patch_density": "Densidade" if lang == "pt" else "Density",
+             "largest_patch_pct": "Maior (%)" if lang == "pt" else "Largest (%)",
+             "edge_density": "Borda" if lang == "pt" else "Edge",
+             "meff_ha": "Meff (ha)",
+             "shannon": "Shannon", "simpson": "Simpson"},
+            "Métricas de paisagem por zona (NP, PD, LPI, ED, Meff, diversidade)."
+            if lang == "pt" else
+            "Landscape metrics per zone (NP, PD, LPI, ED, Meff, diversity).",
+            "Paisagem ainda não calculada." if lang == "pt"
+            else "Landscape metrics not computed yet.",
+        )
+
+        connectivity_df = pd.DataFrame(connectivity_rows)
+        add_table(
+            connectivity_df,
+            {"zone_label": "Zona" if lang == "pt" else "Zone",
+             "n_fragments": "Fragmentos" if lang == "pt" else "Fragments",
+             "enn_mean_m": "Dist. média (m)" if lang == "pt" else "Mean dist. (m)",
+             "enn_median_m": "Mediana (m)" if lang == "pt" else "Median (m)"},
+            "Conectividade entre fragmentos de floresta (vizinho mais próximo)."
+            if lang == "pt" else
+            "Connectivity between forest fragments (nearest neighbour).",
+            "Conectividade ainda não calculada (opcional)." if lang == "pt"
+            else "Connectivity not computed yet (optional).",
+        )
+
         transitions_rows = [
             {"classe_origem": mb.label(int(src), lang),
              "classe_destino": mb.label(int(tgt), lang), "area_ha": round(float(area), 2)}
@@ -402,6 +448,7 @@ def imovel_report_html(
     provenances = [
         Provenance(**p) for p in (
             history_provenance, hansen_provenance, biomass_provenance,
+            landscape_provenance, connectivity_provenance,
             sankey_provenance, fire_provenance, validacao_provenance,
         ) if p
     ]

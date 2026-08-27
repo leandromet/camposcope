@@ -220,6 +220,68 @@ def biomass_year_spec(
     }
 
 
+#: A hash-like palette, not a true graph colouring (Earth Engine has none) —
+#: enough that adjacent patches usually differ in colour, which is the point:
+#: making patch BOUNDARIES visible, not identifying any specific patch by hue.
+_PATCH_PALETTE = ["e6194b", "3cb44b", "ffe119", "4363d8", "f58231", "911eb4",
+                 "46f0f0", "f032e6", "bcf60c", "fabebe", "008080", "e6beff"]
+
+
+def landscape_patches_spec(
+    year: int, clip_geojson: Dict[str, Any], cache_id: str,
+    *, opacity: float = 0.75, z_index: int = 18,
+) -> Optional[Dict[str, Any]]:
+    """Connected-component patches for one classification year, clipped to
+    the property's own analysis extent (the outermost ring) — the Paisagem
+    tab's map layer, letting a user see the same fragments
+    ``services/landscape_metrics.py`` and ``services/connectivity.py`` count
+    and measure, not just their numbers in a table.
+
+    **Clipped, unlike every sibling layer in this module.** MapBiomas/Hansen/
+    biomass/fire are meaningful anywhere in Brazil, so showing them at
+    country-zoom is normal. A patch's colour here is an arbitrary
+    ``labels.mod(palette)`` hash with no meaning outside the property being
+    analysed — panning out used to paint the entire visible extent with
+    unrelated, equally arbitrary colours, which reads as noise, not data. So
+    this is the one layer clipped to ``clip_geojson`` (the outer ring), and
+    the one whose cache key must carry the property's identity (``cache_id``)
+    rather than just the year — the clip is baked into the minted tile, so a
+    different property cannot reuse another property's cached URL.
+    """
+    if year not in mb.MAPBIOMAS_YEARS:
+        logger.warning("Landscape patches year %s outside %s–%s", year,
+                       mb.MAPBIOMAS_YEAR_START, mb.MAPBIOMAS_YEAR_END)
+        return None
+    if not clip_geojson:
+        return None
+
+    asset = mb.MAPBIOMAS_COLLECTIONS[mb.MAPBIOMAS_DEFAULT_COLLECTION]
+    cache_key = f"landscape_patches:{year}:{cache_id}"
+
+    def build():
+        import ee
+        image = ee.Image(asset).select(mb.band_for_year(year)).rename("class")
+        labels = image.connectedComponents(ee.Kernel.square(1), 1024).select("labels")
+        return labels.mod(len(_PATCH_PALETTE)).clip(ee.Geometry(clip_geojson))
+
+    vis = {"min": 0, "max": len(_PATCH_PALETTE) - 1, "palette": _PATCH_PALETTE}
+    try:
+        url = get_tile_url(cache_key, build, vis)
+    except Exception as exc:                       # noqa: BLE001
+        logger.warning("Landscape patches layer %s failed: %s", year, exc)
+        return None
+    if url is None:
+        return None
+
+    return {
+        "id": cache_key, "url": url, "opacity": opacity, "z_index": z_index,
+        "attribution": ("MapBiomas Coleção 10.1 — fragmentos "
+                        "(connectedComponents, 8-vizinhos), recorte da "
+                        "área de análise"),
+        "max_native_zoom": 15,
+    }
+
+
 def ibge_vegetation_spec(
     *, opacity: float = 1.0, z_index: int = 20,
 ) -> Optional[Dict[str, Any]]:
@@ -289,5 +351,5 @@ def fire_frequency_spec(
 __all__ = [
     "basemap_spec", "ee_basemap_spec", "ibge_vegetation_spec",
     "mapbiomas_year_spec", "hansen_treecover_spec", "hansen_change_spec",
-    "biomass_year_spec", "fire_frequency_spec",
+    "biomass_year_spec", "fire_frequency_spec", "landscape_patches_spec",
 ]

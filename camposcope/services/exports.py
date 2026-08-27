@@ -179,6 +179,22 @@ def _fogo_sheet(fire_rows: list[dict[str, Any]],
            ods.sheet_from_dataframe("fogo_anual", annual_df))
 
 
+def _paisagem_sheet(landscape_rows: list[dict[str, Any]]) -> ods.Sheet:
+    df = pd.DataFrame(landscape_rows) if landscape_rows else pd.DataFrame(
+        columns=["zone_key", "zone_label", "area_ha", "patches", "patch_density",
+                "largest_patch_ha", "largest_patch_pct", "edge_m", "edge_density",
+                "mean_patch_ha", "patch_area_sq_ha", "meff_ha", "shannon",
+                "simpson", "simpson_evenness"])
+    return ods.sheet_from_dataframe("paisagem", df)
+
+
+def _conectividade_sheet(connectivity_rows: list[dict[str, Any]]) -> ods.Sheet:
+    df = pd.DataFrame(connectivity_rows) if connectivity_rows else pd.DataFrame(
+        columns=["zone_key", "zone_label", "n_fragments", "enn_mean_m",
+                "enn_median_m"])
+    return ods.sheet_from_dataframe("conectividade", df)
+
+
 def _validacao_sheet(matrix: dict[str, Any], zone_label: str) -> ods.Sheet:
     """The 6×6 IBGE×MapBiomas bucket matrix, flattened — every cell, not only
     the non-zero ones shown on screen (a CSV/ODS reader can filter zeros
@@ -212,6 +228,10 @@ def imovel_workbook(
     hansen_provenance: dict[str, Any] | None = None,
     biomass_rows: list[dict[str, Any]] | None = None,
     biomass_provenance: dict[str, Any] | None = None,
+    landscape_rows: list[dict[str, Any]] | None = None,
+    landscape_provenance: dict[str, Any] | None = None,
+    connectivity_rows: list[dict[str, Any]] | None = None,
+    connectivity_provenance: dict[str, Any] | None = None,
     sankey_transitions: dict[str, dict[str, float]] | None = None,
     sankey_zone_label: str = "",
     sankey_year_a: int = 0,
@@ -239,6 +259,8 @@ def imovel_workbook(
     history_prov = revive(history_provenance)
     hansen_prov = revive(hansen_provenance)
     biomass_prov = revive(biomass_provenance)
+    landscape_prov = revive(landscape_provenance)
+    connectivity_prov = revive(connectivity_provenance)
     sankey_prov = revive(sankey_provenance)
     fire_prov = revive(fire_provenance)
     validacao_prov = revive(validacao_provenance)
@@ -273,6 +295,18 @@ def imovel_workbook(
             "Ainda não calculada — clique «Calcular» na aba Biomassa e "
             "baixe novamente.",
         ])
+    if not landscape_rows:
+        context.append([
+            "AVISO — aba paisagem",
+            "Ainda não calculada — clique «Calcular» na aba Paisagem e "
+            "baixe novamente.",
+        ])
+    if not connectivity_rows:
+        context.append([
+            "AVISO — aba conectividade",
+            "Ainda não calculada (opcional) — clique «Calcular "
+            "conectividade» na aba Paisagem e baixe novamente.",
+        ])
     if not sankey_transitions:
         context.append([
             "AVISO — aba transicoes",
@@ -294,6 +328,7 @@ def imovel_workbook(
         context.append(["aba validacao_ibge calculada para", validacao_zone_label])
 
     provenances = [p for p in (history_prov, hansen_prov, biomass_prov,
+                              landscape_prov, connectivity_prov,
                               sankey_prov, fire_prov, validacao_prov)
                   if p is not None]
 
@@ -305,6 +340,8 @@ def imovel_workbook(
     loss_sheet, gain_sheet = _floresta_sheet(hansen_loss_rows or [], hansen_gain_ha)
     sheets.extend([loss_sheet, gain_sheet])
     sheets.append(_biomassa_sheet(biomass_rows or []))
+    sheets.append(_paisagem_sheet(landscape_rows or []))
+    sheets.append(_conectividade_sheet(connectivity_rows or []))
     sheets.append(_transicoes_sheet(sankey_transitions or {}, sankey_zone_label,
                                     sankey_year_a, sankey_year_b, lang))
     fogo_summary, fogo_annual = _fogo_sheet(fire_rows or [], fire_annual_rows or [])

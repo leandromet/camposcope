@@ -15,6 +15,7 @@ from ..config.datasets import ALL_BASEMAPS, BASEMAPS, is_ee_basemap
 from ..config.settings import DEFAULT_BASEMAP, DEFAULT_CENTER, DEFAULT_ZOOM
 from ..services import sicar
 from ..translations import get_translations
+from ._proxy import plain
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,9 @@ class LayersMixin(rx.State, mixin=True):
             year_mb = getattr(self, "mapbiomas_layer_year", None)
             hansen_mode = getattr(self, "hansen_layer_mode", "2008")
             year_biomass = getattr(self, "biomass_layer_year", None)
+            year_landscape = getattr(self, "landscape_year", None)
+            zones_geojson = plain(getattr(self, "zones_geojson", {})) or {}
+            cod_imovel = getattr(self, "imovel", {}).get("cod_imovel", "")
             validacao_mode = getattr(self, "validacao_mode", "spot_2008")
             spot_band_mode = getattr(self, "spot_band_mode", "visual")
             registration_year = getattr(self, "imovel", {}).get("ano_criacao") or None
@@ -166,6 +170,31 @@ class LayersMixin(rx.State, mixin=True):
         elif tab == "fogo":
             cache_key = "fire_frequency"
             mint_fn = layer_service.fire_frequency_spec
+
+        elif tab == "paisagem" and year_landscape:
+            features = zones_geojson.get("features") or []
+            # services/zones.py builds TRUE rings — each is the annulus
+            # between its own radius and the previous one (`grown.difference
+            # (previous)`), disjoint from the property and every smaller
+            # ring by construction (so areas can be summed without double-
+            # counting). That means the outermost feature ALONE is only the
+            # outermost band, not "everything out to that radius" — clipping
+            # to just it is what left patches showing only in the last ring
+            # and nothing inside it. The union of every zone reconstructs
+            # the full disc (property + every ring), since together they
+            # tile it with no gaps and no overlaps.
+            outer_geom = None
+            if features:
+                from shapely.geometry import mapping, shape
+                from shapely.ops import unary_union
+
+                outer_geom = mapping(unary_union(
+                    [shape(f["geometry"]) for f in features]))
+            if outer_geom is None:
+                return
+            cache_key = f"landscape_patches:{year_landscape}:{cod_imovel}"
+            mint_fn = lambda: layer_service.landscape_patches_spec(
+                year_landscape, outer_geom, cod_imovel)
 
         else:
             return

@@ -224,6 +224,16 @@ def _transicoes_legend() -> rx.Component:
     )
 
 
+def _paisagem_legend() -> rx.Component:
+    """No swatch/gradient — unlike every sibling legend, this layer's colour
+    (``services/layers.py::landscape_patches_spec``) is an arbitrary
+    ``labels.mod(palette)`` hash with no fixed meaning to key a legend to
+    (patch A being red says nothing beyond "different patch from its
+    neighbour"). So this is on/off only, same header every other legend
+    uses for its own toggle."""
+    return _header(AppState.tr["legend_paisagem_fragmentos"])
+
+
 def _validacao_legend() -> rx.Component:
     """Left/right is fixed by the pairing (reference on the left, checked
     classification on the right), not a free choice — but which SPOT mosaic
@@ -283,6 +293,7 @@ def map_legend() -> rx.Component:
                 ("transicoes", _transicoes_legend()),
                 ("floresta", _floresta_legend()),
                 ("biomassa", _biomassa_legend()),
+                ("paisagem", _paisagem_legend()),
                 ("fogo", _fire_legend()),
                 ("validacao", _validacao_legend()),
                 rx.fragment(),

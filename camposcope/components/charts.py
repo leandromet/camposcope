@@ -260,7 +260,33 @@ def fire_figure(annual_rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figur
     return fig
 
 
+def landscape_meff_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
+    """Effective mesh size (meff_ha) per zone — one bar per zone, property
+    first then rings outward, so fragmentation can be read at a glance
+    without cross-referencing the table."""
+    fig = go.Figure()
+    if not rows:
+        fig.add_annotation(
+            text="Sem dados" if lang == "pt" else "No data",
+            showarrow=False, font=dict(size=13, color="#888"),
+        )
+    else:
+        fig.add_bar(
+            x=[r["zone_label"] for r in rows], y=[r["meff_ha"] for r in rows],
+            marker=dict(color="#1f8d49"),
+            hovertemplate="%{x}: %{y:,.1f} ha<extra></extra>",
+        )
+    fig.update_layout(
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=48), height=260,
+        yaxis=dict(title="Meff (ha)"),
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+    )
+    return fig
+
+
 __all__ = [
     "land_cover_history_figure", "hansen_figure", "hansen_period_labels",
     "HANSEN_PERIOD_COLOR", "biomass_figure", "fire_figure",
+    "landscape_meff_figure",
 ]

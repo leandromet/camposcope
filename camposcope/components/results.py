@@ -318,6 +318,191 @@ def biomassa_tab() -> rx.Component:
     )
 
 
+# --------------------------------------------------------------------------- #
+# Paisagem — landscape (fragmentation) metrics, always free, plus the costly
+# fragment-to-fragment connectivity metric behind its own button.
+# --------------------------------------------------------------------------- #
+def _paisagem_table() -> rx.Component:
+    return rx.vstack(
+        rx.hstack(
+            rx.spacer(),
+            rx.cond(
+                AppState.landscape_table_rows,
+                table_export_button(AppState.download_paisagem_csv),
+                rx.fragment(),
+            ),
+            width="100%",
+        ),
+        rx.table.root(
+            rx.table.header(
+                rx.table.row(
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_zona"]),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_area"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_fragmentos"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_densidade"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_maior"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_borda"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_meff"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_shannon"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_simpson"],
+                                                text_align="right"),
+                    rx.table.column_header_cell(AppState.tr["paisagem_col_evenness"],
+                                                text_align="right"),
+                ),
+            ),
+            rx.table.body(
+                rx.foreach(
+                    AppState.landscape_table_rows,
+                    lambda r: rx.table.row(
+                        rx.table.cell(rx.text(r["zone_label"], size="1")),
+                        rx.table.cell(rx.text(r["area_ha"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["patches"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["patch_density"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["largest_pct"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["edge_density"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["meff_ha"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["shannon"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["simpson"], size="1"), text_align="right"),
+                        rx.table.cell(rx.text(r["evenness"], size="1"), text_align="right"),
+                    ),
+                ),
+            ),
+            size="1", width="100%", variant="surface",
+        ),
+        spacing="1", width="100%", overflow_x="auto",
+    )
+
+
+def _connectivity_row(r: rx.Var) -> rx.Component:
+    return rx.table.row(
+        rx.table.cell(rx.text(r["zone_label"], size="1")),
+        rx.table.cell(rx.text(r["n_fragments"], size="1"), text_align="right"),
+        rx.table.cell(rx.text(r["enn_mean"], size="1"), text_align="right"),
+        rx.table.cell(rx.text(r["enn_median"], size="1"), text_align="right"),
+    )
+
+
+def _connectivity_section() -> rx.Component:
+    """The costly, opt-in half of landscape metrics — mean/median distance to
+    the nearest forest fragment (services.connectivity), behind its own
+    button rather than fetched alongside the table above."""
+    return rx.vstack(
+        rx.divider(),
+        rx.hstack(
+            rx.text(AppState.tr["connectivity_hint"], size="1", color=MUTED),
+            rx.spacer(),
+            rx.cond(
+                AppState.connectivity_has_result,
+                table_export_button(AppState.download_connectivity_csv),
+                rx.fragment(),
+            ),
+            width="100%", align="center",
+        ),
+        rx.button(
+            rx.icon("route", size=13),
+            rx.cond(AppState.connectivity_running, AppState.tr["calculando"],
+                   AppState.tr["connectivity_run_button"]),
+            on_click=AppState.run_connectivity,
+            loading=AppState.connectivity_running,
+            disabled=AppState.connectivity_running,
+            size="1", variant="soft", color_scheme="amber",
+        ),
+        rx.cond(
+            AppState.connectivity_degraded,
+            rx.callout(AppState.tr["connectivity_degraded"], icon="info",
+                      color_scheme="gray", size="1"),
+        ),
+        rx.cond(
+            AppState.connectivity_error != "",
+            rx.callout(AppState.connectivity_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+            rx.cond(
+                AppState.connectivity_has_result,
+                rx.table.root(
+                    rx.table.header(
+                        rx.table.row(
+                            rx.table.column_header_cell(AppState.tr["paisagem_col_zona"]),
+                            rx.table.column_header_cell(
+                                AppState.tr["connectivity_n_fragments"], text_align="right"),
+                            rx.table.column_header_cell(
+                                AppState.tr["connectivity_enn_mean"], text_align="right"),
+                            rx.table.column_header_cell(
+                                AppState.tr["connectivity_enn_median"], text_align="right"),
+                        ),
+                    ),
+                    rx.table.body(rx.foreach(AppState.connectivity_table_rows,
+                                             _connectivity_row)),
+                    size="1", width="100%", variant="surface",
+                ),
+                rx.cond(
+                    AppState.connectivity_running,
+                    rx.fragment(),
+                    rx.text(AppState.tr["connectivity_empty"], size="1", color=MUTED),
+                ),
+            ),
+        ),
+        spacing="2", width="100%",
+    )
+
+
+def paisagem_tab() -> rx.Component:
+    """Landscape (fragmentation) metrics for every zone at once — the
+    property, then its rings — plus the on-map patch layer
+    (services/layers.py::landscape_patches_spec) so a user can see the same
+    fragments the numbers describe."""
+    return rx.vstack(
+        rx.hstack(
+            rx.text(AppState.tr["paisagem_ano"], size="1", color=MUTED),
+            rx.select(
+                [str(y) for y in mb.MAPBIOMAS_YEARS],
+                value=AppState.landscape_year.to_string(),
+                on_change=AppState.set_landscape_year,
+                size="1",
+            ),
+            _run_button("calcular", AppState.landscape_running,
+                       AppState.run_landscape_metrics),
+            width="100%", align="center",
+        ),
+        rx.cond(
+            AppState.landscape_error,
+            rx.callout(AppState.landscape_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            AppState.landscape_running,
+            rx.center(
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"),
+                         spacing="2"),
+                height="200px",
+            ),
+            rx.cond(
+                AppState.landscape_table_rows,
+                split_panel(
+                    chart_box(AppState.landscape_figure, "cs-plot-paisagem",
+                             "camposcope_paisagem", "260px"),
+                    _paisagem_table(),
+                ),
+                rx.center(
+                    rx.text(AppState.tr["paisagem_empty"], size="2", color=MUTED),
+                    height="150px",
+                ),
+            ),
+        ),
+        _connectivity_section(),
+        _map_layer_note(),
+        rx.text(AppState.tr["paisagem_attribution"], size="1", color=MUTED),
+        spacing="3", width="100%", padding="3",
+    )
+
+
 def results_panel() -> rx.Component:
     return rx.cond(
         AppState.has_imovel,
@@ -328,6 +513,7 @@ def results_panel() -> rx.Component:
                     rx.tabs.trigger(AppState.tr["tab_transicoes"], value="transicoes"),
                     rx.tabs.trigger(AppState.tr["tab_floresta"], value="floresta"),
                     rx.tabs.trigger(AppState.tr["tab_biomassa"], value="biomassa"),
+                    rx.tabs.trigger(AppState.tr["tab_paisagem"], value="paisagem"),
                     rx.tabs.trigger(AppState.tr["tab_fogo"], value="fogo"),
                     rx.tabs.trigger(AppState.tr["tab_validacao"], value="validacao"),
                 ),
@@ -335,6 +521,7 @@ def results_panel() -> rx.Component:
                 rx.tabs.content(transitions_tab(), value="transicoes"),
                 rx.tabs.content(floresta_tab(), value="floresta"),
                 rx.tabs.content(biomassa_tab(), value="biomassa"),
+                rx.tabs.content(paisagem_tab(), value="paisagem"),
                 rx.tabs.content(fogo_tab(), value="fogo"),
                 rx.tabs.content(validacao_tab(), value="validacao"),
                 value=AppState.results_tab,

@@ -69,6 +69,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "tab_transicoes": "Transitions",
     "tab_floresta": "Forest",
     "tab_biomassa": "Biomass",
+    "tab_paisagem": "Landscape",
     "tab_fogo": "Fire",
     "tab_validacao": "Validation",
 
@@ -113,6 +114,38 @@ TRANSLATIONS_EN: dict[str, str] = {
     "biomassa_col_mg_ha": "Mg/ha",
     "biomassa_col_total_mg": "Total (Mg)",
     "biomassa_attribution": "ESA CCI Biomass v6.0 — Santoro & Cartus (2025) · 100 m scale.",
+
+    # --- Landscape tab ------------------------------------------------------ #
+    "paisagem_ano": "Year",
+    "paisagem_col_zona": "Zone",
+    "paisagem_col_area": "Area (ha)",
+    "paisagem_col_fragmentos": "Patches",
+    "paisagem_col_densidade": "Density",
+    "paisagem_col_maior": "Largest patch (%)",
+    "paisagem_col_borda": "Edge density",
+    "paisagem_col_meff": "Meff (ha)",
+    "paisagem_col_shannon": "Shannon",
+    "paisagem_col_simpson": "Simpson",
+    "paisagem_col_evenness": "Evenness",
+    "paisagem_empty": "Metrics not computed yet.",
+    "paisagem_attribution": (
+        "MapBiomas Collection 10.1 — fragmentation metrics (NP, PD, LPI, ED, "
+        "Meff) per zone, 30 m scale."
+    ),
+    "connectivity_hint": (
+        "Distance to the nearest forest patch — slower (vectorising + local "
+        "search), computed only on request."
+    ),
+    "connectivity_run_button": "Compute connectivity (slower)",
+    "connectivity_empty": "Not computed yet — click to run.",
+    "connectivity_n_fragments": "Fragments",
+    "connectivity_enn_mean": "Mean nearest-neighbour dist. (m)",
+    "connectivity_enn_median": "Median (m)",
+    "connectivity_degraded": (
+        "One or more zones had more forest patches than the processed "
+        "limit; the distance considered only the first ones Earth Engine "
+        "returned, not the full set."
+    ),
 
     # --- Transitions tab ---------------------------------------------------- #
     "transicoes_intro": (
@@ -178,6 +211,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "legend_no_coverage": "No SPOT coverage in this zone.",
     "legend_spot_before_cutoff": "before 22 July 2008",
     "legend_biomassa_esa": "Biomass — ESA CCI",
+    "legend_paisagem_fragmentos": "Landscape patches",
     "legend_fogo_frequencia": "Fire — Frequency",
     "legend_fogo_ocorrencias": "occurrences (1985–2025)",
     "legend_mapbiomas_comparacao": "MapBiomas — comparison",
@@ -234,6 +268,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     ),
     "erro_perda_florestal": "Could not compute forest loss: {detail}",
     "erro_biomassa": "Could not compute biomass: {detail}",
+    "erro_paisagem": "Could not compute landscape metrics: {detail}",
+    "erro_connectivity": "Could not compute connectivity: {detail}",
     "erro_fogo": "Could not compute fire analysis: {detail}",
     "erro_spot_cobertura": "Could not check SPOT coverage: {detail}",
     "erro_comparacao_ibge": "Could not compute the comparison: {detail}",
