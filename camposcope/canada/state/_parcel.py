@@ -279,7 +279,13 @@ class CanadaParcelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt_parcel(record)
-        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer]
+        # Nudges the mobile sheet open toward "half" — never smaller — the
+        # same map-app convention as the Brazil page's own version of this
+        # call; see canada/pages/index.py::_SHEET_SCRIPT's
+        # window.__caSheetSnapTo.
+        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer,
+               rx.call_script(
+                   "window.__caSheetSnapTo && window.__caSheetSnapTo('half')")]
 
     @rx.event(background=True)
     async def select_at_point(self, lat: float, lon: float):
@@ -322,7 +328,9 @@ class CanadaParcelMixin(rx.State, mixin=True):
                     self.searching = False
                     self._adopt_parcel(found[0], lat, lon)
                 return [self.__class__.run_aci_history,
-                        self.__class__.mint_analysis_layer]
+                        self.__class__.mint_analysis_layer,
+                        rx.call_script("window.__caSheetSnapTo && "
+                                      "window.__caSheetSnapTo('half')")]
             if len(found) > 1:
                 async with self:
                     self.searching = False
@@ -359,13 +367,17 @@ class CanadaParcelMixin(rx.State, mixin=True):
                 self.searching = False
                 self._adopt_park(park, lat, lon)
             return [self.__class__.run_aci_history,
-                    self.__class__.mint_analysis_layer]
+                   self.__class__.mint_analysis_layer,
+                   rx.call_script("window.__caSheetSnapTo && "
+                                 "window.__caSheetSnapTo('half')")]
 
         # --- tier 3: synthetic square (national, never fails) ---------- #
         async with self:
             self.searching = False
             self._adopt_square(lat, lon)
-        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer]
+        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer,
+               rx.call_script(
+                   "window.__caSheetSnapTo && window.__caSheetSnapTo('half')")]
 
     @rx.event(background=True)
     async def choose_candidate(self, identifier: str):
@@ -385,7 +397,9 @@ class CanadaParcelMixin(rx.State, mixin=True):
         async with self:
             self.searching = False
             self._adopt_parcel(record)
-        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer]
+        return [self.__class__.run_aci_history, self.__class__.mint_analysis_layer,
+               rx.call_script(
+                   "window.__caSheetSnapTo && window.__caSheetSnapTo('half')")]
 
     def adopt_pid_param(self) -> None:
         """Honour ``?pid=<value>`` on load — the deep-link persistence model,

@@ -20,6 +20,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "drawer_close_aria": "Fechar",
     "sidebar_show_aria": "Mostrar painel lateral",
     "sidebar_hide_aria": "Ocultar painel lateral",
+    "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
     "close_button": "Fechar",
     "calcular": "Calcular",
     "calculando": "Calculando…",

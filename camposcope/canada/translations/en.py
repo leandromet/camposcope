@@ -15,6 +15,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "drawer_close_aria": "Close",
     "sidebar_show_aria": "Show sidebar",
     "sidebar_hide_aria": "Hide sidebar",
+    "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
     "close_button": "Close",
     "calcular": "Calculate",
     "calculando": "Calculating…",
