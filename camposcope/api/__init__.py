@@ -20,6 +20,7 @@ import logging
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from ..canada.config import ecozones as ecozones_cfg
 from ..canada.services import ecozones
 from ..services import biomes
 
@@ -68,20 +69,22 @@ async def biomes_geojson(request: Request) -> Response:
                     headers=headers)
 
 
-async def ecozones_geojson(request: Request) -> Response:
-    """The simplified Canadian ecozone polygons, pre-gzipped.
+async def _ecoframework_geojson(request: Request, level: str) -> Response:
+    """Shared body for the three ecological-framework routes below.
 
     Same shape as :func:`biomes_geojson`, and unlike it involves no Earth
     Engine call at all — the source is the ArcGIS FeatureServer
     (``canada/services/ecozones.py``), so a cold start's first request costs a
-    plain HTTP fetch, not an EE round trip.
+    plain HTTP fetch, not an EE round trip. One handler per level rather than
+    a single ``/_ecozones.geojson?level=`` route, so each stays a plain,
+    cacheable static GET the browser can key on its URL alone.
     """
     try:
-        payload = await _run_blocking(ecozones.geojson_gzipped)
+        payload = await _run_blocking(lambda: ecozones.geojson_gzipped(level))
     except Exception as exc:  # noqa: BLE001
-        logger.exception("Ecozone GeoJSON could not be produced")
+        logger.exception("%s GeoJSON could not be produced", level)
         return JSONResponse(
-            {"error": "ecozones unavailable", "detail": str(exc)}, status_code=503
+            {"error": f"{level} unavailable", "detail": str(exc)}, status_code=503
         )
 
     headers = {"Cache-Control": _CACHE_CONTROL}
@@ -95,6 +98,18 @@ async def ecozones_geojson(request: Request) -> Response:
                     headers=headers)
 
 
+async def ecozones_geojson(request: Request) -> Response:
+    return await _ecoframework_geojson(request, "ecozone")
+
+
+async def ecoregions_geojson(request: Request) -> Response:
+    return await _ecoframework_geojson(request, "ecoregion")
+
+
+async def ecodistricts_geojson(request: Request) -> Response:
+    return await _ecoframework_geojson(request, "ecodistrict")
+
+
 async def healthz(request: Request) -> Response:
     return JSONResponse({"status": "ok"})
 
@@ -106,7 +121,15 @@ def register(app) -> None:
         logger.warning("Reflex app exposes no Starlette instance — routes skipped")
         return
     api.add_route(biomes.GEOJSON_PATH, biomes_geojson, methods=["GET"])
-    api.add_route(ecozones.GEOJSON_PATH, ecozones_geojson, methods=["GET"])
+    api.add_route(ecozones_cfg.LEVELS["ecozone"].geojson_path,
+                 ecozones_geojson, methods=["GET"])
+    api.add_route(ecozones_cfg.LEVELS["ecoregion"].geojson_path,
+                 ecoregions_geojson, methods=["GET"])
+    api.add_route(ecozones_cfg.LEVELS["ecodistrict"].geojson_path,
+                 ecodistricts_geojson, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
-    logger.info("Registered backend routes %s, %s, /healthz",
-                biomes.GEOJSON_PATH, ecozones.GEOJSON_PATH)
+    logger.info("Registered backend routes %s, %s, %s, %s, /healthz",
+                biomes.GEOJSON_PATH,
+                ecozones_cfg.LEVELS["ecozone"].geojson_path,
+                ecozones_cfg.LEVELS["ecoregion"].geojson_path,
+                ecozones_cfg.LEVELS["ecodistrict"].geojson_path)

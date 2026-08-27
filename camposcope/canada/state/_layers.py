@@ -58,8 +58,15 @@ class CanadaLayersMixin(rx.State, mixin=True):
 
     fit_bounds: List[List[float]] = list(BC_VIEW_BOUNDS)
 
-    #: The ecozone overlay — navigation, not an input. Off by default.
+    #: The ecological-framework overlay — navigation, not an input. Off by
+    #: default. ``ecozone_level`` picks which of the framework's three tiers
+    #: draws: "ecozone" (coarsest, the default), "ecoregion", or
+    #: "ecodistrict" (finest — no name of its own, see
+    #: ``canada/services/ecozones.py``). Switching level while the overlay is
+    #: on just re-requests a different static GeoJSON; it never touches
+    #: analysis.
     show_ecozones: bool = False
+    ecozone_level: str = "ecozone"
     show_ecozone_labels: bool = True
     ecozone_opacity: float = 0.45
 
@@ -85,6 +92,11 @@ class CanadaLayersMixin(rx.State, mixin=True):
 
     def toggle_ecozones(self, checked: bool) -> None:
         self.show_ecozones = checked
+
+    def set_ecozone_level(self, level: str | list[str]) -> None:
+        value = level[0] if isinstance(level, list) else level
+        from ..config.ecozones import LEVELS
+        self.ecozone_level = value if value in LEVELS else "ecozone"
 
     def frame_geometry(self, geojson: Dict[str, Any]) -> None:
         """Fit the map to a geometry's bounds — the one sanctioned viewport
@@ -353,10 +365,11 @@ class CanadaLayersMixin(rx.State, mixin=True):
 
         return layers
 
-    @rx.var(deps=["show_ecozones", "show_ecozone_labels", "ecozone_opacity",
-                 "language"], auto_deps=False)
+    @rx.var(deps=["show_ecozones", "ecozone_level", "show_ecozone_labels",
+                 "ecozone_opacity", "language"], auto_deps=False)
     def ecozone_vectors(self) -> List[Dict[str, Any]]:
-        """The browser-side ecozone vector layer spec, or nothing when
+        """The browser-side ecological-framework vector layer spec, at
+        whichever level ``ecozone_level`` currently picks, or nothing when
         toggled off. Involves no Earth Engine or network call from here — the
         fetch happens in the browser against the HTTP route
         (``camposcope/api``), so unlike every tile spec this cannot fail on
@@ -367,6 +380,7 @@ class CanadaLayersMixin(rx.State, mixin=True):
         from ..services import ecozones
 
         return [ecozones.vector_spec(
+            self.ecozone_level,
             opacity=self.ecozone_opacity,
             show_labels=self.show_ecozone_labels,
             lang=getattr(self, "language", "en"),

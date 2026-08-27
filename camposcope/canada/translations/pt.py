@@ -120,9 +120,15 @@ TRANSLATIONS_PT: dict[str, str] = {
     "layers_parcel_wms": "Malha de parcelas (contexto)",
     "layers_parcel_wms_note": "Todas as parcelas do ParcelMap BC, "
         "desenhadas pelo servidor — visível a partir do zoom 12.",
-    "layers_ecozones": "Ecozonas",
+    "layers_ecozones": "Marco ecológico",
+    "layers_ecozone_level_ecozone": "Ecozona",
+    "layers_ecozone_level_ecoregion": "Ecorregião",
+    "layers_ecozone_level_ecodistrict": "Ecodistrito",
     "layers_ecozones_note": "Apenas orientação — limites aproximados que "
-        "não decidem nada.",
+        "não decidem nada. Ecozonas são amplas (quinze cobrem todo o "
+        "Canadá); ecorregião e ecodistrito são níveis mais finos do mesmo "
+        "marco — ecodistrito não tem nome próprio, apenas a ecorregião e "
+        "ecozona em que se encontra.",
     "legend_aci": "Inventário de Culturas (AAFC)",
     "legend_aci_palette": "Cores da legenda oficial do AAFC.",
     "legend_landsat": "Composto Landsat",

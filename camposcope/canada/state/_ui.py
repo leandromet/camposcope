@@ -22,7 +22,9 @@ class CanadaUIMixin(rx.State, mixin=True):
     language: str = DEFAULT_LANGUAGE
 
     #: Mobile overlay drawer only; the desktop sidebar is always visible.
-    sidebar_open: bool = False
+    #: Starts open, matching the Brazil page — a first-time visitor lands on
+    #: the search/parcel panel, not a bare map with no visible way in.
+    sidebar_open: bool = True
 
     results_tab: str = "cobertura"
 

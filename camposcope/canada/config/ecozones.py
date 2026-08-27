@@ -15,25 +15,55 @@ polygons are fetched from source, simplified once, and disk-cached — the same
 three-tier memo/disk/gzip arrangement :mod:`camposcope.services.biomes` uses,
 minus the Earth Engine round trip.
 
-**Orientation only, exactly like the biome layer.** Nothing this app reports is
-derived from which ecozone a parcel falls in. The polygons are simplified for
-delivery to the browser (they must name themselves on hover, which a raster tile
-cannot do), so boundaries drawn from this layer are approximate and must never
-decide anything.
+**Three levels, same framework, same host.** Ecozones alone are the coarsest
+tier of the framework's own hierarchy (ecozone > ecoprovince > ecoregion >
+ecodistrict) and read as too coarse to be useful once a parcel is small — a
+whole province-sized polygon says little about one property. The same ArcGIS
+organisation (``lGOekm0RsNxYnT3j``) that publishes the ecozone layer also
+publishes ecoregion and ecodistrict layers, verified live on 2026-08-28
+(``National_ecological_framework_of_Canada_ecoregions`` — 218 features
+nationally, 56 touching BC; ``National_ecological_framework_of_Canada_
+Ecodistricts`` — 1,025 nationally, 182 touching BC), so no second source was
+needed — the "if we don't find it in the current service" fallback to
+ecozones.ca never had to be built. **Ecodistricts carry no name of their own**
+in this dataset, only ``ECODISTRICT_ID`` plus the ``ECOZONE_ID``/
+``ECOREGION_ID`` they nest inside — see :func:`level_config`'s
+``own_name_fields=None`` for ecodistrict and the tooltip fallback that reads
+its parent ecoregion's name instead.
+
+**Orientation only, exactly like the biome layer, at every level.** Nothing
+this app reports is derived from which ecozone/ecoregion/ecodistrict a parcel
+falls in. The polygons are simplified for delivery to the browser (they must
+name themselves on hover, which a raster tile cannot do), so boundaries drawn
+from this layer are approximate and must never decide anything.
 """
 
 from __future__ import annotations
 
-from typing import Dict, List
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 # --------------------------------------------------------------------------- #
 # Source
 # --------------------------------------------------------------------------- #
+_ORG = "https://services.arcgis.com/lGOekm0RsNxYnT3j/arcgis/rest/services"
+
 #: The ArcGIS REST layer. ``maxRecordCount`` is 2000 and there are 15 ecozones
 #: (in a few hundred polygon parts), so one paged query fetches the lot.
 ECOZONE_FEATURESERVER = (
-    "https://services.arcgis.com/lGOekm0RsNxYnT3j/arcgis/rest/services/"
-    "National_ecological_framework_of_Canada_ecozones/FeatureServer/0"
+    f"{_ORG}/National_ecological_framework_of_Canada_ecozones/FeatureServer/0"
+)
+
+#: 218 features nationally — still one page under the 2000 maxRecordCount.
+ECOREGION_FEATURESERVER = (
+    f"{_ORG}/National_ecological_framework_of_Canada_ecoregions/FeatureServer/0"
+)
+
+#: 1,025 features nationally — also one page. Note the capital E in the
+#: service name itself (unlike its ecozone/ecoregion siblings) — verified
+#: against the live ArcGIS services directory, not guessed.
+ECODISTRICT_FEATURESERVER = (
+    f"{_ORG}/National_ecological_framework_of_Canada_Ecodistricts/FeatureServer/0"
 )
 
 #: The pre-packaged GeoJSON, used as the fallback when the REST service is
@@ -155,3 +185,76 @@ def name(ecozone_id: int, lang: str = "en") -> str:
 
 def color(name_en: str) -> str:
     return PALETTE.get(name_en, DEFAULT_COLOR)
+
+
+# --------------------------------------------------------------------------- #
+# Levels — ecozone (coarsest) / ecoregion / ecodistrict (finest)
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class LevelConfig:
+    """Everything that differs between the three levels of the same framework
+    — one fetch+render pipeline in ``services/ecozones.py`` reads all three
+    through this, rather than three near-duplicate code paths.
+
+    Every level is coloured by its *ecozone*, never by its own identity —
+    218 ecoregions or 1,025 ecodistricts in 218/1,025 distinct hues would be
+    noise, not a legend, and the point of adding finer levels is finer
+    boundaries with the same, already-legible fifteen-colour key.
+    """
+
+    key: str
+    label_en: str
+    featureserver: str
+    id_field: str
+    #: None only for ecodistrict — the framework gives it no name of its own,
+    #: only ``ECODISTRICT_ID`` plus the ecoregion/ecozone it nests inside.
+    name_en_field: Optional[str]
+    name_fr_field: Optional[str]
+    ecozone_id_field: str
+    simplify_m: float
+    coord_decimals: int
+    label_min_zoom: int
+    geojson_path: str
+    cache_filename: str
+
+
+LEVELS: Dict[str, LevelConfig] = {
+    "ecozone": LevelConfig(
+        key="ecozone", label_en="Ecozone",
+        featureserver=ECOZONE_FEATURESERVER,
+        id_field="ECOZONE_ID",
+        name_en_field="ECOZONE_NAME_EN", name_fr_field="ECOZONE_NAME_FR",
+        ecozone_id_field="ECOZONE_ID",
+        simplify_m=2000, coord_decimals=2, label_min_zoom=5,
+        geojson_path="/_ecozones.geojson",
+        cache_filename="canada_ecozones.json.gz",
+    ),
+    "ecoregion": LevelConfig(
+        key="ecoregion", label_en="Ecoregion",
+        featureserver=ECOREGION_FEATURESERVER,
+        id_field="ECOREGION_ID",
+        name_en_field="ECOREGION_NAME_EN", name_fr_field="ECOREGION_NAME_FR",
+        ecozone_id_field="ECOZONE_ID",
+        # Finer polygons over the same country need a tighter tolerance —
+        # the ecozone's 2 km would visibly fuse adjacent small ecoregions.
+        simplify_m=800, coord_decimals=3, label_min_zoom=7,
+        geojson_path="/_ecoregions.geojson",
+        cache_filename="canada_ecoregions.json.gz",
+    ),
+    "ecodistrict": LevelConfig(
+        key="ecodistrict", label_en="Ecodistrict",
+        featureserver=ECODISTRICT_FEATURESERVER,
+        id_field="ECODISTRICT_ID",
+        name_en_field=None, name_fr_field=None,
+        ecozone_id_field="ECOZONE_ID",
+        simplify_m=400, coord_decimals=3, label_min_zoom=9,
+        geojson_path="/_ecodistricts.geojson",
+        cache_filename="canada_ecodistricts.json.gz",
+    ),
+}
+
+#: Ecodistrict's own field name for the ecoregion it nests inside — read
+#: separately from :class:`LevelConfig` since only that one level needs it
+#: (to borrow its parent ecoregion's name for the tooltip it has none of its
+#: own — see ``services/ecozones.py::_ecoregion_name_lookup``).
+ECODISTRICT_ECOREGION_ID_FIELD = "ECOREGION_ID"

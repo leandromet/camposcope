@@ -112,9 +112,15 @@ TRANSLATIONS_EN: dict[str, str] = {
     "layers_parcel_wms": "Parcel fabric (context)",
     "layers_parcel_wms_note": "Every ParcelMap BC parcel, drawn by the "
         "server — visible from zoom 12.",
-    "layers_ecozones": "Ecozones",
+    "layers_ecozones": "Ecological framework",
+    "layers_ecozone_level_ecozone": "Ecozone",
+    "layers_ecozone_level_ecoregion": "Ecoregion",
+    "layers_ecozone_level_ecodistrict": "Ecodistrict",
     "layers_ecozones_note": "Orientation only — boundaries are approximate "
-        "and decide nothing.",
+        "and decide nothing. Ecozones are coarse (fifteen cover all of "
+        "Canada); ecoregion and ecodistrict are finer tiers of the same "
+        "framework — ecodistrict carries no name of its own, only the "
+        "ecoregion and ecozone it sits inside.",
     "legend_aci": "AAFC Crop Inventory",
     "legend_aci_palette": "Official AAFC legend colours.",
     "legend_landsat": "Landsat composite",

@@ -81,6 +81,19 @@ def _layers_panel() -> rx.Component:
             rx.text(S.tr["layers_ecozones"], size="1"),
             spacing="2", align="center",
         ),
+        rx.cond(
+            S.show_ecozones,
+            rx.segmented_control.root(
+                rx.segmented_control.item(S.tr["layers_ecozone_level_ecozone"],
+                                          value="ecozone"),
+                rx.segmented_control.item(S.tr["layers_ecozone_level_ecoregion"],
+                                          value="ecoregion"),
+                rx.segmented_control.item(S.tr["layers_ecozone_level_ecodistrict"],
+                                          value="ecodistrict"),
+                value=S.ecozone_level, on_change=S.set_ecozone_level,
+                size="1", width="100%",
+            ),
+        ),
         rx.text(S.tr["layers_ecozones_note"], size="1", color=MUTED),
     )
 
@@ -101,14 +114,29 @@ def _sidebar() -> rx.Component:
             rx.vstack(
                 rx.hstack(
                     rx.spacer(),
-                    rx.icon_button(
-                        rx.icon("panel-left-close"),
+                    # A plain clickable box, not rx.icon_button: its `size`
+                    # prop is a literal-typed value that rx.breakpoints()
+                    # does not reliably resolve here — measured live at 12x12
+                    # content px with an intrinsic -8px margin-top from
+                    # Radix's own optical-alignment CSS, which together put
+                    # this control mostly *above* the viewport on a phone
+                    # (verified via CDP: getBoundingClientRect().top was
+                    # -8). A fixed-size box with the icon centred inside
+                    # sidesteps both: no responsive component prop to
+                    # mis-resolve, no inherited negative margin to fight.
+                    rx.box(
+                        rx.icon("panel-left-close", size=18),
                         on_click=S.toggle_sidebar,
-                        size=rx.breakpoints(initial="3", sm="3", md="1", lg="1"),
-                        variant="ghost", color_scheme="gray",
+                        role="button", cursor="pointer",
                         aria_label=S.tr["sidebar_hide_aria"],
+                        display="flex", align_items="center",
+                        justify_content="center",
+                        width=["44px", "44px", "28px", "28px"],
+                        height=["44px", "44px", "28px", "28px"],
+                        border_radius="var(--radius-2)",
+                        _hover={"background": "var(--gray-4)"},
                     ),
-                    width="100%", padding_top="2",
+                    width="100%", padding_top="8px",
                 ),
                 search_panel(),
                 parcel_card(),
@@ -118,7 +146,12 @@ def _sidebar() -> rx.Component:
                 max_width=["320px", "320px", "340px", "340px"],
                 min_width=["0", "0", "340px", "340px"],
                 height="100%", overflow_y="auto", padding_x="4",
-                border_right=BORDER, background="var(--color-panel)",
+                border_right=BORDER,
+                # Solid, not the translucent Radix default: on mobile this box
+                # sits *over* the header and map as a fixed overlay, and
+                # translucency there let both bleed through and turn its own
+                # text into an illegible ghosted double-exposure.
+                background="var(--color-panel-solid)",
                 align_items="stretch", spacing="0",
                 position=["fixed", "fixed", "static", "static"],
                 top="0", left="0", z_index=["1100", "1100", "auto", "auto"],
@@ -135,7 +168,7 @@ def _sidebar() -> rx.Component:
                     ),
                     display=["none", "none", "block", "block"],
                     padding="2", border_right=BORDER,
-                    background="var(--color-panel)", height="100%",
+                    background="var(--color-panel-solid)", height="100%",
                 ),
                 rx.icon_button(
                     rx.icon("panel-left-open", size=20),

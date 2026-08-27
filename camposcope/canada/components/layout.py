@@ -68,10 +68,24 @@ def header() -> rx.Component:
 
     return rx.hstack(
         rx.hstack(
-            rx.icon("scan-search", size=20, color=f"var(--{ACCENT}-11)"),
+            rx.icon("scan-search", size=20, color=f"var(--{ACCENT}-11)",
+                   flex_shrink="0"),
+            # Hidden outright on a phone, not truncated: this page has five
+            # header actions (Brazil, help, export, cite, language) that
+            # used to force the heading's own word-wrap into three lines,
+            # pushing everything below (including the mobile drawer's
+            # floating reopen button, positioned by a fixed pixel offset
+            # that assumed a one-line header) out of place. Nowrap alone
+            # only traded that for a hard, ellipsis-less clip past the
+            # viewport edge — an ellipsis-truncated fragment ("C...") read
+            # worse than no title at all, so it is hidden below "md" rather
+            # than shown broken.
             rx.heading(S.tr["app_name"], size="4", weight="bold",
-                      white_space="nowrap"),
-            spacing="2", align="center",
+                      white_space="nowrap", overflow="hidden",
+                      text_overflow="ellipsis", min_width="0",
+                      display=["none", "none", "block", "block"]),
+            spacing="2", align="center", min_width="0", overflow="hidden",
+            flex_shrink="1",
         ),
         rx.spacer(),
         rx.link(

@@ -40,15 +40,26 @@ logger = logging.getLogger(__name__)
 
 _TIMEOUT = (PMBC_TIMEOUT_CONNECT, PMBC_TIMEOUT_READ)
 
-CACHE_PATH = REPO_ROOT / "data" / "cache" / "canada_ecozones.json.gz"
+CACHE_DIR = REPO_ROOT / "data" / "cache"
 
-#: Path served by the backend (see ``camposcope/api/__init__.py``). Relative —
-#: the map component resolves it against the backend origin, which differs
-#: between the split dev ports and single-port production.
-GEOJSON_PATH = "/_ecozones.geojson"
+#: Kept for callers written against the single-level version of this module
+#: (and as the default level's own path) — identical to ``LEVELS["ecozone"]
+#: .geojson_path``.
+GEOJSON_PATH = cfg.LEVELS["ecozone"].geojson_path
 
-_memo: Optional[bytes] = None
+#: One memo slot and one disk-cache path per level — a level is a completely
+#: separate FeatureCollection, not a filtered view of another, so nothing is
+#: shared between them.
+_memo: Dict[str, bytes] = {}
 _memo_lock = threading.Lock()
+
+#: The ecoregion id → (name_en, name_fr) lookup an ecodistrict borrows for its
+#: tooltip, since the ecodistrict service itself publishes no name at all —
+#: see ``config/ecozones.py``'s module docstring. Small (218 rows, no
+#: geometry) and cheap enough to hold in memory for the process lifetime
+#: rather than round-tripping it on every ecodistrict build.
+_region_name_memo: Optional[Dict[int, tuple]] = None
+_region_name_lock = threading.Lock()
 
 
 # --------------------------------------------------------------------------- #
@@ -122,13 +133,16 @@ def _session() -> requests.Session:
     return s
 
 
-def _fetch_from_featureserver() -> Dict[str, Any]:
-    """Query the ArcGIS FeatureServer, paging until it stops returning more.
+def _fetch_from_featureserver(featureserver: str, out_fields: List[str],
+                              *, geometry_precision: int) -> Dict[str, Any]:
+    """Query one ArcGIS FeatureServer layer, paging until it stops returning
+    more.
 
-    ``maxRecordCount`` is 2000 and the layer holds a few hundred polygon parts,
-    so this normally completes in one page — the paging exists because ArcGIS
-    silently truncates rather than erroring, and a silently truncated ecozone
-    map would just be missing a region with nothing to say so.
+    ``maxRecordCount`` is 2000 on all three of this framework's layers, and
+    the largest (ecodistrict, 1,025 rows) still fits in one page — the paging
+    exists because ArcGIS silently truncates rather than erroring, and a
+    silently truncated map would just be missing a region with nothing to say
+    so.
     """
     session = _session()
     features: List[dict] = []
@@ -138,20 +152,20 @@ def _fetch_from_featureserver() -> Dict[str, Any]:
     while True:
         params = {
             "where": "1=1",
-            "outFields": ",".join(cfg.FIELDS.values()),
+            "outFields": ",".join(out_fields),
             "returnGeometry": "true",
             "outSR": "4326",
             # Ask the server to generalise before sending. It is far cheaper to
             # have ArcGIS drop vertices than to transfer full-resolution
             # coastline and drop them here — and the tolerance is in degrees at
-            # outSR, so this is roughly the same order as SIMPLIFY_M.
-            "geometryPrecision": str(cfg.COORD_DECIMALS),
+            # outSR, so this is roughly the same order as the level's own
+            # SIMPLIFY_M.
+            "geometryPrecision": str(geometry_precision),
             "f": "geojson",
             "resultOffset": str(offset),
             "resultRecordCount": str(page_size),
         }
-        r = session.get(cfg.ECOZONE_FEATURESERVER + "/query",
-                        params=params, timeout=_TIMEOUT)
+        r = session.get(featureserver + "/query", params=params, timeout=_TIMEOUT)
         r.raise_for_status()
         payload = r.json()
         page = payload.get("features") or []
@@ -164,25 +178,101 @@ def _fetch_from_featureserver() -> Dict[str, Any]:
     return {"type": "FeatureCollection", "features": features}
 
 
-def build_geojson() -> dict:
-    """Fetch, simplify and normalise the ecozone polygons.
+def _ecoregion_name_lookup() -> Dict[int, tuple]:
+    """``{ECOREGION_ID: (name_en, name_fr)}`` — geometry-free, ~218 rows,
+    fetched once and held for the process lifetime.
 
-    Blocking, a few seconds against the source service. The output carries only
-    the three fields the tooltip and the colour lookup need — every extra string
-    field costs bytes across a few hundred features for nothing.
+    The one piece of cross-level data ecodistrict needs and cannot get from
+    its own service: the framework gives ecodistricts no name of their own
+    (see ``config/ecozones.py``'s module docstring), so its tooltip borrows
+    the ecoregion it nests inside — which means actually knowing that
+    ecoregion's name, not just its numeric id.
     """
+    global _region_name_memo
+
+    with _region_name_lock:
+        if _region_name_memo is not None:
+            return _region_name_memo
+
+    ecoregion_cfg = cfg.LEVELS["ecoregion"]
+    # Ecoregion is the one level guaranteed to publish both name fields (see
+    # config/ecozones.py) — asserted rather than silently filtered, so a
+    # future edit that drops one is a loud crash here, not a blank lookup.
+    assert ecoregion_cfg.name_en_field and ecoregion_cfg.name_fr_field
+    session = _session()
+    r = session.get(ecoregion_cfg.featureserver + "/query", params={
+        "where": "1=1",
+        "outFields": ",".join([ecoregion_cfg.id_field,
+                               ecoregion_cfg.name_en_field,
+                               ecoregion_cfg.name_fr_field]),
+        "returnGeometry": "false",
+        "f": "json",
+        "resultRecordCount": "2000",
+    }, timeout=_TIMEOUT)
+    r.raise_for_status()
+    payload = r.json()
+
+    lookup: Dict[int, tuple] = {}
+    for feature in payload.get("features", []):
+        attrs = feature.get("attributes") or {}
+        rid = attrs.get(ecoregion_cfg.id_field)
+        if rid is None:
+            continue
+        lookup[int(rid)] = (
+            (attrs.get(ecoregion_cfg.name_en_field) or "").strip(),
+            # The source service embeds a stray \r\n in at least one French
+            # name ("Bassin de Géorgie-Puget\r\n", verified 2026-08-28) —
+            # stripped here rather than trusted, since a raw newline inside a
+            # GeoJSON string property is exactly the kind of thing that reads
+            # fine in a Python repr and breaks a tooltip.
+            (attrs.get(ecoregion_cfg.name_fr_field) or "").strip(),
+        )
+
+    with _region_name_lock:
+        _region_name_memo = lookup
+    logger.info("Ecoregion name lookup ready: %s rows", len(lookup))
+    return lookup
+
+
+def build_geojson(level: str = "ecozone") -> dict:
+    """Fetch, simplify and normalise one level's polygons.
+
+    Blocking, a few seconds against the source service. The output carries
+    only the fields the tooltip and the colour lookup need — every extra
+    string field costs bytes across a few hundred (ecozone/ecoregion) to a
+    couple thousand (ecodistrict) features for nothing.
+
+    Every level's features carry ``zone_name_en``/``zone_name_pt`` — the
+    *parent ecozone's* name, always, even for the ecozone level itself
+    (there it is simply the feature's own name). That is what lets
+    :func:`vector_spec` colour all three levels the same way, off the same
+    fifteen-entry palette, with no per-level branch: 218 ecoregions or 1,025
+    ecodistricts in their own distinct hues would be noise, not a legend.
+    """
+    if level not in cfg.LEVELS:
+        raise ValueError(f"Unknown ecological-framework level: {level!r}")
+    level_cfg = cfg.LEVELS[level]
     started = time.time()
-    raw = _fetch_from_featureserver()
+
+    out_fields = [level_cfg.id_field, level_cfg.ecozone_id_field]
+    if level_cfg.name_en_field:
+        out_fields.append(level_cfg.name_en_field)
+    if level_cfg.name_fr_field:
+        out_fields.append(level_cfg.name_fr_field)
+    if level == "ecodistrict":
+        out_fields.append(cfg.ECODISTRICT_ECOREGION_ID_FIELD)
+
+    raw = _fetch_from_featureserver(
+        level_cfg.featureserver, out_fields,
+        geometry_precision=level_cfg.coord_decimals)
+
+    region_lookup = _ecoregion_name_lookup() if level == "ecodistrict" else {}
 
     try:
         from shapely.geometry import mapping, shape
         _shapely = True
     except ImportError:                                   # pragma: no cover
         _shapely = False
-
-    id_field = cfg.FIELDS["id"]
-    en_field = cfg.FIELDS["name_en"]
-    fr_field = cfg.FIELDS["name_fr"]
 
     features = []
     for feature in raw.get("features", []):
@@ -195,117 +285,183 @@ def build_geojson() -> dict:
             # payload. Done in degrees — an approximation of SIMPLIFY_M that is
             # entirely adequate for a layer explicitly not used for decisions.
             try:
-                tolerance_deg = cfg.SIMPLIFY_M / 111_000.0
+                tolerance_deg = level_cfg.simplify_m / 111_000.0
                 geom = mapping(shape(geom).simplify(tolerance_deg,
                                                     preserve_topology=True))
             except Exception:                             # noqa: BLE001
                 pass          # keep the unsimplified geometry rather than none
 
-        cleaned = _clean_geometry(geom, cfg.COORD_DECIMALS)
+        cleaned = _clean_geometry(geom, level_cfg.coord_decimals)
         if cleaned is None:
             continue
 
-        ecozone_id = props.get(id_field)
-        name_en = props.get(en_field) or cfg.name(ecozone_id or 0, "en")
+        unit_id = props.get(level_cfg.id_field)
+        ecozone_id = props.get(level_cfg.ecozone_id_field)
+        zone_name_en = cfg.name(ecozone_id or 0, "en")
+        zone_name_pt = cfg.name(ecozone_id or 0, "pt")
+
+        if level_cfg.name_en_field:
+            name_en = (props.get(level_cfg.name_en_field) or "").strip() \
+                or zone_name_en
+            name_fr = (props.get(level_cfg.name_fr_field) or "").strip()
+            name_pt = zone_name_pt if level == "ecozone" else name_en
+            parent_name_en = parent_name_fr = ""
+        else:
+            # Ecodistrict: no name field on the service at all. Its own
+            # label is just its number; the ecoregion it nests inside — read
+            # from the geometry-free lookup above — carries the meaning.
+            region_id = props.get(cfg.ECODISTRICT_ECOREGION_ID_FIELD)
+            parent_name_en, parent_name_fr = region_lookup.get(
+                int(region_id) if region_id is not None else -1, ("", ""))
+            name_en = f"{level_cfg.label_en} {unit_id}"
+            name_fr = name_en
+            name_pt = name_en
+
         features.append({
             "type": "Feature",
             "properties": {
-                "ecozone_id": ecozone_id,
+                "unit_id": unit_id,
                 "name_en": name_en,
-                "name_fr": props.get(fr_field) or "",
-                "name_pt": cfg.name(ecozone_id or 0, "pt"),
+                "name_fr": name_fr,
+                "name_pt": name_pt,
+                "ecozone_id": ecozone_id,
+                "zone_name_en": zone_name_en,
+                "zone_name_pt": zone_name_pt,
+                "parent_name_en": parent_name_en,
+                "parent_name_fr": parent_name_fr,
             },
             "geometry": cleaned,
         })
 
-    logger.info("Built ecozone GeoJSON: %s/%s features in %.1f s",
-                len(features), len(raw.get("features", [])), time.time() - started)
+    logger.info("Built %s GeoJSON: %s/%s features in %.1f s",
+                level, len(features), len(raw.get("features", [])),
+                time.time() - started)
     return {"type": "FeatureCollection", "features": features}
 
 
-def geojson_gzipped() -> bytes:
-    """The simplified ecozone GeoJSON, gzip-compressed, memoised and disk-cached.
+def geojson_gzipped(level: str = "ecozone") -> bytes:
+    """One level's simplified GeoJSON, gzip-compressed, memoised and
+    disk-cached.
 
-    Three tiers, each removing a different cost: the memo removes the disk read,
-    the disk cache removes the network round trip, and the gzip is stored rather
-    than recomputed because it is the same bytes every time.
+    Three tiers, each removing a different cost: the memo removes the disk
+    read, the disk cache removes the network round trip, and the gzip is
+    stored rather than recomputed because it is the same bytes every time —
+    all three keyed by level, since each is an independent FeatureCollection.
     """
-    global _memo
+    if level not in cfg.LEVELS:
+        raise ValueError(f"Unknown ecological-framework level: {level!r}")
+    level_cfg = cfg.LEVELS[level]
+    cache_path = CACHE_DIR / level_cfg.cache_filename
 
     with _memo_lock:
-        if _memo is not None:
-            return _memo
+        cached = _memo.get(level)
+    if cached is not None:
+        return cached
 
-    if CACHE_PATH.exists():
+    if cache_path.exists():
         try:
-            payload = CACHE_PATH.read_bytes()
+            payload = cache_path.read_bytes()
             with _memo_lock:
-                _memo = payload
-            logger.info("Ecozone GeoJSON from disk cache (%s KiB)",
-                        len(payload) // 1024)
+                _memo[level] = payload
+            logger.info("%s GeoJSON from disk cache (%s KiB)",
+                        level, len(payload) // 1024)
             return payload
         except OSError as exc:
-            logger.warning("Ecozone cache unreadable (%s) — rebuilding", exc)
+            logger.warning("%s cache unreadable (%s) — rebuilding", level, exc)
 
-    body = json.dumps(build_geojson(), separators=(",", ":"),
+    body = json.dumps(build_geojson(level), separators=(",", ":"),
                       ensure_ascii=False).encode("utf-8")
     payload = gzip.compress(body, 9)
 
     try:
-        CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
         # Written via a temporary file: two workers building this at once would
         # otherwise interleave into a corrupt gzip that then fails forever.
-        tmp = CACHE_PATH.with_suffix(".tmp")
+        tmp = cache_path.with_suffix(".tmp")
         tmp.write_bytes(payload)
-        tmp.replace(CACHE_PATH)
+        tmp.replace(cache_path)
     except OSError as exc:
-        logger.warning("Could not cache ecozone GeoJSON (%s) — serving from "
-                       "memory", exc)
+        logger.warning("Could not cache %s GeoJSON (%s) — serving from "
+                       "memory", level, exc)
 
     with _memo_lock:
-        _memo = payload
-    logger.info("Ecozone GeoJSON ready: %s KiB gzipped", len(payload) // 1024)
+        _memo[level] = payload
+    logger.info("%s GeoJSON ready: %s KiB gzipped", level, len(payload) // 1024)
     return payload
 
 
 # --------------------------------------------------------------------------- #
 # Layer spec
 # --------------------------------------------------------------------------- #
-def vector_spec(opacity: float = 0.45, z_index: int = 5,
-                show_labels: bool = True, lang: str = "en") -> dict:
-    """Spec for the browser-side ecozone layer.
+_LEVEL_LABEL = {
+    "ecozone": ("Ecozone", "Ecozona"),
+    "ecoregion": ("Ecoregion", "Ecorregião"),
+    "ecodistrict": ("Ecodistrict", "Ecodistrito"),
+}
+
+
+def vector_spec(level: str = "ecozone", *, opacity: float = 0.45,
+                z_index: int = 5, show_labels: bool = True,
+                lang: str = "en") -> dict:
+    """Spec for the browser-side ecological-framework layer, at whichever of
+    the three levels the caller picked.
 
     Purely declarative and involves no round trip of its own, so unlike every
     tile spec it cannot fail — the fetch happens in the browser.
+
+    **Coloured by ``zone_name_en`` at every level**, never by the feature's
+    own identity: 218 ecoregions or 1,025 ecodistricts each in their own hue
+    would be a different colour every few kilometres, which is noise, not a
+    legend. At the ecozone level itself this is simply its own name — see
+    ``build_geojson``'s docstring.
     """
+    if level not in cfg.LEVELS:
+        raise ValueError(f"Unknown ecological-framework level: {level!r}")
+    level_cfg = cfg.LEVELS[level]
+    label_en, label_pt = _LEVEL_LABEL[level]
     name_prop = "name_pt" if lang == "pt" else "name_en"
+    zone_prop = "zone_name_pt" if lang == "pt" else "zone_name_en"
+
+    tooltip = [{"label": label_pt if lang == "pt" else label_en,
+               "property": name_prop}]
+    if level in ("ecoregion", "ecodistrict"):
+        # A finer unit's own name says little without the ecozone it sits
+        # in — the ecozone layer alone doesn't need this line, it *is* that
+        # name.
+        zone_label_en, zone_label_pt = _LEVEL_LABEL["ecozone"]
+        tooltip.append({"label": zone_label_pt if lang == "pt" else zone_label_en,
+                        "property": zone_prop})
+    if level == "ecodistrict":
+        # No PT gloss is maintained for 218 ecoregion names the way there is
+        # for the fifteen ecozones — the English name is shown regardless of
+        # UI language rather than silently going blank in Portuguese.
+        region_label_en, region_label_pt = _LEVEL_LABEL["ecoregion"]
+        tooltip.append({"label": region_label_pt if lang == "pt" else region_label_en,
+                        "property": "parent_name_en"})
+    if level == "ecozone":
+        tooltip.append({"label": "Français", "property": "name_fr"})
+
     return {
-        # The label and language suffixes make both part of the layer's
-        # identity, so toggling either forces leaflet_map.js's diff to rebuild
-        # rather than patch in place. Label markers are only ever created at
-        # build time, so a same-id "cheap property update" would silently do
-        # nothing — the note in services/biomes.py has the full trace.
-        "id": f"ecozones:{lang}:{'lbl' if show_labels else 'nolbl'}",
-        "path": GEOJSON_PATH,
+        # The level, label and language suffixes make all three part of the
+        # layer's identity, so switching any of them forces leaflet_map.js's
+        # diff to rebuild rather than patch in place. Label markers are only
+        # ever created at build time, so a same-id "cheap property update"
+        # would silently do nothing — the note in services/biomes.py has the
+        # full trace.
+        "id": f"ecoframework:{level}:{lang}:{'lbl' if show_labels else 'nolbl'}",
+        "path": level_cfg.geojson_path,
         "opacity": opacity,
         "z_index": z_index,
-        "attribution": cfg.ATTRIBUTION,
-        # Coloured on the English name always, whatever language is displayed:
-        # the palette is keyed by it, and a colour that changed with the UI
-        # language would be a different map for no reason.
-        "color_property": "name_en",
+        "attribution": f"{cfg.ATTRIBUTION} — {label_en.lower()}s",
+        "color_property": "zone_name_en",
         "palette": cfg.PALETTE,
         "default_color": cfg.DEFAULT_COLOR,
         "weight": cfg.OUTLINE_WIDTH,
         "label_property": name_prop if show_labels else None,
-        "label_min_zoom": cfg.LABEL_MIN_ZOOM,
-        "tooltip": [
-            {"label": "Ecozone" if lang != "pt" else "Ecozona",
-             "property": name_prop},
-            {"label": "Français", "property": "name_fr"},
-        ],
+        "label_min_zoom": level_cfg.label_min_zoom,
+        "tooltip": tooltip,
     }
 
 
 __all__ = ["build_geojson", "geojson_gzipped", "vector_spec", "GEOJSON_PATH",
-           "CACHE_PATH"]
+           "CACHE_DIR"]

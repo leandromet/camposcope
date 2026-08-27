@@ -94,10 +94,23 @@ def header() -> rx.Component:
 
     return rx.hstack(
         rx.hstack(
-            rx.icon("scan-search", size=20),
-            rx.heading(AppState.tr["app_name"], size="4", weight="bold"),
+            rx.icon("scan-search", size=20, flex_shrink="0"),
+            # Hidden outright on a phone, not truncated: the app's four
+            # header actions (Canada, export, cite, language) plus this
+            # title used to force the heading's own word-wrap into three
+            # lines, pushing everything below (including the mobile
+            # drawer's floating reopen button, positioned by a fixed pixel
+            # offset that assumed a one-line header) out of place. An
+            # ellipsis-truncated fragment ("C...") turned out to read worse
+            # than no title at all — the icon alone already identifies the
+            # app next to a URL bar that says which one this is.
+            rx.heading(AppState.tr["app_name"], size="4", weight="bold",
+                      white_space="nowrap", overflow="hidden",
+                      text_overflow="ellipsis", min_width="0",
+                      display=["none", "none", "block", "block"]),
             spacing="2",
             align="center",
+            min_width="0", overflow="hidden", flex_shrink="1",
         ),
         rx.spacer(),
         rx.link(
