@@ -101,11 +101,26 @@ def _style(
         barmode="stack",
         bargap=0.06,
         template="plotly_white",
-        margin=dict(l=56, r=8, t=8, b=36),
-        height=340,
+        # b=84/height=400, not the old b=36/height=340: a property can show up
+        # to a dozen-plus MapBiomas classes across 1985-2024, and this legend
+        # (orientation="h") wraps to as many rows as it needs to fit its own
+        # *width* — which on a ~360px phone is 2-3x narrower than the desktop
+        # drawer this was tuned against, so it wraps to several more rows
+        # there than it ever does on desktop. Those numbers were sized for
+        # the one-row case; a legend that actually needs 3-4 rows on a phone
+        # had nowhere to go but past the figure's own fixed-height boundary
+        # (clipped, or bleeding into whatever sits below it in the DOM) —
+        # this reserves worst-case room instead. Same values on every
+        # screen size deliberately (not a mobile-only override): a fixed
+        # Python-built figure has no way to know the client's viewport width
+        # to size itself against, so "big enough for the narrowest case" is
+        # the only number that is safe everywhere; desktop just ends up with
+        # a little unused space below a short legend instead of a cramped one.
+        margin=dict(l=56, r=8, t=8, b=84),
+        height=400,
         legend=dict(
-            orientation="h", yanchor="top", y=-0.16, x=0,
-            font=dict(size=10), itemsizing="constant",
+            orientation="h", yanchor="top", y=-0.14, x=0,
+            font=dict(size=9), itemsizing="constant", tracegroupgap=2,
         ),
         hovermode="x unified",
         # dragmode False + fixedrange on both axes: with the modebar off

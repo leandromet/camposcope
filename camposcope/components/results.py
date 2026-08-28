@@ -96,8 +96,15 @@ def _cobertura_chart() -> rx.Component:
             rx.text(AppState.tr["cobertura_percentual"], size="1", color=MUTED),
             spacing="2", align="center",
         ),
+        # More height below "md" than desktop's 260px: the figure's own
+        # legend (charts.py's _style()) can wrap to several rows on a phone-
+        # width chart where it only ever needed one on desktop — see that
+        # function's own comment. `rx.plotly`'s `config.responsive` resizes
+        # the plot to match *this* box's actual rendered height (not the
+        # figure's own `layout.height`), so this is the number that actually
+        # controls how much room the wrapped legend gets on a phone.
         chart_box(AppState.history_figure, "cs-plot-cobertura",
-                 "camposcope_cobertura", "260px"),
+                 "camposcope_cobertura", ["360px", "360px", "260px", "260px"]),
         spacing="2", width="100%",
     )
 

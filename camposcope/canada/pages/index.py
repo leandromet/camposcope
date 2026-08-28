@@ -208,7 +208,12 @@ def _layers_panel() -> rx.Component:
 
 #: Desktop ("md" and up) only, now — the mobile drawer is `_mobile_sheet()`.
 #: See the Brazil page's own `_sidebar()` for the full rationale; this is
-#: the same shape, ported.
+#: the same shape, ported. `id="ca-desktop-sidebar"` on both branches below
+#: is read by the same `max-height`/`orientation: landscape` override in
+#: camposcope.py's head style that covers the Brazil page's sidebar — a
+#: landscape phone routinely exceeds the "md" 768px width cutoff these
+#: `display=[...]` breakpoints use, on a viewport with nowhere near
+#: desktop's usual height to spare.
 def _sidebar() -> rx.Component:
     return rx.cond(
         S.sidebar_open,
@@ -237,6 +242,7 @@ def _sidebar() -> rx.Component:
             border_right=BORDER, background="var(--color-panel-solid)",
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
+            id="ca-desktop-sidebar",
         ),
         # A coloured tab, not a small grey icon_button — see
         # camposcope/pages/index.py's own version of this fix.
@@ -257,6 +263,7 @@ def _sidebar() -> rx.Component:
             align_items="center",
             padding="2", border_right=BORDER,
             background="var(--color-panel-solid)", height="100%",
+            id="ca-desktop-sidebar",
         ),
     )
 

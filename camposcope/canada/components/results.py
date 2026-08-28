@@ -85,8 +85,12 @@ def _cobertura_chart() -> rx.Component:
             rx.text(S.tr["cobertura_percentual"], size="1", color=MUTED),
             spacing="2", align="center",
         ),
+        # More height below "md" than desktop's 260px — the figure's own
+        # legend (charts.py's _style()) can wrap several rows on a phone-
+        # width chart. See the Brazil page's own results.py for the full
+        # rationale.
         chart_box(S.history_figure, "ca-plot-cobertura",
-                 "camposcope_ca_cobertura", "260px"),
+                 "camposcope_ca_cobertura", ["360px", "360px", "260px", "260px"]),
         spacing="2", width="100%",
     )
 
@@ -486,7 +490,11 @@ def _paisagem_table() -> rx.Component:
             )),
             size="1", width="100%", variant="surface",
         ),
-        spacing="1", width="100%", overflow_x="auto",
+        # No overflow_x here: used inside layout.split_panel, whose own
+        # table wrapper is the single horizontal scroll container (see its
+        # docstring) — a second one nested against it broke touch-drag
+        # scrolling on phones. See the Brazil page's own results.py.
+        spacing="1", width="100%",
     )
 
 

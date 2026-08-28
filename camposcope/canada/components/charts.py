@@ -83,13 +83,21 @@ def _style(fig: go.Figure, lang: str, normalise: bool,
 
     fig.update_layout(
         barmode="stack", bargap=0.06, template="plotly_white",
-        margin=dict(l=56, r=8, t=8, b=36), height=340,
-        legend=dict(orientation="h", yanchor="top", y=-0.16, x=0,
-                   font=dict(size=10), itemsizing="constant"),
+        # See the Brazil page's own charts.py `_style()` for the full
+        # rationale on both changes below (ported):
+        # - b=84/height=400: the legend can wrap to several rows on a
+        #   phone-width chart where it only ever needed one on desktop.
+        # - dragmode/fixedrange: stops a one-finger touch on the chart from
+        #   being captured as a zoom gesture instead of scrolling past it.
+        margin=dict(l=56, r=8, t=8, b=84), height=400,
+        legend=dict(orientation="h", yanchor="top", y=-0.14, x=0,
+                   font=dict(size=9), itemsizing="constant", tracegroupgap=2),
         hovermode="x unified",
-        xaxis=dict(title=None, tickmode="linear", dtick=2, showgrid=False),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, showgrid=False,
+                   fixedrange=True),
         yaxis=dict(title=y_title, showgrid=True,
-                   gridcolor="rgba(0,0,0,0.06)", zeroline=False),
+                   gridcolor="rgba(0,0,0,0.06)", zeroline=False, fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
     if normalise:
@@ -152,8 +160,10 @@ def hansen_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
         margin=dict(l=48, r=8, t=8, b=36), height=260,
         legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
                    font=dict(size=9)),
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)"),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
     return fig
@@ -176,8 +186,10 @@ def biomass_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)"),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
@@ -219,8 +231,10 @@ def fire_figure(rows: List[Dict[str, Any]], lang: str = "en",
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Área queimada (%)" if lang == "pt" else "Burned area (%)"),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
@@ -248,8 +262,10 @@ def aci_burn_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Área queimada (%)" if lang == "pt" else "Burned area (%)"),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
@@ -271,7 +287,9 @@ def landscape_meff_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Fi
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=48), height=260,
-        yaxis=dict(title="Meff (ha)"),
+        dragmode=False,
+        xaxis=dict(fixedrange=True),
+        yaxis=dict(title="Meff (ha)", fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )

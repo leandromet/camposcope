@@ -52,19 +52,22 @@ app = rx.App(
         ),
         rx.el.meta(name="theme-color", content="#ffffff"),
         # The mobile/desktop split (pages/index.py's `_sidebar`/`_mobile_sheet`/
-        # `results-drawer`) is width-only (`display=[...]` breakpoints), and a
-        # phone rotated to landscape is routinely wider than the 768px "md"
-        # cutoff (iPhone 13: 844px) while still only ~390px tall — it fell
-        # into the desktop sidebar + results-drawer chrome, sized for a
-        # viewport with far more height to spare, and the analysis area read
-        # as a small corner next to empty space rather than the mobile sheet
-        # it should have gotten. This overrides by height instead wherever a
-        # landscape phone lands: `id`s set on the relevant boxes in
-        # pages/index.py.
+        # `results-drawer`, and canada/pages/index.py's own copy of the same
+        # shape) is width-only (`display=[...]` breakpoints), and a phone
+        # rotated to landscape is routinely wider than the 768px "md" cutoff
+        # (iPhone 13: 844px) while still only ~390px tall — it fell into the
+        # desktop sidebar + results-drawer chrome, sized for a viewport with
+        # far more height to spare, and the analysis area read as a small
+        # corner next to empty space rather than the mobile sheet it should
+        # have gotten. This overrides by height instead wherever a landscape
+        # phone lands: `id`s set on the relevant boxes in pages/index.py and
+        # canada/pages/index.py — one stylesheet covers both pages since
+        # `head_components` here applies globally, not per-page.
         rx.el.style("""
             @media (max-height: 500px) and (orientation: landscape) {
-              #desktop-sidebar, #results-drawer { display: none !important; }
-              #mobile-sheet { display: flex !important; }
+              #desktop-sidebar, #results-drawer,
+              #ca-desktop-sidebar, #ca-results-drawer { display: none !important; }
+              #mobile-sheet, #ca-mobile-sheet { display: flex !important; }
             }
         """),
         *_ga_head_components(),

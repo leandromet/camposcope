@@ -26,8 +26,16 @@ def split_panel(chart: rx.Component, table: rx.Component,
                 *, chart_width: str = "50%") -> rx.Component:
     return rx.flex(
         rx.box(chart, width=["100%", "100%", chart_width], flex_shrink="0"),
-        rx.box(table, flex="1", min_width="0", overflow_y="auto",
-              max_height="300px"),
+        # `overflow="auto"` (both axes on the same element), not just
+        # `overflow_y` — see the Brazil page's own `components/layout.py`
+        # (same helper, ported): a wide table needs its own horizontal
+        # scroller, and leaving overflow-x unset creates a *second*, empty
+        # one here on top of the table's own, which breaks touch-drag
+        # scrolling on a phone.
+        rx.box(table, flex="1", min_width="0", overflow="auto",
+              max_height="300px",
+              style={"WebkitOverflowScrolling": "touch",
+                     "touchAction": "pan-x pan-y"}),
         direction=rx.breakpoints(initial="column", md="row"),
         spacing="4", width="100%", align="start",
     )
