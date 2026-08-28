@@ -6,7 +6,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ...components.map.leaflet_map import leaflet_map
-from ..components.layout import BORDER, MUTED, header
+from ..components.layout import ACCENT, BORDER, MUTED, header
 from ..components.map_legend import map_legend
 from ..components.parcel_card import parcel_card, zones_panel
 from ..components.results import results_panel
@@ -46,6 +46,18 @@ _SHEET_SCRIPT = """
     el.style.height = target + 'px';
     el.style.maxHeight = target + 'px';
     window.setTimeout(function () { el.style.transition = ''; }, 220);
+    updateTab(el);
+  }
+
+  // The mobile sheet's handle is a coloured tab with a chevron, not the
+  // plain bar the desktop drawer keeps — see _drag_handle()'s snap=True
+  // branch. The chevron flips to point the way dragging would go.
+  function updateTab(el) {
+    var tab = el.querySelector && el.querySelector('[data-sheet-tab]');
+    if (!tab) return;
+    var chevron = tab.querySelector('[data-chevron]');
+    if (!chevron) return;
+    chevron.style.transform = el.offsetHeight > 160 ? 'rotate(180deg)' : 'rotate(0deg)';
   }
 
   window.__caSheetSnapTo = function (name) {
@@ -78,6 +90,7 @@ _SHEET_SCRIPT = """
     var next = Math.min(window.innerHeight * 0.75, Math.max(80, startHeight + delta));
     drawerEl.style.height = next + 'px';
     drawerEl.style.maxHeight = next + 'px';
+    updateTab(drawerEl);
   });
 
   function end(e) {
@@ -106,14 +119,35 @@ _SHEET_SCRIPT = """
     settle(drawer, pts[idx]);
     e.preventDefault();
   });
+
+  var initial = document.getElementById('ca-mobile-sheet');
+  if (initial) updateTab(initial);
 })();
 """
 
 
 def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
+    """See ``camposcope/pages/index.py::_drag_handle`` for the full
+    rationale — ported verbatim: a coloured, chevron-bearing tab for the
+    mobile sheet (``snap=True``), the original plain bar for the desktop
+    drawer's free-drag feel (``snap=False``)."""
+    if snap:
+        handle_content = rx.box(
+            rx.icon("chevron-up", size=16, color="white",
+                   custom_attrs={"data-chevron": "1"},
+                   style={"transition": "transform 200ms ease"}),
+            custom_attrs={"data-sheet-tab": "1"},
+            display="flex", align_items="center", justify_content="center",
+            width="56px", height="22px",
+            background=f"var(--{ACCENT}-9)",
+            border_radius="11px",
+            box_shadow="0 2px 6px rgba(0, 0, 0, 0.3)",
+        )
+    else:
+        handle_content = rx.box(width="36px", height="4px", border_radius="2px",
+                                background="var(--gray-6)")
     return rx.box(
-        rx.box(width="36px", height="4px", border_radius="2px",
-              background="var(--gray-6)"),
+        handle_content,
         id=handle_id,
         custom_attrs={
             "data-drawer-handle": drawer_id,
@@ -124,8 +158,9 @@ def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
         aria_label=S.tr["sheet_handle_aria"] if snap else None,
         outline="none",
         display="flex", justify_content="center", align_items="center",
-        width="100%", height="14px", cursor="ns-resize", flex_shrink="0",
-        _hover={"background": "var(--gray-3)"},
+        width="100%", height="30px" if snap else "14px",
+        cursor="ns-resize", flex_shrink="0", padding_top="4px" if snap else "0",
+        _hover={} if snap else {"background": "var(--gray-3)"},
         _focus_visible={"background": "var(--gray-4)",
                         "box_shadow": "inset 0 0 0 2px var(--accent-8)"},
     )
@@ -203,14 +238,23 @@ def _sidebar() -> rx.Component:
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
         ),
+        # A coloured tab, not a small grey icon_button — see
+        # camposcope/pages/index.py's own version of this fix.
         rx.box(
-            rx.icon_button(
-                rx.icon("panel-left-open", size=15),
+            rx.box(
+                rx.icon("chevron-right", size=18, color="white"),
                 on_click=S.toggle_sidebar,
-                size="1", variant="soft", color_scheme="gray",
+                role="button", cursor="pointer",
                 aria_label=S.tr["sidebar_show_aria"],
+                display="flex", align_items="center", justify_content="center",
+                width="28px", height="56px",
+                background=f"var(--{ACCENT}-9)",
+                border_radius="0 8px 8px 0",
+                box_shadow="2px 0 6px rgba(0, 0, 0, 0.2)",
+                _hover={"background": f"var(--{ACCENT}-10)"},
             ),
-            display=["none", "none", "block", "block"],
+            display=["none", "none", "flex", "flex"],
+            align_items="center",
             padding="2", border_right=BORDER,
             background="var(--color-panel-solid)", height="100%",
         ),

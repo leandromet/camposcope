@@ -195,6 +195,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "floresta_age_run_button": "Obter idade do povoamento",
     "floresta_age_mean": "Idade média",
     "floresta_age_median": "Idade mediana",
+    "floresta_age_unit": "anos",
     "floresta_age_forested_pct": "Fração florestal da zona",
     "floresta_age_note": "As idades são as publicadas, referentes a 2019 — "
         "não são avançadas até hoje. Mascaradas aos pixels florestais: uma "
@@ -255,10 +256,17 @@ TRANSLATIONS_PT: dict[str, str] = {
         "não pela zona.",
     "fogo_attribution": "MODIS MCD64A1 v6.1 Burned Area — NASA LP DAAC · "
         "463 m",
+    "fogo_current_year_prefix": "O ano de ",
+    "fogo_current_year_suffix": " ainda está em andamento — o MODIS continua "
+        "publicando novos meses ao longo do ano, então esta barra (com "
+        "hachuras no gráfico) é um total corrente, não uma temporada "
+        "encerrada.",
     "fogo_source_modis": "MODIS · 500 m",
     "fogo_source_aci": "AAFC · 30 m",
-    "fogo_modis_layer_note": "O mapa mostra todos os anos do registro "
-        "combinados (2001–2025) — vermelho mais escuro queimou mais vezes.",
+    "fogo_modis_layer_note_prefix": "O mapa mostra todos os anos do registro "
+        "combinados (2001–",
+    "fogo_modis_layer_note_suffix": ") — vermelho mais escuro queimou mais "
+        "vezes. O último ano ainda está em andamento.",
     "fogo_aci_layer_note": "O mapa mostra todos os anos do registro "
         "combinados (2009–2025) — vermelho mais escuro queimou mais vezes.",
     "fogo_aci_years_detected": "Anos com queimada detectada",

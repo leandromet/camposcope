@@ -153,8 +153,12 @@ def _fogo_legend() -> rx.Component:
             size="1", width="100%",
         ),
         rx.text(
-            rx.cond(S.fire_source == "aci", S.tr["fogo_aci_layer_note"],
-                   S.tr["fogo_modis_layer_note"]),
+            rx.cond(
+                S.fire_source == "aci",
+                S.tr["fogo_aci_layer_note"],
+                f"{S.tr['fogo_modis_layer_note_prefix']}{S.fire_current_year}"
+                f"{S.tr['fogo_modis_layer_note_suffix']}",
+            ),
             size="1", color="var(--gray-11)",
         ),
         spacing="2", width="100%",

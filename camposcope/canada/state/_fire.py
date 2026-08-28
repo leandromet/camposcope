@@ -50,11 +50,27 @@ class CanadaFireMixin(rx.State, mixin=True):
         self.fire_source = value if value in ("modis", "aci") else "modis"
         return self.__class__.mint_analysis_layer
 
+    # deps=[], auto_deps=False: this var reads no state at all (just a
+    # module-level constant), but its function-local relative import
+    # confuses Reflex's static dependency scanner into a spurious "No
+    # module named 'services'" warning — same trap documented on
+    # CanadaLayersMixin.map_layers (state/_layers.py).
+    @rx.var(cache=True, deps=[], auto_deps=False)
+    def fire_current_year(self) -> int:
+        """MODIS's own current calendar year — always year-to-date, never a
+        finished annual total. Exposed so the UI can say so; see
+        ``services/fire.py``'s ``FIRE_YEAR_END``."""
+        from ..services.fire import FIRE_YEAR_END
+        return FIRE_YEAR_END
+
     @rx.var(cache=True, deps=["fire_rows", "active_zone", "language"],
             auto_deps=False)
     def fire_figure(self) -> go.Figure:
+        from ..services.fire import FIRE_YEAR_END
+
         rows = [r for r in self.fire_rows if r["zone_key"] == self.active_zone]
-        return charts.fire_figure(rows, getattr(self, "language", "en"))
+        return charts.fire_figure(rows, getattr(self, "language", "en"),
+                                  current_year=FIRE_YEAR_END)
 
     # --- ACI class 60, read from the Cobertura fetch already in state ----- #
 

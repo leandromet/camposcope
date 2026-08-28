@@ -184,7 +184,15 @@ def biomass_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
     return fig
 
 
-def fire_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
+def fire_figure(rows: List[Dict[str, Any]], lang: str = "en",
+                current_year: int | None = None) -> go.Figure:
+    """``current_year`` — MODIS's own current calendar year, always
+    year-to-date and never a finished annual total (see
+    ``services/fire.py``'s ``FIRE_YEAR_END``). Marked with a hatch pattern
+    and its own hover text rather than silently plotted as an ordinary bar,
+    which would read as "this year had less fire" when it may simply not be
+    over yet.
+    """
     fig = go.Figure()
     if not rows:
         fig.add_annotation(
@@ -193,10 +201,21 @@ def fire_figure(rows: List[Dict[str, Any]], lang: str = "en") -> go.Figure:
         )
     else:
         ordered = sorted(rows, key=lambda r: r["year"])
+        is_current = [current_year is not None and r["year"] == current_year
+                     for r in ordered]
+        labels = [
+            (f"{r['year']} ({'ano em andamento' if lang == 'pt' else 'year in progress'})"
+             if flag else str(r["year"]))
+            for r, flag in zip(ordered, is_current)
+        ]
         fig.add_bar(
             x=[r["year"] for r in ordered], y=[r["fire_pct"] for r in ordered],
-            marker=dict(color="#d4271e"),
-            hovertemplate="%{x}: %{y:.2f}%<extra></extra>",
+            text=labels,
+            marker=dict(
+                color="#d4271e",
+                pattern=dict(shape=["/" if flag else "" for flag in is_current]),
+            ),
+            hovertemplate="%{text}: %{y:.2f}%<extra></extra>",
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,

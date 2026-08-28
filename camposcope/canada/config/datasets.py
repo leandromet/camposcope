@@ -21,6 +21,7 @@ for why this rather than a Canadian product.
 
 from __future__ import annotations
 
+import datetime as _dt
 from typing import Any, Dict
 
 # Re-exported unchanged — global products, one definition, both pages.
@@ -106,11 +107,19 @@ LANDSAT_DEFAULT_YEAR = 2022
 MODIS_BURN = {
     "asset": "MODIS/061/MCD64A1",
     "band": "BurnDate",
-    #: The collection starts 2000-11 and the newest image is partway through the
-    #: current year, so only whole years are offered — a partial year would read
-    #: as a quiet fire season when it is really an incomplete one.
+    #: The collection starts 2000-11. ``year_end`` tracks the current
+    #: calendar year, not the last *complete* one — verified 2026-08-27:
+    #: MCD64A1 already publishes six months of 2026 (Jan–Jun), with the
+    #: usual couple-of-months lag behind real time. Fire is not an annual
+    #: land-cover classification: a burn that already happened is not less
+    #: real for the year not being over, and holding it back until December
+    #: would leave the current season invisible for months at a stretch —
+    #: exactly the case where a lower-bound "so far" number beats no number
+    #: at all. The UI marks the in-progress year as year-to-date rather
+    #: than presenting it as a finished annual total (see
+    #: ``canada/services/fire.py``'s use of this).
     "year_start": 2001,
-    "year_end": 2025,
+    "year_end": _dt.date.today().year,
     "scale_m": 500,
     "attribution": (
         "MODIS MCD64A1 v6.1 Burned Area — Giglio, Justice, Boschetti & Roy, "

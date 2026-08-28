@@ -210,10 +210,10 @@ def transitions_tab() -> rx.Component:
 # --------------------------------------------------------------------------- #
 # Floresta
 # --------------------------------------------------------------------------- #
-def _period_stat(label, value_var, color: str) -> rx.Component:
+def _period_stat(label, value_var, color: str, unit: str = "ha") -> rx.Component:
     return rx.vstack(
         rx.text(label, size="1", color=MUTED),
-        rx.text(f"{value_var} ha", size="3", weight="bold", color=color),
+        rx.text(f"{value_var} {unit}", size="3", weight="bold", color=color),
         spacing="0",
     )
 
@@ -271,9 +271,11 @@ def _stand_age_section() -> rx.Component:
             S.age_has_run,
             rx.hstack(
                 _period_stat(S.tr["floresta_age_mean"],
-                            S.age_row_for_zone["age_mean_y"], "#1f8d49"),
+                            S.age_row_for_zone["age_mean_y"], "#1f8d49",
+                            unit=S.tr["floresta_age_unit"]),
                 _period_stat(S.tr["floresta_age_median"],
-                            S.age_row_for_zone["age_median_y"], "#1f8d49"),
+                            S.age_row_for_zone["age_median_y"], "#1f8d49",
+                            unit=S.tr["floresta_age_unit"]),
                 rx.vstack(
                     rx.text(S.tr["floresta_age_forested_pct"], size="1",
                            color=MUTED),
@@ -680,6 +682,11 @@ def _modis_section() -> rx.Component:
                     _fire_stats(),
                     chart_box(S.fire_figure, "ca-plot-fogo",
                              "camposcope_ca_fogo", "260px"),
+                    rx.callout(
+                        f"{S.tr['fogo_current_year_prefix']}{S.fire_current_year}"
+                        f"{S.tr['fogo_current_year_suffix']}",
+                        icon="info", color_scheme="amber", size="1",
+                    ),
                     spacing="3", width="100%",
                 ),
             ),

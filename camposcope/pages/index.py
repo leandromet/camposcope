@@ -5,7 +5,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ..components.cadastro import cadastral_card, zones_panel
-from ..components.layout import BORDER, MUTED, header, section
+from ..components.layout import ACCENT, BORDER, MUTED, header, section
 from ..components.map.leaflet_map import leaflet_map
 from ..components.map_legend import map_legend
 from ..components.results import results_panel
@@ -73,6 +73,21 @@ _SHEET_SCRIPT = """
     el.style.height = target + 'px';
     el.style.maxHeight = target + 'px';
     window.setTimeout(function () { el.style.transition = ''; }, 220);
+    updateTab(el);
+  }
+
+  // The mobile sheet's handle is a coloured tab with a chevron, not the
+  // plain bar the desktop drawer keeps — see _drag_handle()'s snap=True
+  // branch. The chevron flips to point the way dragging would go: up while
+  // still closer to peek ("drag up for more"), down once past it ("drag
+  // down to collapse"). 160px sits well below every snap point but peek,
+  // so it flips early rather than only right at the very top.
+  function updateTab(el) {
+    var tab = el.querySelector && el.querySelector('[data-sheet-tab]');
+    if (!tab) return;
+    var chevron = tab.querySelector('[data-chevron]');
+    if (!chevron) return;
+    chevron.style.transform = el.offsetHeight > 160 ? 'rotate(180deg)' : 'rotate(0deg)';
   }
 
   // Exposed so a Python event (selecting a property) can ask the sheet to
@@ -124,6 +139,7 @@ _SHEET_SCRIPT = """
     // of how much content is in it.
     drawerEl.style.height = next + 'px';
     drawerEl.style.maxHeight = next + 'px';
+    updateTab(drawerEl);
   });
 
   function end(e) {
@@ -157,19 +173,44 @@ _SHEET_SCRIPT = """
     settle(drawer, pts[idx]);
     e.preventDefault();
   });
+
+  // Match the chevron to the sheet's own starting height (it opens at
+  // "half", not "peek" — see _mobile_sheet()'s own docstring) rather than
+  // waiting for the first drag to set it correctly.
+  var initial = document.getElementById('mobile-sheet');
+  if (initial) updateTab(initial);
 })();
 """
 
 
 def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
     """A drag target for `_SHEET_SCRIPT`. ``snap=True`` marks the mobile
-    sheet's own handle: it gets the keyboard-slider treatment and the
-    script's three-stop snap behaviour. ``snap=False`` (the desktop results
-    drawer) keeps the original free-drag feel — same script, deliberately
+    sheet's own handle: it gets the keyboard-slider treatment, the script's
+    three-stop snap behaviour, and — unlike a plain grey bar, which turned
+    out not to read as an interactive control at all — a solid,
+    accent-coloured tab with a chevron that flips to show which way
+    dragging goes (``_SHEET_SCRIPT``'s ``updateTab()``). It is now the
+    sheet's only "open" affordance, replacing what used to be a separate
+    header/FAB button. ``snap=False`` (the desktop results drawer) keeps
+    the original plain-bar free-drag feel — same script, deliberately
     different data attribute, see the script's own docstring."""
+    if snap:
+        handle_content = rx.box(
+            rx.icon("chevron-up", size=16, color="white",
+                   custom_attrs={"data-chevron": "1"},
+                   style={"transition": "transform 200ms ease"}),
+            custom_attrs={"data-sheet-tab": "1"},
+            display="flex", align_items="center", justify_content="center",
+            width="56px", height="22px",
+            background=f"var(--{ACCENT}-9)",
+            border_radius="11px",
+            box_shadow="0 2px 6px rgba(0, 0, 0, 0.3)",
+        )
+    else:
+        handle_content = rx.box(width="36px", height="4px", border_radius="2px",
+                                background="var(--gray-6)")
     return rx.box(
-        rx.box(width="36px", height="4px", border_radius="2px",
-              background="var(--gray-6)"),
+        handle_content,
         id=handle_id,
         custom_attrs={
             "data-drawer-handle": drawer_id,
@@ -180,8 +221,9 @@ def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
         aria_label=AppState.tr["sheet_handle_aria"] if snap else None,
         outline="none",
         display="flex", justify_content="center", align_items="center",
-        width="100%", height="14px", cursor="ns-resize", flex_shrink="0",
-        _hover={"background": "var(--gray-3)"},
+        width="100%", height="30px" if snap else "14px",
+        cursor="ns-resize", flex_shrink="0", padding_top="4px" if snap else "0",
+        _hover={} if snap else {"background": "var(--gray-3)"},
         _focus_visible={"background": "var(--gray-4)",
                         "box_shadow": "inset 0 0 0 2px var(--accent-8)"},
     )
@@ -263,14 +305,27 @@ def _sidebar() -> rx.Component:
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
         ),
+        # A coloured tab, not the small grey icon_button this used to be —
+        # measured against the same complaint the mobile sheet's old plain
+        # handle bar got: a tiny, gray, icon-only control in a thin rail
+        # doesn't read as "click here," especially collapsed to its
+        # smallest state. Same visual language as the mobile sheet's own
+        # tab (_drag_handle()'s snap=True branch) for consistency.
         rx.box(
-            rx.icon_button(
-                rx.icon("panel-left-open", size=15),
+            rx.box(
+                rx.icon("chevron-right", size=18, color="white"),
                 on_click=AppState.toggle_sidebar,
-                size="1", variant="soft", color_scheme="gray",
+                role="button", cursor="pointer",
                 aria_label=AppState.tr["sidebar_show_aria"],
+                display="flex", align_items="center", justify_content="center",
+                width="28px", height="56px",
+                background=f"var(--{ACCENT}-9)",
+                border_radius="0 8px 8px 0",
+                box_shadow="2px 0 6px rgba(0, 0, 0, 0.2)",
+                _hover={"background": f"var(--{ACCENT}-10)"},
             ),
-            display=["none", "none", "block", "block"],
+            display=["none", "none", "flex", "flex"],
+            align_items="center",
             padding="2",
             border_right=BORDER,
             background="var(--color-panel-solid)",

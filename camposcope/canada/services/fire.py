@@ -48,6 +48,9 @@ FIRE_BAND = MODIS_BURN["band"]
 FIRE_SCALE_M = MODIS_BURN["scale_m"]
 FIRE_YEARS: List[int] = list(MODIS_BURN_YEARS)
 FIRE_YEAR_START = FIRE_YEARS[0]
+#: Tracks the current calendar year — see ``config/datasets.py::MODIS_BURN``
+#: for why the in-progress year is included rather than held back. Always
+#: partial by construction: this is *this* year, and this year is not over.
 FIRE_YEAR_END = FIRE_YEARS[-1]
 
 #: The frequency layer's colour-ramp ceiling — calibrated against the observed

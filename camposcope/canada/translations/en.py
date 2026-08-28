@@ -184,6 +184,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "floresta_age_run_button": "Get stand age",
     "floresta_age_mean": "Mean age",
     "floresta_age_median": "Median age",
+    "floresta_age_unit": "yr",
     "floresta_age_forested_pct": "Forested share of zone",
     "floresta_age_note": "Ages are as published, as of 2019 — not aged "
         "forward to today. Masked to forested pixels: a low forested share "
@@ -242,10 +243,16 @@ TRANSLATIONS_EN: dict[str, str] = {
         "the zone.",
     "fogo_attribution": "MODIS MCD64A1 v6.1 Burned Area — NASA LP DAAC · "
         "463 m",
+    "fogo_current_year_prefix": "The year ",
+    "fogo_current_year_suffix": " is still in progress — MODIS keeps "
+        "publishing new months through the year, so this bar (hatched on "
+        "the chart) is a running total, not a finished season.",
     "fogo_source_modis": "MODIS · 500 m",
     "fogo_source_aci": "AAFC · 30 m",
-    "fogo_modis_layer_note": "Map shows every year on record combined "
-        "(2001–2025) — darker red burned more often.",
+    "fogo_modis_layer_note_prefix": "Map shows every year on record combined "
+        "(2001–",
+    "fogo_modis_layer_note_suffix": ") — darker red burned more often. The "
+        "final year is still in progress.",
     "fogo_aci_layer_note": "Map shows every year on record combined "
         "(2009–2025) — darker red burned more often.",
     "fogo_aci_years_detected": "Years with burn detected",
