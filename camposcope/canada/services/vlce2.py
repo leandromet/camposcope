@@ -254,6 +254,87 @@ def agreement(
     return summary_df, matrix_df, prov
 
 
+def class_histogram(
+    zones: Sequence[Zone], year: int,
+) -> Tuple[pd.DataFrame, Provenance]:
+    """The native-class joint histogram behind ``agreement()``'s grouped
+    one — real ACI and VLCE2 classes present in the zone, for the on-map
+    legend, not the 8-group confusion matrix the tab's own table shows.
+
+    Same packing trick as the Brazil page's ``services/ibge_vegetation.py``:
+    both products' native codes are well under 1000 (ACI to 230, VLCE2 to
+    230), so ``aci*1000+vlce2`` splits back with plain ``divmod`` — one
+    ``reduceRegions`` round trip covers both sides' legends at once, the
+    same way ``agreement()`` covers the whole confusion matrix in one.
+    """
+    if year not in cfg.COMPARABLE_YEARS:
+        raise YearNotComparable(
+            f"{year} cannot be compared: the crop inventory and VLCE2 overlap "
+            f"only over {cfg.COMPARABLE_YEAR_START}–{cfg.COMPARABLE_YEAR_END}."
+        )
+    if not zones:
+        raise ValueError("No zones to analyse.")
+
+    get_ee()
+    import ee
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    aci = aci_year_image(year).rename("aci")
+    vlce = vlce2_year_image(year)
+    combined = aci.multiply(1000).add(vlce).rename("combined").toInt()
+    fc = zone_feature_collection(zones)
+
+    def hist_call():
+        return combined.reduceRegions(
+            collection=fc, reducer=ee.Reducer.frequencyHistogram(),
+            scale=EE_DEFAULT_SCALE_M, tileScale=EE_TILE_SCALE,
+        ).getInfo()
+
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        f_hist = ex.submit(hist_call)
+        f_area = ex.submit(mean_pixel_area, fc, EE_DEFAULT_SCALE_M, EE_TILE_SCALE)
+        hist, areas = f_hist.result(), f_area.result()
+
+    px_area = px_area_by_zone(areas)
+
+    records: List[Dict[str, Any]] = []
+    for feat in hist["features"]:
+        props = feat["properties"]
+        zone_key = props["zone_key"]
+        area_per_px_ha = px_area.get(zone_key, 900.0) / 10_000.0
+        raw: Dict[str, float] = props.get("histogram") or {}
+        for packed_str, count in raw.items():
+            packed = int(float(packed_str))
+            aci_class, vlce2_class = divmod(packed, 1000)
+            area_ha = float(count) * area_per_px_ha
+            if area_ha <= 0:
+                continue
+            records.append({
+                "zone_key": zone_key,
+                "aci_class": aci_class,
+                "vlce2_class": vlce2_class,
+                "area_ha": area_ha,
+            })
+
+    df = pd.DataFrame.from_records(
+        records, columns=["zone_key", "aci_class", "vlce2_class", "area_ha"])
+
+    prov = Provenance(
+        name="aci_vlce2_class_histogram",
+        dataset_id=f"{aafc.AACI_DATASET} | {cfg.VLCE2_DATASET}",
+        bands=[aafc.band_for_year(year), cfg.VLCE2_BAND],
+        scale_m=EE_DEFAULT_SCALE_M,
+        reducer="frequencyHistogram(aci_class*1000+vlce2_class)",
+        pixel_area_basis="mean ee.Image.pixelArea() per zone",
+        max_pixels=EE_MAX_PIXELS,
+        tile_scale=EE_TILE_SCALE,
+        geometry=zones[0].geojson,
+        extra={"year": year, "zones": [z.key for z in zones]},
+    )
+    return df, prov
+
+
 def default_year() -> int:
     """The year the tab opens on — the last both products cover."""
     return cfg.COMPARABLE_YEAR_END

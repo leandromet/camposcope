@@ -259,12 +259,28 @@ def _paisagem_legend() -> rx.Component:
     return _header(AppState.tr["legend_paisagem_fragmentos"])
 
 
+def _validacao_side(title, rows: rx.Var, fallback) -> rx.Component:
+    """One side of the swipe divider: its own header plus real classes when
+    available, or a hint for why there is nothing to show yet."""
+    return rx.vstack(
+        rx.text(title, size="1", weight="medium"),
+        rx.cond(rows, _class_legend_rows(rows), fallback),
+        spacing="1", width="100%",
+    )
+
+
 def _validacao_legend() -> rx.Component:
     """Left/right is fixed by the pairing (reference on the left, checked
     classification on the right), not a free choice — but which SPOT mosaic
     sits on the left in spot_2008 mode IS a choice, so unlike Transições this
     legend carries one control, mirroring the same switch in the Validação
-    tab (components/validacao.py::_spot_band_switch)."""
+    tab (components/validacao.py::_spot_band_switch).
+
+    Each side gets its own real class swatches, not just a label — SPOT is
+    the one exception (imagery, nothing to classify): spot_2008 mode's left
+    side stays label-only, but its MapBiomas-2008 right side gets swatches
+    the same as ibge_2022's both sides do (state._analysis.py's
+    validacao_ibge_classes / validacao_mb_classes / validacao_spot_mb_classes)."""
     return rx.vstack(
         _header(
             rx.cond(
@@ -287,15 +303,30 @@ def _validacao_legend() -> rx.Component:
         ),
         rx.cond(
             AppState.map_swipe_enabled,
-            rx.hstack(
-                rx.text(
-                    rx.cond(AppState.validacao_mode == "spot_2008", "SPOT",
-                           "IBGE"),
-                    size="1", weight="medium",
+            rx.cond(
+                AppState.validacao_mode == "spot_2008",
+                rx.vstack(
+                    rx.text("SPOT 2008", size="1", weight="medium"),
+                    _validacao_side(
+                        "MapBiomas 2008", AppState.validacao_spot_mb_classes,
+                        rx.text(AppState.tr["legend_run_cobertura"], size="1",
+                               color="var(--gray-11)"),
+                    ),
+                    spacing="2", width="100%",
                 ),
-                rx.icon("move-horizontal", size=12),
-                rx.text("MapBiomas", size="1", weight="medium"),
-                spacing="2", align="center",
+                rx.vstack(
+                    _validacao_side(
+                        "IBGE", AppState.validacao_ibge_classes,
+                        rx.text(AppState.tr["legend_run_calcular"], size="1",
+                               color="var(--gray-11)"),
+                    ),
+                    _validacao_side(
+                        "MapBiomas 2022", AppState.validacao_mb_classes,
+                        rx.text(AppState.tr["legend_run_calcular"], size="1",
+                               color="var(--gray-11)"),
+                    ),
+                    spacing="2", width="100%",
+                ),
             ),
             rx.text(AppState.tr["legend_choose_mode"], size="1",
                    color="var(--gray-11)"),

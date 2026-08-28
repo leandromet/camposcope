@@ -229,7 +229,22 @@ def _fogo_legend() -> rx.Component:
     )
 
 
+def _validacao_side(title, rows: rx.Var, fallback) -> rx.Component:
+    """One side of the swipe divider: its own header plus real classes when
+    available, or a hint for why there is nothing to show yet. Mirrors the
+    Brazil page's own _validacao_side."""
+    return rx.vstack(
+        rx.text(title, size="1", weight="medium"),
+        rx.cond(rows, _class_legend_rows(rows), fallback),
+        spacing="1", width="100%",
+    )
+
+
 def _validacao_legend() -> rx.Component:
+    """Both sides get real classes present in the active zone at
+    ``validation_year`` — services/vlce2.py::class_histogram, the
+    native-class counterpart of agreement()'s 8-group confusion matrix (see
+    that function's own docstring)."""
     return rx.vstack(
         rx.text(S.tr["tab_validacao"], size="1", weight="bold"),
         rx.select(
@@ -237,11 +252,18 @@ def _validacao_legend() -> rx.Component:
             value=S.validation_year.to_string(),
             on_change=S.set_validation_year, size="1", width="100%",
         ),
-        rx.hstack(
-            rx.text(S.tr["legend_aci"], size="1", weight="medium"),
-            rx.spacer(),
-            rx.text("VLCE2", size="1", weight="medium"),
-            width="100%",
+        rx.vstack(
+            _validacao_side(
+                S.tr["legend_aci"], S.validation_aci_classes,
+                rx.text(S.tr["legend_run_calcular"], size="1",
+                       color="var(--gray-11)"),
+            ),
+            _validacao_side(
+                "VLCE2", S.validation_vlce2_classes,
+                rx.text(S.tr["legend_run_calcular"], size="1",
+                       color="var(--gray-11)"),
+            ),
+            spacing="2", width="100%",
         ),
         spacing="2", width="100%",
     )

@@ -132,6 +132,7 @@ TRANSLATIONS_PT: dict[str, str] = {
         "ecozona em que se encontra.",
     "legend_aci": "Inventário de Culturas (AAFC)",
     "legend_aci_palette": "Cores da legenda oficial do AAFC.",
+    "legend_run_calcular": "Clique em Calcular na aba Validação para ver as classes.",
     "legend_landsat": "Composto Landsat",
     "legend_landsat_error": "Não foi possível carregar o composto Landsat "
         "deste ano.",

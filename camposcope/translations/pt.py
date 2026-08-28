@@ -237,6 +237,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_choose_years": "Escolha os anos na aba Transições.",
     "legend_drag_to_compare": "Arraste a barra no mapa para comparar.",
     "legend_choose_mode": "Escolha o modo na aba Validação.",
+    "legend_run_calcular": "Clique em Calcular na aba Validação para ver as classes.",
+    "legend_run_cobertura": "Rode a aba Cobertura (ano 2008) para ver as classes.",
     "legend_visual": "Visual",
     "legend_falsa_cor": "Falsa-cor",
 

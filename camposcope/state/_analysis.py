@@ -19,6 +19,7 @@ import plotly.graph_objects as go
 import reflex as rx
 
 from ..components import charts
+from ..config import ibge_vegetation as ibge_cfg
 from ..config import mapbiomas as mb
 from ..translations import get_translations
 from ._proxy import plain
@@ -500,6 +501,12 @@ class ValidacaoMixin(rx.State, mixin=True):
     #: services/report.py need to say which zone this was, not assume it is
     #: still the one currently selected).
     validacao_zone_label: str = ""
+    #: The same run's joint histogram, kept at leg2_id/mb_class granularity
+    #: (not just the 6-bucket matrix) so the on-map legend can show which
+    #: classes are actually present, on each side of the swipe, instead of
+    #: only the bucketed comparison the tab's own table shows. Already
+    #: filtered to the zone validacao_matrix describes — see run_validacao.
+    validacao_raw_rows: List[Dict[str, Any]] = []
 
     @rx.event
     def set_validacao_mode(self, mode: str | list[str]):
@@ -565,11 +572,86 @@ class ValidacaoMixin(rx.State, mixin=True):
             (z["zone_label"] for z in zones_meta if z["zone_key"] == zone_key),
             zone_key,
         )
+        # Only this zone's rows — mapbiomas_comparison() answers for every
+        # zone in zone_objs at once, but the legend (like the matrix table)
+        # describes one zone, the one validacao_zone_label names.
+        raw_rows = (df[df["zone_key"] == zone_key].to_dict("records")
+                   if not df.empty else [])
         async with self:
             self.validacao_running = False
             self.validacao_matrix = matrix
             self.validacao_provenance = prov.to_dict()
             self.validacao_zone_label = zone_label
+            self.validacao_raw_rows = raw_rows
+
+    def _validacao_side_classes(
+        self, id_field: str, label_map: Dict[int, str], color_map: Dict[int, str],
+    ) -> List[Dict[str, Any]]:
+        """One side's real classes (colour, label, %) from validacao_raw_rows
+        — leg2_id for the IBGE side, mb_class for the MapBiomas side. Rolls
+        several combined-histogram rows into one per class (a class shows up
+        once per OTHER-side pairing in the raw rows, e.g. every leg2_id that
+        ever coincides with several different MapBiomas classes), then caps
+        at 8 and sorts largest first, same convention as
+        AnalysisMixin.history_table_rows."""
+        totals: Dict[int, float] = {}
+        for row in self.validacao_raw_rows:
+            class_id = int(row[id_field])
+            totals[class_id] = totals.get(class_id, 0.0) + float(row["area_ha"])
+        total_ha = sum(totals.values()) or 1.0
+        out = [
+            {
+                "class_label": label_map.get(class_id, f"Classe {class_id}"),
+                # color_map values are inconsistent between the two callers —
+                # config.ibge_vegetation's are bare hex, config.mapbiomas'
+                # already carry "#" — so strip first and add it back once.
+                "color": f"#{color_map.get(class_id, '999999').lstrip('#')}",
+                "area_pct": round(100.0 * area_ha / total_ha, 1),
+            }
+            for class_id, area_ha in totals.items()
+        ]
+        out.sort(key=lambda r: r["area_pct"], reverse=True)
+        return out[:8]
+
+    @rx.var(cache=True, deps=["validacao_raw_rows", "lang"], auto_deps=False)
+    def validacao_ibge_classes(self) -> List[Dict[str, Any]]:
+        """The ibge_2022 pairing's left side — real IBGE Vegetação classes
+        present in the active zone, coloured by config.ibge_vegetation's own
+        grouped web palette (never IBGE's official colours — see that
+        module's IBGE_VEG_COLOR_MAP docstring)."""
+        return self._validacao_side_classes(
+            "leg2_id", ibge_cfg.IBGE_VEG_LABELS_PT, ibge_cfg.IBGE_VEG_COLOR_MAP)
+
+    @rx.var(cache=True, deps=["validacao_raw_rows", "lang"], auto_deps=False)
+    def validacao_mb_classes(self) -> List[Dict[str, Any]]:
+        """The ibge_2022 pairing's right side — real MapBiomas 2022 classes
+        present in the active zone."""
+        lang = getattr(self, "lang", "pt")
+        labels = mb.MAPBIOMAS_LABELS_EN if lang == "en" else mb.MAPBIOMAS_LABELS_PT
+        return self._validacao_side_classes(
+            "mb_class", labels, mb.MAPBIOMAS_COLOR_MAP)
+
+    @rx.var(cache=True, deps=["history_rows", "active_zone", "lang"],
+            auto_deps=False)
+    def validacao_spot_mb_classes(self) -> List[Dict[str, Any]]:
+        """The spot_2008 pairing's right side — MapBiomas 2008 (the year the
+        SPOT mosaic is paired against), read from whatever the Cobertura
+        tab's own history already fetched. Empty until that has run at least
+        once — SPOT itself is imagery, nothing to legend on its own side."""
+        lang = getattr(self, "lang", "pt")
+        class_key = "class_en" if lang == "en" else "class_pt"
+        rows = [r for r in self.history_rows_for_zone if r["year"] == 2008]
+        total = sum(r["area_ha"] for r in rows) or 1.0
+        out = [
+            {
+                "class_label": r[class_key],
+                "color": r["color"],
+                "area_pct": round(100.0 * r["area_ha"] / total, 1),
+            }
+            for r in rows
+        ]
+        out.sort(key=lambda r: r["area_pct"], reverse=True)
+        return out[:8]
 
 
 class FireMixin(rx.State, mixin=True):

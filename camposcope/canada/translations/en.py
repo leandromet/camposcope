@@ -124,6 +124,7 @@ TRANSLATIONS_EN: dict[str, str] = {
         "ecoregion and ecozone it sits inside.",
     "legend_aci": "AAFC Crop Inventory",
     "legend_aci_palette": "Official AAFC legend colours.",
+    "legend_run_calcular": "Click Calculate on the Validation tab to see the classes.",
     "legend_landsat": "Landsat composite",
     "legend_landsat_error": "Could not load this year's Landsat composite.",
     "legend_verifying": "Checking…",
