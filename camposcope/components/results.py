@@ -376,7 +376,11 @@ def _paisagem_table() -> rx.Component:
             ),
             size="1", width="100%", variant="surface",
         ),
-        spacing="1", width="100%", overflow_x="auto",
+        # No overflow_x here: this table is used inside layout.split_panel,
+        # whose own table wrapper is now the single horizontal scroll
+        # container (see its docstring) — a second one nested right against
+        # it broke touch-drag scrolling on phones.
+        spacing="1", width="100%",
     )
 
 

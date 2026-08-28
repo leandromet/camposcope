@@ -51,6 +51,22 @@ app = rx.App(
             content="width=device-width, initial-scale=1, viewport-fit=cover",
         ),
         rx.el.meta(name="theme-color", content="#ffffff"),
+        # The mobile/desktop split (pages/index.py's `_sidebar`/`_mobile_sheet`/
+        # `results-drawer`) is width-only (`display=[...]` breakpoints), and a
+        # phone rotated to landscape is routinely wider than the 768px "md"
+        # cutoff (iPhone 13: 844px) while still only ~390px tall — it fell
+        # into the desktop sidebar + results-drawer chrome, sized for a
+        # viewport with far more height to spare, and the analysis area read
+        # as a small corner next to empty space rather than the mobile sheet
+        # it should have gotten. This overrides by height instead wherever a
+        # landscape phone lands: `id`s set on the relevant boxes in
+        # pages/index.py.
+        rx.el.style("""
+            @media (max-height: 500px) and (orientation: landscape) {
+              #desktop-sidebar, #results-drawer { display: none !important; }
+              #mobile-sheet { display: flex !important; }
+            }
+        """),
         *_ga_head_components(),
         # Idle tabs otherwise keep the Reflex WebSocket reconnecting forever,
         # which pins a billed Cloud Run instance with nobody using it — see

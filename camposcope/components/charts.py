@@ -108,9 +108,18 @@ def _style(
             font=dict(size=10), itemsizing="constant",
         ),
         hovermode="x unified",
-        xaxis=dict(title=None, tickmode="linear", dtick=5, showgrid=False),
+        # dragmode False + fixedrange on both axes: with the modebar off
+        # (export_widgets.PLOTLY_CONFIG), Plotly's own click-drag zoom/pan was
+        # already undiscoverable on desktop, but on a phone it still grabbed
+        # a one-finger touch-drag for itself — the gesture that should have
+        # scrolled the sheet/page past the chart instead started a zoom.
+        # Disabling it here lets that touch fall through to the container.
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=5, showgrid=False,
+                   fixedrange=True),
         yaxis=dict(title=y_title, showgrid=True,
-                   gridcolor="rgba(0,0,0,0.06)", zeroline=False),
+                   gridcolor="rgba(0,0,0,0.06)", zeroline=False,
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
     )
@@ -193,8 +202,13 @@ def hansen_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
         margin=dict(l=48, r=8, t=8, b=36), height=260,
         legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
                    font=dict(size=9)),
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)"),
+        # See land_cover_history_figure's _style() for why: stops a
+        # one-finger touch on the chart from being captured as a zoom
+        # gesture instead of scrolling the sheet/page past it.
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
     return fig
@@ -219,8 +233,10 @@ def biomass_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
-        xaxis=dict(title=None, tickmode="linear", dtick=2),
-        yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)"),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)",
+                   fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
@@ -249,10 +265,11 @@ def fire_figure(annual_rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figur
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
-        xaxis=dict(title=None, tickmode="linear", dtick=5),
+        dragmode=False,
+        xaxis=dict(title=None, tickmode="linear", dtick=5, fixedrange=True),
         yaxis=dict(
             title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
-            range=[0, 100],
+            range=[0, 100], fixedrange=True,
         ),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
@@ -278,7 +295,9 @@ def landscape_meff_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Fi
         )
     fig.update_layout(
         template="plotly_white", margin=dict(l=48, r=8, t=8, b=48), height=260,
-        yaxis=dict(title="Meff (ha)"),
+        dragmode=False,
+        xaxis=dict(fixedrange=True),
+        yaxis=dict(title="Meff (ha)", fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )

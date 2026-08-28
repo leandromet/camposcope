@@ -32,8 +32,19 @@ def split_panel(chart: rx.Component, table: rx.Component,
     """
     return rx.flex(
         rx.box(chart, width=["100%", "100%", chart_width], flex_shrink="0"),
-        rx.box(table, flex="1", min_width="0", overflow_y="auto",
-              max_height="300px"),
+        # `overflow="auto"` (both axes on the same element), not just
+        # `overflow_y` — a wide table (Paisagem's 9 columns) needs its own
+        # horizontal scroller too. Leaving overflow-x unset let the CSS spec's
+        # own "visible + non-visible sibling -> auto" rule create a *second*,
+        # empty horizontal scroll container here on top of the table's own,
+        # which is what made a one-finger touch drag ambiguous between the
+        # two nested scrollers and lose the horizontal gesture entirely on
+        # phones (confirmed: only vertical scroll worked, mouse-drag on a
+        # real scrollbar was never tested since phones don't have one).
+        rx.box(table, flex="1", min_width="0", overflow="auto",
+              max_height="300px",
+              style={"WebkitOverflowScrolling": "touch",
+                     "touchAction": "pan-x pan-y"}),
         direction=rx.breakpoints(initial="column", md="row"),
         spacing="4", width="100%", align="start",
     )

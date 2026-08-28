@@ -275,6 +275,12 @@ def _layers_panel() -> rx.Component:
 #: always mounted with its own drag-to-collapse rather than an open/close
 #: toggle. Desktop keeps exactly the original collapsible in-flow panel:
 #: an open 340px panel, or a slim always-visible rail when collapsed.
+#: `id="desktop-sidebar"` on both branches below is read by the
+#: `max-height`/`orientation: landscape` override in camposcope.py's head
+#: style — width-only breakpoints (`display=[...]`) put a landscape phone
+#: (often 700-930px wide, well past the "md" 768px cutoff) into this desktop
+#: layout instead of `_mobile_sheet()`, on a viewport with nowhere near
+#: desktop's usual height to spare.
 def _sidebar() -> rx.Component:
     return rx.cond(
         AppState.sidebar_open,
@@ -304,6 +310,7 @@ def _sidebar() -> rx.Component:
             border_right=BORDER, background="var(--color-panel-solid)",
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
+            id="desktop-sidebar",
         ),
         # A coloured tab, not the small grey icon_button this used to be —
         # measured against the same complaint the mobile sheet's old plain
@@ -330,6 +337,7 @@ def _sidebar() -> rx.Component:
             border_right=BORDER,
             background="var(--color-panel-solid)",
             height="100%",
+            id="desktop-sidebar",
         ),
     )
 
