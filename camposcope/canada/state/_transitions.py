@@ -53,6 +53,10 @@ class CanadaTransitionsMixin(rx.State, mixin=True):
 
     def set_sankey_years(self, year_a: int, year_b: int) -> None:
         self.sankey_year_a, self.sankey_year_b = int(year_a), int(year_b)
+        # Keeps the map's swipe comparison in step with the Sankey year
+        # picker — one control, not two that could disagree (mirrors the
+        # Brazil page's own set_sankey_years).
+        return self.__class__.mint_analysis_layer
 
     def _default_years(self) -> tuple[int, int]:
         if self.sankey_year_a and self.sankey_year_b:
@@ -116,6 +120,13 @@ class CanadaTransitionsMixin(rx.State, mixin=True):
             self.sankey_zone_label = next(
                 (z["zone_label"] for z in zones_meta if z["zone_key"] == zone_key),
                 zone_key)
+        # sankey_year_a/b start at 0/0 (unlike the Brazil page, which has
+        # concrete class defaults) and only become real years once
+        # _default_years() runs above — so the map's swipe layer cannot
+        # have been minted for them before now. Chaining here is what
+        # actually shows the two-year comparison the first time this tab
+        # runs, not just on a later explicit year change.
+        return self.__class__.mint_analysis_layer
 
     @rx.var(cache=True,
             deps=["sankey_transitions", "sankey_year_a", "sankey_year_b",

@@ -142,6 +142,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_hansen_split_undivided": "Série não dividida",
     "legend_perda": "Perda",
     "legend_ganho": "Ganho (sem data)",
+    "legend_choose_years": "Escolha os anos na aba Transições.",
+    "legend_drag_to_compare": "Arraste a barra no mapa para comparar.",
     "map_layer_note": "A camada desta aba pode ser ligada ou desligada "
         "pela legenda no canto do mapa.",
 

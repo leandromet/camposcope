@@ -132,6 +132,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "legend_hansen_split_undivided": "Undivided series",
     "legend_perda": "Loss",
     "legend_ganho": "Gain (undated)",
+    "legend_choose_years": "Choose the years on the Transitions tab.",
+    "legend_drag_to_compare": "Drag the bar on the map to compare.",
     "map_layer_note": "This tab's map layer can be turned on or off from "
         "the legend in the map corner.",
 

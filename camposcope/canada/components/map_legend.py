@@ -79,6 +79,27 @@ def _basemap_section() -> rx.Component:
     )
 
 
+def _class_legend_rows(rows: rx.Var) -> rx.Component:
+    """Colour + label + share for whichever classes are actually present in
+    the active zone/year — capped at 8 and scrollable, rather than every code
+    in the full palette (200+ AAFC classes): a parcel only ever shows a
+    handful, and listing the rest would be noise."""
+    return rx.vstack(
+        rx.foreach(
+            rows[:8],
+            lambda r: rx.hstack(
+                rx.box(width="10px", height="10px", border_radius="2px",
+                      background=r["color"], flex_shrink="0"),
+                rx.text(r["class_label"], size="1", style={"flex": "1"},
+                       no_of_lines=1),
+                rx.text(f"{r['area_pct']}%", size="1", color="var(--gray-11)"),
+                spacing="2", align="center", width="100%",
+            ),
+        ),
+        spacing="1", width="100%", max_height="160px", overflow_y="auto",
+    )
+
+
 def _cobertura_legend() -> rx.Component:
     return rx.vstack(
         _header(S.tr["legend_aci"]),
@@ -87,7 +108,35 @@ def _cobertura_legend() -> rx.Component:
             value=S.aci_layer_year.to_string(),
             on_change=S.set_aci_layer_year, size="1", width="100%",
         ),
-        rx.text(S.tr["legend_aci_palette"], size="1", color="var(--gray-11)"),
+        rx.cond(
+            S.history_table_rows,
+            _class_legend_rows(S.history_table_rows),
+            rx.text(S.tr["legend_aci_palette"], size="1", color="var(--gray-11)"),
+        ),
+        spacing="2", width="100%",
+    )
+
+
+def _transicoes_legend() -> rx.Component:
+    """Older year on the left of the swipe divider, newer on the right — the
+    same ``sankey_year_a``/``sankey_year_b`` the two-stage Sankey uses, so
+    this legend has nothing of its own to set, only to say what is showing.
+    Mirrors the Brazil page's own ``_transicoes_legend``."""
+    return rx.vstack(
+        _header(S.tr["tab_transicoes"]),
+        rx.cond(
+            S.map_swipe_enabled,
+            rx.hstack(
+                rx.text(S.sankey_year_left, size="1", weight="medium"),
+                rx.icon("move-horizontal", size=12),
+                rx.text(S.sankey_year_right, size="1", weight="medium"),
+                spacing="2", align="center",
+            ),
+            rx.text(S.tr["legend_choose_years"], size="1",
+                   color="var(--gray-11)"),
+        ),
+        rx.text(S.tr["legend_drag_to_compare"], size="1",
+               color="var(--gray-11)"),
         spacing="2", width="100%",
     )
 
@@ -152,6 +201,21 @@ def _fogo_legend() -> rx.Component:
             value=S.fire_source, on_change=S.set_fire_source,
             size="1", width="100%",
         ),
+        # Same two palettes services/layers.py mints tiles with — MODIS'
+        # 6-stop gradient (config/datasets.py MODIS_BURN["vis_palette"]) or
+        # ACI's 3-stop one, so the swatch never drifts from what is on
+        # screen.
+        rx.cond(
+            S.fire_source == "aci",
+            rx.box(width="60px", height="8px", border_radius="2px",
+                  background="linear-gradient(to right, #fed976, #fd8d3c, "
+                            "#bd0026)"),
+            rx.box(width="60px", height="8px", border_radius="2px",
+                  background="linear-gradient(to right, #ffffb2, #fecc5c, "
+                            "#fd8d3c, #f03b20, #bd0026, #800026)"),
+        ),
+        rx.text(S.tr["fogo_frequencia_ocorrencias"], size="1",
+               color="var(--gray-11)"),
         rx.text(
             rx.cond(
                 S.fire_source == "aci",
@@ -193,6 +257,7 @@ def map_legend() -> rx.Component:
                 rx.match(
                     S.results_tab,
                     ("cobertura", _cobertura_legend()),
+                    ("transicoes", _transicoes_legend()),
                     ("floresta", _floresta_legend()),
                     ("biomassa", _biomassa_legend()),
                     ("paisagem", _paisagem_legend()),

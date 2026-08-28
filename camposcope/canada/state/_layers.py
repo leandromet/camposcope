@@ -85,7 +85,18 @@ class CanadaLayersMixin(rx.State, mixin=True):
         return len(self.swipe_layer_keys) == 2
 
     def toggle_analysis_layer(self) -> None:
+        """Flip the on-map analysis layer on/off.
+
+        While off, `mint_analysis_layer` skips minting entirely (cost
+        control) — which means `active_analysis_layer_key` can go stale if
+        the results tab changes while the layer is hidden. Re-running the
+        mint on the way back ON is what makes the layer that reappears match
+        whatever tab is active NOW, not whichever tab was active when it was
+        last turned off.
+        """
         self.analysis_layer_enabled = not self.analysis_layer_enabled
+        if self.analysis_layer_enabled:
+            return self.__class__.mint_analysis_layer
 
     def toggle_parcel_layer(self, checked: bool) -> None:
         self.show_parcel_layer = checked
@@ -124,15 +135,24 @@ class CanadaLayersMixin(rx.State, mixin=True):
             year_biomass = getattr(self, "biomass_layer_year", None)
             year_landscape = getattr(self, "landscape_year", None)
             year_validation = getattr(self, "validation_year", None)
+            sankey_year_a = getattr(self, "sankey_year_a", None)
+            sankey_year_b = getattr(self, "sankey_year_b", None)
             fire_source = getattr(self, "fire_source", "modis")
             zones_geojson = plain(getattr(self, "zones_geojson", {})) or {}
             identifier = getattr(self, "parcel", {}).get("identifier", "")
             start_year = getattr(self, "parcel", {}).get("start_year") or None
 
-        swipe_tabs = ("validacao",)
+        #: Transições and Validação are the two tabs with TWO layers at once
+        #: instead of one — mirrors the Brazil page's own split.
+        swipe_tabs = ("transicoes", "validacao")
         if tab not in swipe_tabs:
             async with self:
                 self.swipe_layer_keys = []
+
+        if tab == "transicoes":
+            if has_parcel and enabled:
+                await self._mint_transitions_layers(sankey_year_a, sankey_year_b)
+            return
 
         if tab == "validacao":
             if has_parcel and enabled and year_validation:
@@ -208,6 +228,69 @@ class CanadaLayersMixin(rx.State, mixin=True):
             if spec:
                 self.analysis_layer_specs[cache_key] = spec
                 self.active_analysis_layer_key = cache_key
+            else:
+                self.analysis_layer_error = get_translations(
+                    getattr(self, "language", "en"))["erro_camada_aba"]
+
+    async def _mint_transitions_layers(self, year_a: Optional[int],
+                                        year_b: Optional[int]) -> None:
+        """The Transições tab's map layer: the two selected Sankey years,
+        older on the left of the swipe divider and newer on the right — the
+        same ``sankey_year_a``/``sankey_year_b`` the diagram itself uses, so
+        there is exactly one place to pick "which two years", not a second
+        pair of controls that could disagree with the first. Mirrors the
+        Brazil page's own ``_mint_swipe_layers``.
+
+        Reuses the same cache Cobertura's own ACI layer uses (``ca:aci:
+        {year}``) — a year already viewed there costs nothing here.
+
+        ``year_a``/``year_b`` start at 0/0 (the Sankey has not run yet) —
+        unlike Validação's ``validation_year``, which has a real default and
+        so mints on the very first tab visit. Falling back to the same pair
+        the Sankey itself opens on (``default_year_pair``) is what makes
+        Transições behave the same way Validação already does: a sensible
+        comparison on screen immediately, not a stale layer left over from
+        whichever tab was active before, nor a blank map until "Calculate"
+        is pressed.
+        """
+        if not year_a or not year_b:
+            from ..services.transitions import default_year_pair
+            year_a, year_b = default_year_pair()
+        left_year, right_year = sorted((int(year_a), int(year_b)))
+        left_key = f"ca:aci:{left_year}"
+        right_key = f"ca:aci:{right_year}"
+
+        async with self:
+            cached = self.analysis_layer_specs
+            if left_key in cached and right_key in cached:
+                self.swipe_layer_keys = [left_key, right_key]
+                return
+            self.analysis_layer_busy = True
+            self.analysis_layer_error = ""
+
+        from ..services import layers as layer_service
+
+        loop = asyncio.get_running_loop()
+        try:
+            spec_left, spec_right = await asyncio.gather(
+                loop.run_in_executor(None, layer_service.aci_year_spec, left_year),
+                loop.run_in_executor(None, layer_service.aci_year_spec, right_year),
+            )
+        except Exception as exc:                       # noqa: BLE001
+            logger.warning("Transitions layers %s/%s failed: %s",
+                           left_year, right_year, exc)
+            spec_left = spec_right = None
+
+        async with self:
+            self.analysis_layer_busy = False
+            if spec_left and spec_right:
+                # No `clip` baked in here either — see `map_layers` and the
+                # matching comment on Validação's own mint for why: this
+                # cache is shared with Cobertura, and which side a tile sits
+                # on is a property of the current pairing, not of the tile.
+                self.analysis_layer_specs[left_key] = spec_left
+                self.analysis_layer_specs[right_key] = spec_right
+                self.swipe_layer_keys = [left_key, right_key]
             else:
                 self.analysis_layer_error = get_translations(
                     getattr(self, "language", "en"))["erro_camada_aba"]

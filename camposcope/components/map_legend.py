@@ -50,6 +50,27 @@ def _swatch_row(color: str, label) -> rx.Component:
     )
 
 
+def _class_legend_rows(rows: rx.Var) -> rx.Component:
+    """Colour + label + share for whichever classes are actually present in
+    the active zone/year — capped at 8 and scrollable, rather than every code
+    in the full palette (60+ MapBiomas classes, 200+ AAFC ones): a property
+    only ever shows a handful, and listing the rest would be noise."""
+    return rx.vstack(
+        rx.foreach(
+            rows[:8],
+            lambda r: rx.hstack(
+                rx.box(width="10px", height="10px", border_radius="2px",
+                      background=r["color"], flex_shrink="0"),
+                rx.text(r["class_label"], size="1", style={"flex": "1"},
+                       no_of_lines=1),
+                rx.text(f"{r['area_pct']}%", size="1", color="var(--gray-11)"),
+                spacing="2", align="center", width="100%",
+            ),
+        ),
+        spacing="1", width="100%", max_height="160px", overflow_y="auto",
+    )
+
+
 def _cobertura_legend() -> rx.Component:
     return rx.vstack(
         _header(AppState.tr["legend_mapbiomas"]),
@@ -59,8 +80,12 @@ def _cobertura_legend() -> rx.Component:
             on_change=AppState.set_mapbiomas_layer_year,
             size="1", width="100%",
         ),
-        rx.text(AppState.tr["legend_mapbiomas_palette"], size="1",
-               color="var(--gray-11)"),
+        rx.cond(
+            AppState.history_table_rows,
+            _class_legend_rows(AppState.history_table_rows),
+            rx.text(AppState.tr["legend_mapbiomas_palette"], size="1",
+                   color="var(--gray-11)"),
+        ),
         spacing="2", width="100%",
     )
 

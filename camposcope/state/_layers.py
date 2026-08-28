@@ -85,7 +85,18 @@ class LayersMixin(rx.State, mixin=True):
 
     @rx.event
     def toggle_analysis_layer(self) -> None:
+        """Flip the on-map analysis layer on/off.
+
+        While off, `mint_analysis_layer` skips minting entirely (cost
+        control) — which means `active_analysis_layer_key` can go stale if
+        the results tab changes while the layer is hidden. Re-running the
+        mint on the way back ON is what makes the layer that reappears match
+        whatever tab is active NOW, not whichever tab was active when it was
+        last turned off.
+        """
         self.analysis_layer_enabled = not self.analysis_layer_enabled
+        if self.analysis_layer_enabled:
+            return self.__class__.mint_analysis_layer
 
     @rx.event(background=True)
     async def mint_analysis_layer(self):
