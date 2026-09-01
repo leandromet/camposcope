@@ -227,14 +227,22 @@ def hansen_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
             )
     fig.update_layout(
         barmode="stack", template="plotly_white",
-        margin=dict(l=48, r=8, t=8, b=36), height=260,
-        legend=dict(orientation="h", yanchor="top", y=-0.22, x=0,
+        # b grew from 36: rotated tick labels now sit between the axis and
+        # the legend, so both need their own room instead of sharing the
+        # old, tighter margin.
+        margin=dict(l=48, r=8, t=8, b=70), height=260,
+        legend=dict(orientation="h", yanchor="top", y=-0.32, x=0,
                    font=dict(size=9)),
         # See land_cover_history_figure's _style() for why: stops a
         # one-finger touch on the chart from being captured as a zoom
         # gesture instead of scrolling the sheet/page past it.
         dragmode=False,
-        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        # tickangle/tickfont: same fix as land_cover_history_figure's own
+        # _style() — vertical labels fit far more year ticks in a narrow
+        # width than horizontal ones do, which is what let this chart keep
+        # rendering at full width instead of needing to scroll on a phone.
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True,
+                  tickangle=-90, tickfont=dict(size=9)),
         yaxis=dict(title="Perda (ha)" if lang == "pt" else "Loss (ha)",
                    fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
@@ -260,9 +268,12 @@ def biomass_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figure:
             hovertemplate="%{x}: %{y:.1f} Mg/ha<extra></extra>",
         )
     fig.update_layout(
-        template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=300,
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=40), height=300,
         dragmode=False,
-        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True),
+        # tickangle/tickfont: same fix as land_cover_history_figure's own
+        # _style() — see hansen_figure's own comment.
+        xaxis=dict(title=None, tickmode="linear", dtick=2, fixedrange=True,
+                  tickangle=-90, tickfont=dict(size=9)),
         yaxis=dict(title="Biomassa (Mg/ha)" if lang == "pt" else "Biomass (Mg/ha)",
                    fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
@@ -292,9 +303,14 @@ def fire_figure(annual_rows: List[Dict[str, Any]], lang: str = "pt") -> go.Figur
             hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
         )
     fig.update_layout(
-        template="plotly_white", margin=dict(l=48, r=8, t=8, b=28), height=260,
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=42), height=260,
         dragmode=False,
-        xaxis=dict(title=None, tickmode="linear", dtick=5, fixedrange=True),
+        # tickangle/tickfont: same fix as land_cover_history_figure's own
+        # _style() — dtick could actually drop from 5 to 2 like the other
+        # charts once labels are vertical, but MapBiomas Fire's 40-year span
+        # already reads fine at 5 with the extra room, so it's left as-is.
+        xaxis=dict(title=None, tickmode="linear", dtick=5, fixedrange=True,
+                  tickangle=-90, tickfont=dict(size=9)),
         yaxis=dict(
             title="Área queimada (%)" if lang == "pt" else "Burned area (%)",
             range=[0, 100], fixedrange=True,
@@ -322,9 +338,15 @@ def landscape_meff_figure(rows: List[Dict[str, Any]], lang: str = "pt") -> go.Fi
             hovertemplate="%{x}: %{y:,.1f} ha<extra></extra>",
         )
     fig.update_layout(
-        template="plotly_white", margin=dict(l=48, r=8, t=8, b=48), height=260,
+        template="plotly_white", margin=dict(l=48, r=8, t=8, b=72), height=260,
         dragmode=False,
-        xaxis=dict(fixedrange=True),
+        # tickangle=-45, not -90 like the year-based charts: these are
+        # words ("0 – 500 m"), not bare digits, and a shallower diagonal
+        # keeps them legible while still needing far less horizontal room
+        # per label than laying them out flat — which on a narrow phone is
+        # what let 4 zone labels keep rendering at full chart width instead
+        # of forcing horizontal scroll.
+        xaxis=dict(fixedrange=True, tickangle=-45, tickfont=dict(size=9)),
         yaxis=dict(title="Meff (ha)", fixedrange=True),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,

@@ -140,7 +140,7 @@ def cobertura_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(AppState.tr["cobertura_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["cobertura_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -241,7 +241,7 @@ def floresta_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(AppState.tr["floresta_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["floresta_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -320,7 +320,7 @@ def biomassa_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(AppState.tr["biomassa_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["biomassa_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -509,7 +509,7 @@ def paisagem_tab() -> rx.Component:
         ),
         _connectivity_section(),
         _map_layer_note(),
-        rx.text(AppState.tr["paisagem_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["paisagem_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 

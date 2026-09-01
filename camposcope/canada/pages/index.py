@@ -390,6 +390,13 @@ def _mobile_sheet() -> rx.Component:
         id="ca-mobile-sheet",
         display=["flex", "flex", "none", "none"],
         flex_direction="column",
+        # See the Brazil page's own `_mobile_sheet()` for the measurement
+        # this comes from: rx.vstack defaults to `align="start"`, which lets
+        # this sheet's scrolling content box size itself to the results
+        # panel's own min-content width (~835px — tab list plus tables)
+        # rather than the sheet's, so a portrait phone clipped everything
+        # past 390px with `overflow: hidden` and no way to scroll to it.
+        align="stretch",
         position="absolute", bottom="0", left="0", right="0",
         height="45vh", max_height="45vh",
         background="var(--color-panel-solid)",

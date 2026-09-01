@@ -63,14 +63,63 @@ app = rx.App(
         # phone lands: `id`s set on the relevant boxes in pages/index.py and
         # canada/pages/index.py — one stylesheet covers both pages since
         # `head_components` here applies globally, not per-page.
+        #
+        # The second rule is the same override applied one level deeper.
+        # `components/layout.py::split_panel` (and the Canada page's copy of
+        # it) puts the chart and its data table side by side from Radix's
+        # `md` (48em = 768px) up — also width-only, so the same landscape
+        # phone that needed the rules above ALSO took the two-column branch:
+        # measured live at 844x390, the trajectory chart rendered 403px wide
+        # inside an 844px sheet, the table filling the other half, on the
+        # viewport with the least height to give either of them. Stacking
+        # them back into one column here hands the chart the sheet's full
+        # width and drops the table below it, exactly as portrait already
+        # does. `!important` because Radix's own `md:` class carries a media
+        # query of its own — this one has to win where both apply.
         rx.el.style("""
             @media (max-height: 500px) and (orientation: landscape) {
               #desktop-sidebar, #results-drawer,
               #ca-desktop-sidebar, #ca-results-drawer { display: none !important; }
               #mobile-sheet, #ca-mobile-sheet { display: flex !important; }
+              .cs-split-panel { flex-direction: column !important; }
+              .cs-split-chart { width: 100% !important; }
             }
         """),
         *_ga_head_components(),
+        # `rx.plotly`'s `config.responsive: true` resizes a chart via its own
+        # internal ResizeObserver on the plot's container — which watches
+        # that ELEMENT's own box, not the viewport. A phone rotation changes
+        # the viewport's dimensions, and the container's box does follow
+        # (through the normal CSS cascade), but that observer doesn't
+        # reliably fire for every browser/orientation-change combination —
+        # a real report here: charts kept rendering at whatever size they'd
+        # had in the PREVIOUS orientation, so a chart sized for a wide
+        # landscape viewport was still that wide after rotating to a narrow
+        # portrait one (using what had been the landscape *width* as if it
+        # were still correct, rather than shrinking to the new one) — every
+        # analysis-area chart in this app is a `.js-plotly-plot`, so a
+        # single global listener that force-resizes all of them on the
+        # browser's own `resize`/`orientationchange` events is a reliable
+        # fallback that doesn't depend on that internal observer at all.
+        rx.el.script("""
+            (function () {
+              if (window._csPlotlyResizeInit) return;
+              window._csPlotlyResizeInit = true;
+              var timer = null;
+              function resizeAll() {
+                if (!window.Plotly) return;
+                document.querySelectorAll('.js-plotly-plot').forEach(function (gd) {
+                  try { window.Plotly.Plots.resize(gd); } catch (err) { /* not fully mounted yet */ }
+                });
+              }
+              function scheduleResize() {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(resizeAll, 120);
+              }
+              window.addEventListener('resize', scheduleResize);
+              window.addEventListener('orientationchange', scheduleResize);
+            })();
+        """),
         # Idle tabs otherwise keep the Reflex WebSocket reconnecting forever,
         # which pins a billed Cloud Run instance with nobody using it — see
         # assets/idle_guard.js and assets/paused.html.

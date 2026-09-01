@@ -29,9 +29,21 @@ def split_panel(chart: rx.Component, table: rx.Component,
 
     Stacks vertically below ~640px (a narrow drawer/phone) rather than
     squeezing two illegible columns.
+
+    ``cs-split-panel``/``cs-split-chart`` are hooks for the landscape-phone
+    override in ``camposcope.py``'s head style, nothing else. The row/column
+    switch below is width-only (Radix's ``md`` = 48em = 768px), and a phone
+    rotated to landscape is routinely *wider* than that (iPhone 13: 844px)
+    while only ~390px tall — so it took the two-column branch and drew the
+    chart at ``chart_width`` of the sheet (measured: 403px of 844px) with
+    the data table in the empty half, on the one viewport with the least
+    room to spare. Same reason ``_sidebar``/``_mobile_sheet`` carry ids for
+    that stylesheet: what is wrong here is height, and only a media query
+    can ask about it.
     """
     return rx.flex(
-        rx.box(chart, width=["100%", "100%", chart_width], flex_shrink="0"),
+        rx.box(chart, width=["100%", "100%", chart_width], flex_shrink="0",
+               class_name="cs-split-chart"),
         # `overflow="auto"` (both axes on the same element), not just
         # `overflow_y` — a wide table (Paisagem's 9 columns) needs its own
         # horizontal scroller too. Leaving overflow-x unset let the CSS spec's
@@ -47,6 +59,7 @@ def split_panel(chart: rx.Component, table: rx.Component,
                      "touchAction": "pan-x pan-y"}),
         direction=rx.breakpoints(initial="column", md="row"),
         spacing="4", width="100%", align="start",
+        class_name="cs-split-panel",
     )
 
 

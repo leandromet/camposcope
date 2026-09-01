@@ -53,8 +53,22 @@ def table_export_button(on_click) -> rx.Component:
 
 def chart_box(figure, wrap_id: str, filename: str, height, width: str = "100%",
              **box_props) -> rx.Component:
+    # See the Brazil page's own `components/export_widgets.py::chart_box`
+    # for the full rationale — including why the scroll wrapper needs its
+    # OWN explicit `height=height`, not just `overflow_x="auto"` on the
+    # outer (content-sized) box: per the CSS Overflow spec, one non-visible
+    # overflow axis forces the other to `auto` too, and an auto-height box
+    # that's also an auto-overflow container just grows to fit instead of
+    # clipping — which is what made every chart render far taller than
+    # intended once the tick-rotation fix reserved more margin.
     return rx.box(
-        rx.plotly(data=figure, config=PLOTLY_CONFIG, width="100%", height=height),
+        rx.box(
+            rx.plotly(data=figure, config=PLOTLY_CONFIG, width="100%",
+                     height=height),
+            height=height,
+            overflow_x="auto",
+            style={"WebkitOverflowScrolling": "touch", "touchAction": "pan-x"},
+        ),
         rx.hstack(
             rx.spacer(),
             chart_export_button(wrap_id, filename),

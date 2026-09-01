@@ -225,7 +225,15 @@ def sankey_figure(
     )])
     fig.update_layout(
         margin=dict(l=8, r=8, t=8, b=8),
-        font=dict(size=10),
+        # 9, not 10: a Sankey's node labels sit OUTSIDE the diagram (left
+        # column to the left, right column to the right), so unlike a bar
+        # chart's ticks there's no axis-rotation trick to shrink the space
+        # they need — a smaller font is the only lever here. It still
+        # isn't guaranteed to fit every property's transition set on a
+        # narrow phone (long class names, many nodes); see `export_widgets.
+        # py::chart_box`'s own overflow_x/touch-action fix for the actual
+        # fallback when it doesn't.
+        font=dict(size=9),
         height=420,
         template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",

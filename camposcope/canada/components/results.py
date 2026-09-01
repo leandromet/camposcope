@@ -131,7 +131,7 @@ def cobertura_tab() -> rx.Component:
             ),
         ),
         _map_layer_note(),
-        rx.text(S.tr["cobertura_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["cobertura_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -291,7 +291,7 @@ def _stand_age_section() -> rx.Component:
             ),
         ),
         rx.text(S.tr["floresta_age_note"], size="1", color=MUTED),
-        rx.text(S.tr["floresta_age_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["floresta_age_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="2", width="100%",
     )
 
@@ -358,7 +358,7 @@ def floresta_tab() -> rx.Component:
         ),
         _stand_age_section(),
         _map_layer_note(),
-        rx.text(S.tr["floresta_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["floresta_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -426,7 +426,7 @@ def biomassa_tab() -> rx.Component:
         ),
         _map_layer_note(),
         rx.text(S.tr["biomassa_canada_note"], size="1", color=MUTED),
-        rx.text(S.tr["biomassa_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["biomassa_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -601,7 +601,7 @@ def paisagem_tab() -> rx.Component:
         _connectivity_section(),
         rx.text(S.tr["paisagem_legend_note"], size="1", color=MUTED),
         _map_layer_note(),
-        rx.text(S.tr["paisagem_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["paisagem_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )
 
@@ -699,7 +699,7 @@ def _modis_section() -> rx.Component:
                 ),
             ),
         ),
-        rx.text(S.tr["fogo_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["fogo_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%",
     )
 
@@ -740,7 +740,7 @@ def _aci_burn_section() -> rx.Component:
                       color_scheme="gray", size="1"),
         ),
         rx.text(S.tr["fogo_aci_note"], size="1", color=MUTED),
-        rx.text(S.tr["fogo_aci_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["fogo_aci_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%",
     )
 

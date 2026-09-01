@@ -182,6 +182,6 @@ def validacao_tab() -> rx.Component:
             _spot_note(),
             _ibge_section(),
         ),
-        rx.text(AppState.tr["validacao_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["validacao_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )

@@ -260,7 +260,11 @@ def sankey_figure(
     )])
     fig.update_layout(
         margin=dict(l=8, r=8, t=8, b=8),
-        font=dict(size=10),
+        # See the Brazil page's own services/transitions.py::sankey_figure
+        # for why this dropped to 9 and why it still isn't a full fix by
+        # itself (relies on export_widgets.py::chart_box's overflow_x/
+        # touch-action as the actual fallback).
+        font=dict(size=9),
         height=420,
         template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",

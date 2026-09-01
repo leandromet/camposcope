@@ -528,6 +528,22 @@ def _mobile_sheet() -> rx.Component:
         id="mobile-sheet",
         display=["flex", "flex", "none", "none"],
         flex_direction="column",
+        # align="stretch", NOT rx.vstack's own default of "start" — the bug
+        # this fixes: `align: start` compiles to `align-items: flex-start`,
+        # which sizes this sheet's scrolling content box to its own
+        # *content* width instead of the sheet's. The results panel's
+        # min-content width is ~835px (the seven-tab list plus the data
+        # tables), so on a portrait phone that box rendered 835px wide
+        # inside a 390px sheet and `overflow: hidden` below simply cut the
+        # excess off — no scrollbar, no way to reach it (measured live:
+        # sheet 390px / scrollWidth 835px, the trajectory chart itself
+        # drawn 797px wide). It only *looked* right in landscape because
+        # 844px happens to be wider than that same 835px content.
+        # `stretch` pins the box to the sheet's width, and its own
+        # `overflow_y="auto"` (which the CSS Overflow spec promotes
+        # overflow-x to `auto` alongside) then scrolls whatever is still
+        # too wide, per element, the way the tab list already does.
+        align="stretch",
         position="absolute", bottom="0", left="0", right="0",
         height="45vh", max_height="45vh",
         background="var(--color-panel-solid)",

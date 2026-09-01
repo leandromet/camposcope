@@ -110,7 +110,8 @@ def _place_hits() -> rx.Component:
                 ),
             ),
             rx.text(S.tr["search_places_note"], size="1", color=MUTED),
-            rx.text(S.tr["search_places_attribution"], size="1", color=MUTED),
+            rx.text(S.tr["search_places_attribution"], size="1", color=MUTED,
+                   padding_bottom="2px"),
             spacing="1", width="100%",
         ),
     )

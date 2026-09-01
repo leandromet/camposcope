@@ -111,6 +111,6 @@ def validacao_tab() -> rx.Component:
         rx.callout(S.tr["validacao_no_verdict"], icon="info",
                   color_scheme="gray", size="1"),
         rx.text(S.tr["validacao_group_note"], size="1", color=MUTED),
-        rx.text(S.tr["validacao_attribution"], size="1", color=MUTED),
+        rx.text(S.tr["validacao_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )

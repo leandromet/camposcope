@@ -112,6 +112,6 @@ def fogo_tab() -> rx.Component:
                 ),
             ),
         ),
-        rx.text(AppState.tr["fogo_attribution"], size="1", color=MUTED),
+        rx.text(AppState.tr["fogo_attribution"], size="1", color=MUTED, padding_bottom="2px"),
         spacing="3", width="100%", padding="3",
     )

@@ -75,9 +75,43 @@ def table_export_button(on_click) -> rx.Component:
 def chart_box(figure, wrap_id: str, filename: str, height, width: str = "100%",
              **box_props) -> rx.Component:
     """A Plotly chart plus its own export icon, in a slim row *below* the
-    plot rather than overlapping it (see module docstring)."""
+    plot rather than overlapping it (see module docstring).
+
+    ``config.responsive`` + this box's own ``width="100%"`` is supposed to
+    be the whole story — a chart that always resizes to fit its container
+    never needs to scroll. In practice a couple of figures (long Sankey
+    node labels, unrotated category ticks) can still end up intrinsically
+    wider than that on a narrow phone, and with nothing here to catch it
+    the excess used to spill straight past this box — and past the sheet's
+    own edge — uncontained, with no way to reach it (Plotly's own touch
+    handling captures a one-finger drag for its hover/tooltip gesture
+    before it ever reaches a scrollable ancestor).
+
+    The scroll wrapper below is its own inner box, with an EXPLICIT
+    ``height=height`` — not a property of the outer box. That matters: the
+    CSS Overflow spec requires that when one axis is non-``visible``, the
+    *other* axis computes to ``auto`` too if it would otherwise be
+    ``visible`` — so ``overflow_x="auto"`` on a box with no explicit height
+    (sized to its content instead) makes ``overflow-y`` become ``auto`` as
+    a side effect, and an auto-height box that is *also* an auto-overflow
+    container just grows to fit whatever wants more room (a legend placed
+    via a large negative Y offset, the taller margins the tick-rotation
+    fix reserves) instead of clipping/scrolling it — which is exactly what
+    made every chart render far taller than intended. Giving this box the
+    same fixed height already handed to ``rx.plotly`` below closes that
+    loophole: it cannot grow past it regardless of what Plotly's own
+    layout wants, and the export-button row stays outside it, in the
+    outer box, so it's never at risk of being clipped along with any
+    actual overflow.
+    """
     return rx.box(
-        rx.plotly(data=figure, config=PLOTLY_CONFIG, width="100%", height=height),
+        rx.box(
+            rx.plotly(data=figure, config=PLOTLY_CONFIG, width="100%",
+                     height=height),
+            height=height,
+            overflow_x="auto",
+            style={"WebkitOverflowScrolling": "touch", "touchAction": "pan-x"},
+        ),
         rx.hstack(
             rx.spacer(),
             chart_export_button(wrap_id, filename),
