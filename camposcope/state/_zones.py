@@ -71,8 +71,17 @@ class ZonesMixin(rx.State, mixin=True):
             return
 
         self.zones_error = ""
+        # Zone labels are not threaded through AppState.tr — see
+        # translations/__init__.py's own docstring (§3: "known gap, not an
+        # oversight", the coupling cost of threading `lang` through the
+        # zone-building service was judged not worth it for one word). This
+        # kind-based switch stays inside that same boundary: a second plain
+        # PT literal, not a step toward full i18n here.
+        kind = getattr(self, "imovel", {}).get("kind", "imovel")
+        label = "Área de referência" if kind == "square" else "Imóvel"
         try:
-            built = zones_svc.build_zones(geojson, radii_m=self.ring_radii_m)
+            built = zones_svc.build_zones(
+                geojson, radii_m=self.ring_radii_m, property_label=label)
         except Exception as exc:                       # a self-declared polygon
             logger.exception("zone construction failed")
             self.zones_error = get_translations(getattr(self, "lang", "pt"))[

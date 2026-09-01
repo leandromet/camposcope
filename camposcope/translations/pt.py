@@ -12,6 +12,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     # --- header --------------------------------------------------------- #
     "app_name": "Camposcope - Earth Engine para o CAR",
     "go_to_canada": "Canadá",
+    "start_hint": "Clique em algum local do Brasil para começar",
 
     # --- search panel (components/search.py) ---------------------------- #
     "search_title": "Busca",
@@ -59,8 +60,23 @@ TRANSLATIONS_PT: dict[str, str] = {
     "cadastro_atualizado_em": "Atualizado em",
     "cadastro_nao_informada": "não informada",
     "cadastro_sobreposicoes": "Sobreposições com outros registros",
+    "cadastro_details_toggle": "Detalhes do cadastro",
     "zonas_title": "Zonas",
     "zonas_note": "Anéis medidos a partir do limite do imóvel, não do centroide.",
+
+    # --- synthetic 500 ha fallback card (components/cadastro.py) -------- #
+    "square_title": "Área de análise",
+    "square_note": (
+        "Nenhum registro CAR neste ponto — este é um quadrado sintético de "
+        "500 ha centrado onde você clicou, para que as abas de cobertura, "
+        "floresta, biomassa e fogo ainda tenham algo para analisar."
+    ),
+    "square_coordinate": "Ponto central",
+    "square_disclosure": (
+        "Este limite não é um registro do CAR nem de espécie alguma — é um "
+        "quadrado de tamanho fixo desenhado ao redor de uma coordenada, "
+        "para manter a análise possível mesmo sem cadastro."
+    ),
 
     # --- results: shared (components/results.py) ------------------------ #
     "calcular": "Calcular",
@@ -70,12 +86,39 @@ TRANSLATIONS_PT: dict[str, str] = {
         "mapa para ligar/desligar ou trocar o ano."
     ),
     "tab_cobertura": "Cobertura",
+    "tab_cobertura_hint": (
+        "Histórico de uso e cobertura da terra, 1985–2024, por classe "
+        "MapBiomas — a mesma série do gráfico principal."
+    ),
     "tab_transicoes": "Transições",
+    "tab_transicoes_hint": (
+        "Para onde uma classe foi entre dois anos escolhidos — o que virou "
+        "pasto, o que regenerou, etc."
+    ),
     "tab_floresta": "Floresta",
+    "tab_floresta_hint": (
+        "Perda de floresta (Hansen), dividida em três períodos relativos a "
+        "2008 e ao registro do CAR do imóvel."
+    ),
     "tab_biomassa": "Biomassa",
+    "tab_biomassa_hint": (
+        "Biomassa acima do solo (ESA CCI) ao longo do tempo, para a área "
+        "selecionada."
+    ),
     "tab_paisagem": "Paisagem",
+    "tab_paisagem_hint": (
+        "Métricas de fragmentação da vegetação natural — número de "
+        "manchas, borda, tamanho efetivo de malha — para o imóvel e suas "
+        "zonas."
+    ),
     "tab_fogo": "Fogo",
+    "tab_fogo_hint": "Histórico de cicatrizes de queimadas na área selecionada.",
     "tab_validacao": "Validação",
+    "tab_validacao_hint": (
+        "Confronta a classificação do MapBiomas com imagens SPOT 2008 ou "
+        "com o mapa de vegetação do IBGE, para checar a classificação em "
+        "2008."
+    ),
 
     # --- Cobertura tab ---------------------------------------------------- #
     "cobertura_ano": "Ano",
@@ -256,6 +299,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "sidebar_hide_aria": "Esconder painel",
     "sidebar_show_aria": "Mostrar painel",
     "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
+    "mobile_options_toggle": "Opções de busca",
 
     # --- runtime errors (state/*.py — set from background event handlers,
     # not JSX, so they read through get_translations() directly rather
@@ -263,7 +307,6 @@ TRANSLATIONS_PT: dict[str, str] = {
     "erro_fora_brasil": (
         "Este ponto está fora do território brasileiro coberto pelo CAR."
     ),
-    "erro_sem_imovel_ponto": "Nenhum imóvel registrado no CAR neste ponto ({uf}).",
     "erro_lugar_nao_encontrado": (
         "Nenhum lugar encontrado para “{query}”. Tente um "
         "município, uma coordenada ou um código CAR."

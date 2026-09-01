@@ -22,14 +22,22 @@ from .layout import BORDER, MUTED, section
 
 
 def _row(label, value, *, mono: bool = False, emphasis: bool = False) -> rx.Component:
+    """A label/value line. See the Brazil page's own ``cadastro.py::_row``
+    for why both cells need ``overflow_wrap="anywhere"`` and ``min_width=
+    "0"``: a fabric id / PID can run long enough, with no natural break
+    point, to force this row wider than its container on a narrow phone
+    instead of wrapping."""
     return rx.hstack(
-        rx.text(label, size="1", color=MUTED, flex_shrink="0"),
+        rx.text(label, size="1", color=MUTED, flex="0 1 auto", min_width="0",
+                style={"overflowWrap": "anywhere"}),
         rx.spacer(),
         rx.text(
             value, size="1",
             weight=rx.cond(emphasis, "bold", "regular"),
             font_family=rx.cond(mono, "monospace", "inherit"),
             text_align="right",
+            flex="1 1 auto", min_width="0",
+            style={"overflowWrap": "anywhere"},
         ),
         width="100%", align="start", spacing="2",
     )
@@ -117,38 +125,81 @@ def _neighbours() -> rx.Component:
 
 
 def _parcel_details_card() -> rx.Component:
+    """A real ParcelMap BC record. The identifier row and the disclosure box
+    stay outside the accordion below as the always-visible summary — same
+    split the Brazil page's own ``cadastro.py::_imovel_details_card`` uses,
+    for the same reason: the identifier is what someone scans for, and the
+    disclosure is permanent (constraint C4's Canada-side counterpart). The
+    dense field dump in between goes in one accordion, mirroring
+    naturametrics' own IFN-filters accordion — open by default, since this
+    is the literal payload of the click just made, not an optional
+    refinement."""
     return section(
         S.tr["parcel_title"],
         _row(S.tr["parcel_identifier"], S.parcel["identifier"], mono=True),
-        _coordinate_row(),
-        rx.cond(
-            S.parcel["municipality"] != "Rural",
-            _row(S.tr["parcel_municipality"], S.parcel["municipality"]),
-            _row(S.tr["parcel_regional_district"],
-                 S.parcel["regional_district"]),
+        rx.accordion.root(
+            rx.accordion.item(
+                rx.accordion.header(
+                    rx.accordion.trigger(
+                        rx.hstack(
+                            rx.icon("list", size=13),
+                            rx.text(S.tr["parcel_details_toggle"], size="1",
+                                   weight="medium"),
+                            spacing="2", align="center",
+                        ),
+                    ),
+                ),
+                rx.accordion.content(
+                    rx.vstack(
+                        _coordinate_row(),
+                        rx.cond(
+                            S.parcel["municipality"] != "Rural",
+                            _row(S.tr["parcel_municipality"],
+                                 S.parcel["municipality"]),
+                            _row(S.tr["parcel_regional_district"],
+                                 S.parcel["regional_district"]),
+                        ),
+                        _area_block(),
+                        _row(S.tr["parcel_class"], S.parcel["parcel_class"]),
+                        _row(S.tr["parcel_status"], S.parcel["parcel_status"]),
+                        _row(S.tr["parcel_owner_type"], S.parcel["owner_type"]),
+                        rx.cond(
+                            S.parcel["plan_number"],
+                            _row(S.tr["parcel_plan_number"],
+                                 S.parcel["plan_number"], mono=True),
+                        ),
+                        _row(
+                            S.tr["parcel_start_date"],
+                            rx.cond(S.parcel["parcel_start_date"],
+                                   S.parcel["parcel_start_date"],
+                                   S.tr["parcel_start_date_none"]),
+                        ),
+                        _row(
+                            S.tr["parcel_updated"],
+                            rx.cond(S.parcel["when_updated"],
+                                   S.parcel["when_updated"],
+                                   S.tr["parcel_not_reported"]),
+                        ),
+                        _non_land_note(),
+                        _neighbours(),
+                        spacing="2", width="100%", padding_top="0.25rem",
+                    ),
+                    # See the Brazil page's own ``cadastro.py::
+                    # _imovel_details_card`` for why this needs
+                    # `padding_x="0"` — Radix's AccordionContent otherwise
+                    # bakes in its own 16px, stacking on top of the
+                    # sidebar's own and squeezing everything inward.
+                    padding_x="0",
+                ),
+                value="details",
+            ),
+            type="single", collapsible=True, variant="ghost", width="100%",
+            # `default_value`, not `value` — see the Brazil page's own
+            # `cadastro.py::_imovel_details_card` for why `value` here would
+            # make this accordion controlled-but-never-updated, i.e. stuck
+            # open and unable to respond to clicks.
+            default_value="details",
         ),
-        _area_block(),
-        _row(S.tr["parcel_class"], S.parcel["parcel_class"]),
-        _row(S.tr["parcel_status"], S.parcel["parcel_status"]),
-        _row(S.tr["parcel_owner_type"], S.parcel["owner_type"]),
-        rx.cond(
-            S.parcel["plan_number"],
-            _row(S.tr["parcel_plan_number"], S.parcel["plan_number"],
-                 mono=True),
-        ),
-        _row(
-            S.tr["parcel_start_date"],
-            rx.cond(S.parcel["parcel_start_date"],
-                   S.parcel["parcel_start_date"],
-                   S.tr["parcel_start_date_none"]),
-        ),
-        _row(
-            S.tr["parcel_updated"],
-            rx.cond(S.parcel["when_updated"], S.parcel["when_updated"],
-                   S.tr["parcel_not_reported"]),
-        ),
-        _non_land_note(),
-        _neighbours(),
         _disclosure_box(S.disclosure),
     )
 
@@ -241,6 +292,6 @@ def zones_panel() -> rx.Component:
                     width="100%",
                 ),
             ),
-            rx.text(S.tr["zones_note"], size="1", color=MUTED),
+            info=S.tr["zones_note"],
         ),
     )

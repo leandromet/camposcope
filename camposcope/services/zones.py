@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from pyproj import CRS, Transformer
-from shapely.geometry import mapping, shape
+from shapely.geometry import box, mapping, shape, Point
 from shapely.ops import transform as shapely_transform
 
 from ..config.settings import (
@@ -91,6 +91,39 @@ def _transformer(src: CRS, dst: CRS) -> Transformer:
 
 def _reproject(geom, src: CRS, dst: CRS):
     return shapely_transform(_transformer(src, dst).transform, geom)
+
+
+def synthetic_square_geojson(lat: float, lon: float,
+                             area_ha: float = 500.0) -> Dict[str, Any]:
+    """A square of exactly ``area_ha``, centred on ``(lat, lon)``, north-aligned.
+
+    The fallback analysis area for a click that lands on no CAR registration
+    — ported from the Canada page's own version of this function
+    (``canada/services/zones.py``), which exists for the same reason there:
+    Crown land with no parcel. Here it is a click inside Brazil where SICAR
+    has nothing registered. Rather than refuse the click (there is real
+    land-cover, forest and biomass signal to show, the same as everywhere
+    else) or invent a boundary that looks authoritative, this hands back an
+    explicitly synthetic square: round in area, obviously not a legal
+    registration, centred exactly where the user clicked.
+
+    Built in the point's own local UTM zone so "500 ha" means 500 ha there —
+    same reasoning ``build_zones`` applies to buffering, and the same zone
+    lookup it uses. North-aligned rather than rotated to any real boundary,
+    because there is no boundary here to align to.
+    """
+    side_m = (area_ha * 10_000.0) ** 0.5
+    half = side_m / 2.0
+
+    utm = _utm_crs_for(lon, lat)
+    to_utm = _transformer(WGS84, utm).transform
+    to_wgs = _transformer(utm, WGS84).transform
+
+    center_utm = shapely_transform(to_utm, Point(lon, lat))
+    cx, cy = center_utm.x, center_utm.y
+    square_utm = box(cx - half, cy - half, cx + half, cy + half)
+    square_wgs = shapely_transform(to_wgs, square_utm)
+    return mapping(square_wgs)
 
 
 def area_ha(geojson: Dict[str, Any]) -> float:
@@ -261,4 +294,5 @@ def overlap_areas(
 __all__ = [
     "Zone", "AreaCheck",
     "build_zones", "area_ha", "check_area", "overlap_areas",
+    "synthetic_square_geojson",
 ]

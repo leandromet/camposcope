@@ -124,7 +124,8 @@ def candidate_chooser() -> rx.Component:
             rx.foreach(
                 S.candidates,
                 lambda c: _result_row(
-                    rx.text(c["identifier"], size="1", font_family="monospace"),
+                    rx.text(c["identifier"], size="1", font_family="monospace",
+                           style={"overflowWrap": "anywhere"}),
                     rx.hstack(
                         rx.text(f"{c['area_registered_ha']} ha", size="1",
                                weight="bold"),

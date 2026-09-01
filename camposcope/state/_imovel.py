@@ -57,7 +57,17 @@ class ImovelMixin(rx.State, mixin=True):
 
     @rx.var
     def has_imovel(self) -> bool:
-        return bool(self.imovel.get("cod_imovel"))
+        """Whether *any* analysis area is selected — a real CAR record or a
+        synthetic 500 ha square (``_adopt_square``, decision mirrored from
+        the Canada page's ``has_parcel``). Kept the same name every existing
+        call site already reads (``results_panel()``, ``cadastral_card()``,
+        exports, the map legend, ``mint_analysis_layer``) rather than
+        renamed to something like ``has_analysis_area`` — every one of them
+        means "is there something to analyse", true for a square too.
+        Checks the whole dict rather than ``cod_imovel`` specifically, since
+        the square tier leaves that field blank (no real code exists) but
+        still populates every other key — see ``_adopt_square``."""
+        return bool(self.imovel)
 
     @rx.var(cache=True, deps=["lang"], auto_deps=False)
     def disclosure(self) -> str:
@@ -158,30 +168,33 @@ class ImovelMixin(rx.State, mixin=True):
             return
 
         single_match = len(found) == 1
+        if found and not single_match:
+            # More than one registration covers this point. Present them
+            # all; never take the first (decision D7).
+            async with self:
+                self.searching = False
+                self.candidates = [self._summary(i) for i in found]
+            return
+
         async with self:
             self.searching = False
-            if not found:
-                self.sicar_error = get_translations(self.lang)[
-                    "erro_sem_imovel_ponto"
-                ].format(uf=uf)
-            elif single_match:
+            if single_match:
                 self._adopt(found[0])
             else:
-                # More than one registration covers this point. Present them
-                # all; never take the first (decision D7).
-                self.candidates = [self._summary(i) for i in found]
+                # Nothing registered here — fall through to the synthetic
+                # square tier rather than surfacing an error; see
+                # `_adopt_square`'s own docstring.
+                self._adopt_square(lat, lon)
 
-        if single_match:
-            # Expands the mobile sheet from its default "half" toward a view
-            # of the freshly-adopted property, mirroring the map-app
-            # convention of a selection opening its own detail sheet rather
-            # than leaving the user to notice and drag it up themselves. A
-            # no-op on desktop and a no-op if the sheet is already open
-            # wider than "half" — see
-            # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
-            return [self.__class__.run_history, self.__class__.mint_analysis_layer,
-                   rx.call_script(
-                       "window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
+        # Expands the mobile sheet from its default "half" toward a view of
+        # the freshly-adopted area, mirroring the map-app convention of a
+        # selection opening its own detail sheet rather than leaving the
+        # user to notice and drag it up themselves. A no-op on desktop and a
+        # no-op if the sheet is already open wider than "half" — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        return [self.__class__.run_history, self.__class__.mint_analysis_layer,
+               rx.call_script(
+                   "window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
 
     @rx.event(background=True)
     async def choose_candidate(self, cod_imovel: str):
@@ -303,6 +316,7 @@ class ImovelMixin(rx.State, mixin=True):
         no ``ee.Geometry`` ever reaches state.
         """
         self.imovel = {
+            "kind": "imovel",
             "cod_imovel": record.cod_imovel,
             "uf": record.uf,
             "municipio": record.municipio,
@@ -316,6 +330,7 @@ class ImovelMixin(rx.State, mixin=True):
             "data_atualizacao": record.data_atualizacao or "",
             "ano_criacao": record.ano_criacao or 0,
             "queried_at": record.queried_at,
+            "coordinates": "",
         }
         self.imovel_geojson = record.geometry or {}
         self.build_zones()          # provided by ZonesMixin
@@ -323,5 +338,40 @@ class ImovelMixin(rx.State, mixin=True):
         # is the one sanctioned viewport move (LayersMixin.frame_geometry).
         # Constraint C1 forbids the map moving for a layer toggle or a year
         # change — not for this.
+        self.frame_geometry(self.imovel_geojson)
+        self.active_zone = "imovel"
+
+    def _adopt_square(self, lat: float, lon: float) -> None:
+        """The floor tier: a synthetic 500 ha square, never fetched from
+        anywhere and never failing — the Brazil-page counterpart of the
+        Canada page's own ``_adopt_square`` (``canada/state/_parcel.py``).
+        A click with no CAR registration underneath it still has real
+        land-cover, forest and biomass signal to show, so this is what
+        ``select_at_point`` falls through to instead of surfacing an error.
+        ``cod_imovel`` stays blank — there is no register behind this, and
+        the card says so explicitly (``components/cadastro.py::
+        _square_card``)."""
+        from ..services.zones import synthetic_square_geojson
+
+        geojson = synthetic_square_geojson(lat, lon, area_ha=500.0)
+        self.imovel = {
+            "kind": "square",
+            "cod_imovel": "",
+            "uf": "",
+            "municipio": "",
+            "cod_municipio_ibge": "",
+            "area_declarada_ha": 500.0,
+            "m_fiscal": 0,
+            "tipo_imovel": "",
+            "status_imovel": "",
+            "condicao": "",
+            "dat_criacao": "",
+            "data_atualizacao": "",
+            "ano_criacao": 0,
+            "queried_at": "",
+            "coordinates": f"{lat:.4f}, {lon:.4f}",
+        }
+        self.imovel_geojson = geojson
+        self.build_zones()
         self.frame_geometry(self.imovel_geojson)
         self.active_zone = "imovel"

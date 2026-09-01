@@ -15,12 +15,14 @@ TRANSLATIONS_PT: dict[str, str] = {
         "ParcelMap BC",
     "go_to_brazil": "Brasil",
     "language_label": "Idioma",
+    "start_hint": "Clique em algum lugar do Canadá para começar",
     "nav_toggle_layers_aria": "Mostrar camadas",
     "drawer_title": "Camadas",
     "drawer_close_aria": "Fechar",
     "sidebar_show_aria": "Mostrar painel lateral",
     "sidebar_hide_aria": "Ocultar painel lateral",
     "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
+    "mobile_options_toggle": "Opções de busca",
     "close_button": "Fechar",
     "calcular": "Calcular",
     "calculando": "Calculando…",
@@ -52,6 +54,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     # --- parcel card -------------------------------------------------------- #
     "parcel_title": "Parcela",
     "parcel_identifier": "Identificador",
+    "parcel_details_toggle": "Detalhes do registro",
     "parcel_area_registered": "Área registrada",
     "parcel_area_calculated": "Área calculada (geometria)",
     "parcel_area_disagreement_prefix": "A área registrada e a área da "

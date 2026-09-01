@@ -5,7 +5,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ..components.cadastro import cadastral_card, zones_panel
-from ..components.layout import ACCENT, BORDER, MUTED, header, section
+from ..components.layout import ACCENT, BORDER, MUTED, _info_icon, header, section
 from ..components.map.leaflet_map import leaflet_map
 from ..components.map_legend import map_legend
 from ..components.results import results_panel
@@ -51,12 +51,32 @@ _SHEET_SCRIPT = """
   window._csSheetInit = true;
 
   var dragging = false, pointerId = null, startY = 0, startHeight = 0;
-  var drawerEl = null, snapMode = 'free';
+  var drawerEl = null, snapMode = 'free', movedFar = false;
+  // How far a pointer has to travel before this counts as a drag rather
+  // than a tap — real device touch reported here: dragging worked fine
+  // with a mouse in a desktop mobile-emulator, but not with an actual
+  // finger on a phone (touch pointer events fire less reliable/consistent
+  // `pointermove` sequences than a mouse does on some Android browsers),
+  // so a plain tap is now the primary, reliable way to open/close the
+  // mobile SHEET specifically — see `tapTarget()`/the `end()` handler
+  // below. The desktop results drawer (`snapMode === 'free'`) is
+  // untouched: mouse dragging already works fine there, and free-drag has
+  // no fixed "30%/70%" targets to toggle between.
+  var TAP_SLOP_PX = 6;
 
   function snapPoints() {
     // peek / half / full — see components/layout.py's docstring for why
     // these three and not a free-form height on the mobile sheet.
     return [80, window.innerHeight * 0.45, window.innerHeight * 0.75];
+  }
+
+  // The two-state toggle a plain tap on the mobile sheet moves between:
+  // 30% / 70% of the viewport, whichever is on the other side of "roughly
+  // expanded" from where the sheet is right now (so tapping from peek —
+  // well under both — opens to 70%, and tapping again collapses to 30%).
+  function tapTarget(height) {
+    var lo = window.innerHeight * 0.30, hi = window.innerHeight * 0.70;
+    return height > (lo + hi) / 2 ? lo : hi;
   }
 
   function nearest(height, points) {
@@ -115,6 +135,7 @@ _SHEET_SCRIPT = """
     if (!drawerEl) return;
     snapMode = handle.getAttribute('data-snap') || 'free';
     dragging = true;
+    movedFar = false;
     pointerId = e.pointerId;
     startY = e.clientY;
     startHeight = drawerEl.offsetHeight;
@@ -125,6 +146,7 @@ _SHEET_SCRIPT = """
   document.addEventListener('pointermove', function (e) {
     if (!dragging || e.pointerId !== pointerId || !drawerEl) return;
     var delta = startY - e.clientY;
+    if (Math.abs(delta) > TAP_SLOP_PX) movedFar = true;
     // Capped at 3/4 of the viewport, not more: past that the map itself
     // stops being useful as a map, and the whole point of a drawer/sheet
     // (over a separate results page) is that the map stays visible
@@ -147,7 +169,14 @@ _SHEET_SCRIPT = """
     dragging = false;
     document.body.style.userSelect = '';
     if (snapMode === 'snap') {
-      settle(drawerEl, nearest(drawerEl.offsetHeight, snapPoints()));
+      // A plain tap (no meaningful movement): jump straight to whichever
+      // of the 30%/70% targets isn't roughly where the sheet already is,
+      // rather than the drag path's "snap to whichever of the 3 points is
+      // nearest to wherever the finger let go" — there's nothing to be
+      // "nearest to" when nothing was dragged.
+      settle(drawerEl, movedFar
+        ? nearest(drawerEl.offsetHeight, snapPoints())
+        : tapTarget(startHeight));
     }
     drawerEl = null;
   }
@@ -229,6 +258,29 @@ def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
     )
 
 
+def _start_hint() -> rx.Component:
+    """A first-visit nudge over the empty map — gone the instant anything is
+    selected (``AppState.has_imovel``, true for a real CAR record or the
+    500 ha fallback square alike, see ``state/_imovel.py``). Deliberately
+    ``pointer_events="none"``: it never needs a dismiss button or risks
+    intercepting the very click it is asking for."""
+    return rx.cond(
+        ~AppState.has_imovel,
+        rx.box(
+            rx.text(AppState.tr["start_hint"], size="2", weight="medium",
+                    color="white"),
+            position="absolute", top="16px", left="50%",
+            transform="translateX(-50%)",
+            background=f"var(--{ACCENT}-9)", padding="8px 16px",
+            border_radius="var(--radius-4)",
+            box_shadow="0 2px 8px rgba(0,0,0,.25)",
+            z_index="950",
+            pointer_events="none",
+            white_space="nowrap",
+        ),
+    )
+
+
 def _layers_panel() -> rx.Component:
     return section(
         AppState.tr["layers_title"],
@@ -258,16 +310,16 @@ def _layers_panel() -> rx.Component:
             rx.switch(checked=AppState.show_car_layer,
                       on_change=AppState.toggle_car_layer, size="1"),
             rx.text(AppState.tr["layers_car_wms"], size="1"),
+            _info_icon(AppState.tr["layers_car_wms_note"]),
             spacing="2", align="center",
         ),
-        rx.text(AppState.tr["layers_car_wms_note"], size="1", color=MUTED),
         rx.hstack(
             rx.switch(checked=AppState.show_biomes,
                       on_change=AppState.toggle_biomes, size="1"),
             rx.text(AppState.tr["layers_biomes"], size="1"),
+            _info_icon(AppState.tr["layers_biomes_note"]),
             spacing="2", align="center",
         ),
-        rx.text(AppState.tr["layers_biomes_note"], size="1", color=MUTED),
     )
 
 
@@ -311,6 +363,18 @@ def _sidebar() -> rx.Component:
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
             id="desktop-sidebar",
+            # Every control in this panel uses text size="1"/"2"/"3" (Radix's
+            # --font-size-N tokens) — redefining them here, once, at the
+            # panel root, shrinks every one of them by 3px (~2.25pt) without
+            # touching each individual rx.text call, and stays correct if
+            # the app's theme scaling ever changes since it's relative to
+            # the inherited value, not a hard-coded px number. Ported from
+            # naturametrics' same fix to its layer_panel().
+            style={
+                "--font-size-1": "calc(var(--font-size-1) - 3px)",
+                "--font-size-2": "calc(var(--font-size-2) - 3px)",
+                "--font-size-3": "calc(var(--font-size-3) - 3px)",
+            },
         ),
         # A coloured tab, not the small grey icon_button this used to be —
         # measured against the same complaint the mobile sheet's old plain
@@ -364,13 +428,60 @@ def _mobile_sheet() -> rx.Component:
         _drag_handle(drawer_id="mobile-sheet", handle_id="mobile-sheet-handle",
                     snap=True),
         rx.box(
-            search_panel(),
-            cadastral_card(),
-            municipio_browser(),
-            zones_panel(),
-            _layers_panel(),
+            # Search, the cadastral card, the município browser, zones and
+            # the layers panel all go in one collapsible accordion — on a
+            # phone, with the sheet at "half" (its own default height),
+            # scrolling past that whole stack just to reach the results tabs
+            # was the actual complaint: everything the map already told you
+            # (a property or square is selected) stayed on screen, pushing
+            # the charts further down every time. One tap collapses it all
+            # at once; open by default so nothing changes for a first visit.
+            rx.accordion.root(
+                rx.accordion.item(
+                    rx.accordion.header(
+                        rx.accordion.trigger(
+                            rx.hstack(
+                                rx.icon("sliders-horizontal", size=13),
+                                rx.text(AppState.tr["mobile_options_toggle"],
+                                       size="1", weight="medium"),
+                                spacing="2", align="center",
+                            ),
+                        ),
+                    ),
+                    rx.accordion.content(
+                        rx.vstack(
+                            search_panel(),
+                            cadastral_card(),
+                            municipio_browser(),
+                            zones_panel(),
+                            _layers_panel(),
+                            spacing="2", width="100%",
+                        ),
+                        # See `components/cadastro.py::_imovel_details_card`
+                        # for why this needs `padding_x="0"` — Radix's
+                        # AccordionContent otherwise bakes in its own 16px on
+                        # top of this box's own `padding_x="4"`, squeezing
+                        # everything inward instead of sitting flush with it.
+                        padding_x="0",
+                    ),
+                    value="options",
+                ),
+                type="single", collapsible=True, variant="ghost", width="100%",
+                # `default_value`, not `value` — see `components/cadastro.py::
+                # _imovel_details_card` for why `value` here would make this
+                # accordion controlled-but-never-updated, i.e. stuck open and
+                # unable to respond to clicks.
+                default_value="options",
+            ),
             results_panel(),
             padding_x="4", overflow_y="auto", flex="1", min_height="0",
+            # Same font-size shrink as the desktop sidebar/results-drawer —
+            # see the comment there.
+            style={
+                "--font-size-1": "calc(var(--font-size-1) - 3px)",
+                "--font-size-2": "calc(var(--font-size-2) - 3px)",
+                "--font-size-3": "calc(var(--font-size-3) - 3px)",
+            },
         ),
         id="mobile-sheet",
         display=["flex", "flex", "none", "none"],
@@ -428,6 +539,7 @@ def _map() -> rx.Component:
             height="100%",
         ),
         map_legend(),
+        _start_hint(),
         rx.box(
             _drag_handle(drawer_id="results-drawer",
                         handle_id="results-drag-handle", snap=False),
@@ -447,6 +559,15 @@ def _map() -> rx.Component:
             # exactly the bug this value fixes. The legend sits at 900, so the
             # drawer stays above it too.
             z_index="1000",
+            # Same font-size shrink as the desktop sidebar — see the comment
+            # there. Deliberately scoped to this box, not map_legend() above
+            # (an on-map overlay, not "the sidebar"), same distinction
+            # naturametrics' own layer_panel()-only fix drew.
+            style={
+                "--font-size-1": "calc(var(--font-size-1) - 3px)",
+                "--font-size-2": "calc(var(--font-size-2) - 3px)",
+                "--font-size-3": "calc(var(--font-size-3) - 3px)",
+            },
         ),
         _mobile_sheet(),
         flex="1",

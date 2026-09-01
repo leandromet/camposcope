@@ -10,6 +10,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     # --- header --------------------------------------------------------- #
     "app_name": "Camposcope - Earth Engine for the CAR",
     "go_to_canada": "Canada",
+    "start_hint": "Click anywhere in Brazil to start",
 
     # --- search panel ----------------------------------------------------- #
     "search_title": "Search",
@@ -56,8 +57,23 @@ TRANSLATIONS_EN: dict[str, str] = {
     "cadastro_atualizado_em": "Updated on",
     "cadastro_nao_informada": "not informed",
     "cadastro_sobreposicoes": "Overlaps with other registrations",
+    "cadastro_details_toggle": "Registration details",
     "zonas_title": "Zones",
     "zonas_note": "Rings measured outward from the property's boundary, not from a centroid.",
+
+    # --- synthetic 500 ha fallback card -------------------------------- #
+    "square_title": "Analysis area",
+    "square_note": (
+        "No CAR registration at this point — this is a synthetic 500 ha "
+        "square centred on where you clicked, so the land-cover, forest, "
+        "biomass and fire tabs still have something to analyse."
+    ),
+    "square_coordinate": "Centre point",
+    "square_disclosure": (
+        "This boundary is not a CAR record or any kind of official record "
+        "— it is a fixed-size square drawn around a coordinate, so analysis "
+        "stays possible even with no registration."
+    ),
 
     # --- results: shared --------------------------------------------------- #
     "calcular": "Calculate",
@@ -67,12 +83,36 @@ TRANSLATIONS_EN: dict[str, str] = {
         "map's corner to turn it on/off or change the year."
     ),
     "tab_cobertura": "Cover",
+    "tab_cobertura_hint": (
+        "Land-use and land-cover history, 1985–2024, by MapBiomas class — "
+        "the same series as the main chart."
+    ),
     "tab_transicoes": "Transitions",
+    "tab_transicoes_hint": (
+        "Where one class went between two chosen years — what turned to "
+        "pasture, what regrew, and so on."
+    ),
     "tab_floresta": "Forest",
+    "tab_floresta_hint": (
+        "Forest loss (Hansen), split into three periods relative to 2008 "
+        "and the property's own CAR registration date."
+    ),
     "tab_biomassa": "Biomass",
+    "tab_biomassa_hint": (
+        "Above-ground biomass (ESA CCI) over time, for the selected area."
+    ),
     "tab_paisagem": "Landscape",
+    "tab_paisagem_hint": (
+        "Fragmentation metrics for the natural vegetation — patch count, "
+        "edge, effective mesh size — for the property and its zones."
+    ),
     "tab_fogo": "Fire",
+    "tab_fogo_hint": "Fire scar history for the selected area.",
     "tab_validacao": "Validation",
+    "tab_validacao_hint": (
+        "Checks MapBiomas' classification against SPOT 2008 imagery or "
+        "IBGE's vegetation map, to spot-check the 2008 classification."
+    ),
 
     # --- Cover tab ------------------------------------------------------- #
     "cobertura_ano": "Year",
@@ -238,12 +278,12 @@ TRANSLATIONS_EN: dict[str, str] = {
     "sidebar_hide_aria": "Hide panel",
     "sidebar_show_aria": "Show panel",
     "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
+    "mobile_options_toggle": "Search options",
 
     # --- runtime errors --------------------------------------------------- #
     "erro_fora_brasil": (
         "This point is outside the Brazilian territory covered by CAR."
     ),
-    "erro_sem_imovel_ponto": "No property registered in CAR at this point ({uf}).",
     "erro_lugar_nao_encontrado": (
         "No place found for “{query}”. Try a município, a "
         "coordinate, or a CAR code."

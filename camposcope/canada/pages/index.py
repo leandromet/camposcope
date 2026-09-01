@@ -6,7 +6,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ...components.map.leaflet_map import leaflet_map
-from ..components.layout import ACCENT, BORDER, MUTED, header
+from ..components.layout import ACCENT, BORDER, _info_icon, header
 from ..components.map_legend import map_legend
 from ..components.parcel_card import parcel_card, zones_panel
 from ..components.results import results_panel
@@ -26,10 +26,22 @@ _SHEET_SCRIPT = """
   window._caSheetInit = true;
 
   var dragging = false, pointerId = null, startY = 0, startHeight = 0;
-  var drawerEl = null, snapMode = 'free';
+  var drawerEl = null, snapMode = 'free', movedFar = false;
+  // See the Brazil page's own `_SHEET_SCRIPT` for the full rationale: real
+  // device touch reported dragging not working reliably on a phone even
+  // though it worked fine with a mouse in a desktop emulator, so a plain
+  // tap (no meaningful pointer movement) is now the primary way to toggle
+  // the mobile sheet between 30%/70% — see `tapTarget()`/`end()` below.
+  // The desktop results drawer (`snapMode === 'free'`) is untouched.
+  var TAP_SLOP_PX = 6;
 
   function snapPoints() {
     return [80, window.innerHeight * 0.45, window.innerHeight * 0.75];
+  }
+
+  function tapTarget(height) {
+    var lo = window.innerHeight * 0.30, hi = window.innerHeight * 0.70;
+    return height > (lo + hi) / 2 ? lo : hi;
   }
 
   function nearest(height, points) {
@@ -77,6 +89,7 @@ _SHEET_SCRIPT = """
     if (!drawerEl) return;
     snapMode = handle.getAttribute('data-snap') || 'free';
     dragging = true;
+    movedFar = false;
     pointerId = e.pointerId;
     startY = e.clientY;
     startHeight = drawerEl.offsetHeight;
@@ -87,6 +100,7 @@ _SHEET_SCRIPT = """
   document.addEventListener('pointermove', function (e) {
     if (!dragging || e.pointerId !== pointerId || !drawerEl) return;
     var delta = startY - e.clientY;
+    if (Math.abs(delta) > TAP_SLOP_PX) movedFar = true;
     var next = Math.min(window.innerHeight * 0.75, Math.max(80, startHeight + delta));
     drawerEl.style.height = next + 'px';
     drawerEl.style.maxHeight = next + 'px';
@@ -98,7 +112,9 @@ _SHEET_SCRIPT = """
     dragging = false;
     document.body.style.userSelect = '';
     if (snapMode === 'snap') {
-      settle(drawerEl, nearest(drawerEl.offsetHeight, snapPoints()));
+      settle(drawerEl, movedFar
+        ? nearest(drawerEl.offsetHeight, snapPoints())
+        : tapTarget(startHeight));
     }
     drawerEl = null;
   }
@@ -166,6 +182,28 @@ def _drag_handle(*, drawer_id: str, handle_id: str, snap: bool) -> rx.Component:
     )
 
 
+def _start_hint() -> rx.Component:
+    """A first-visit nudge over the empty map — see the Brazil page's own
+    ``pages/index.py::_start_hint`` for the full rationale. Gone the instant
+    anything is selected (``S.has_parcel`` — a real parcel, a protected
+    area, or the 500 ha fallback square, see ``state/_parcel.py``)."""
+    return rx.cond(
+        ~S.has_parcel,
+        rx.box(
+            rx.text(S.tr["start_hint"], size="2", weight="medium",
+                    color="white"),
+            position="absolute", top="16px", left="50%",
+            transform="translateX(-50%)",
+            background=f"var(--{ACCENT}-9)", padding="8px 16px",
+            border_radius="var(--radius-4)",
+            box_shadow="0 2px 8px rgba(0,0,0,.25)",
+            z_index="950",
+            pointer_events="none",
+            white_space="nowrap",
+        ),
+    )
+
+
 def _layers_panel() -> rx.Component:
     from ..components.layout import section
 
@@ -180,13 +218,14 @@ def _layers_panel() -> rx.Component:
             rx.switch(checked=S.show_parcel_layer,
                      on_change=S.toggle_parcel_layer, size="1"),
             rx.text(S.tr["layers_parcel_wms"], size="1"),
+            _info_icon(S.tr["layers_parcel_wms_note"]),
             spacing="2", align="center",
         ),
-        rx.text(S.tr["layers_parcel_wms_note"], size="1", color=MUTED),
         rx.hstack(
             rx.switch(checked=S.show_ecozones, on_change=S.toggle_ecozones,
                      size="1"),
             rx.text(S.tr["layers_ecozones"], size="1"),
+            _info_icon(S.tr["layers_ecozones_note"]),
             spacing="2", align="center",
         ),
         rx.cond(
@@ -202,7 +241,6 @@ def _layers_panel() -> rx.Component:
                 size="1", width="100%",
             ),
         ),
-        rx.text(S.tr["layers_ecozones_note"], size="1", color=MUTED),
     )
 
 
@@ -277,10 +315,43 @@ def _mobile_sheet() -> rx.Component:
         _drag_handle(drawer_id="ca-mobile-sheet",
                     handle_id="ca-mobile-sheet-handle", snap=True),
         rx.box(
-            search_panel(),
-            parcel_card(),
-            zones_panel(),
-            _layers_panel(),
+            # See the Brazil page's own `_mobile_sheet()` for the full
+            # rationale — same fix: search/parcel-card/zones/layers all
+            # collapse behind one accordion so reaching the results tabs on
+            # a phone doesn't mean scrolling past the whole stack first.
+            # Open by default, so nothing changes for a first visit.
+            rx.accordion.root(
+                rx.accordion.item(
+                    rx.accordion.header(
+                        rx.accordion.trigger(
+                            rx.hstack(
+                                rx.icon("sliders-horizontal", size=13),
+                                rx.text(S.tr["mobile_options_toggle"],
+                                       size="1", weight="medium"),
+                                spacing="2", align="center",
+                            ),
+                        ),
+                    ),
+                    rx.accordion.content(
+                        rx.vstack(
+                            search_panel(),
+                            parcel_card(),
+                            zones_panel(),
+                            _layers_panel(),
+                            spacing="2", width="100%",
+                        ),
+                        # See the Brazil page's own `pages/index.py::
+                        # _mobile_sheet` for why this needs `padding_x="0"`.
+                        padding_x="0",
+                    ),
+                    value="options",
+                ),
+                type="single", collapsible=True, variant="ghost", width="100%",
+                # `default_value`, not `value` — see the Brazil page's own
+                # `pages/index.py::_mobile_sheet` for why `value` here would
+                # make this accordion controlled-but-never-updated.
+                default_value="options",
+            ),
             results_panel(),
             padding_x="4", overflow_y="auto", flex="1", min_height="0",
         ),
@@ -314,6 +385,7 @@ def _map() -> rx.Component:
             width="100%", height="100%",
         ),
         map_legend(),
+        _start_hint(),
         rx.box(
             _drag_handle(drawer_id="ca-results-drawer",
                         handle_id="ca-results-drag-handle", snap=False),

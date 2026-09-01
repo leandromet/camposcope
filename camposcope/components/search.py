@@ -169,7 +169,8 @@ def candidate_chooser() -> rx.Component:
             rx.foreach(
                 AppState.candidates,
                 lambda c: _result_row(
-                    rx.text(c["cod_imovel"], size="1", font_family="monospace"),
+                    rx.text(c["cod_imovel"], size="1", font_family="monospace",
+                           style={"overflowWrap": "anywhere"}),
                     rx.hstack(
                         rx.text(f"{c['area_declarada_ha']} ha", size="1",
                                 weight="bold"),
@@ -203,7 +204,8 @@ def municipio_browser() -> rx.Component:
             rx.foreach(
                 AppState.municipio_list,
                 lambda c: _result_row(
-                    rx.text(c["cod_imovel"], size="1", font_family="monospace"),
+                    rx.text(c["cod_imovel"], size="1", font_family="monospace",
+                           style={"overflowWrap": "anywhere"}),
                     rx.hstack(
                         rx.text(f"{c['area_declarada_ha']} ha", size="1",
                                 weight="bold"),

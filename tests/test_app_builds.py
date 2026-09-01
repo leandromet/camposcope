@@ -76,17 +76,23 @@ def test_every_adopt_call_site_triggers_run_history():
     src = (pathlib.Path(__file__).resolve().parent.parent
            / "camposcope" / "state" / "_imovel.py").read_text(encoding="utf-8")
 
-    # One block per call site: from `self._adopt(` to the next blank-ish
-    # boundary (next `@rx.event` or end of a small window), so this stays
-    # robust to reordering without requiring an exact line-distance.
+    # One block per call site: from `self._adopt(` to the next `@rx.event`
+    # (the start of the next handler) or end of file — the rest of THIS
+    # handler, not a fixed character count, so a long explanatory comment
+    # between the call and its `run_history` trigger can't produce a false
+    # failure here (it did: this window used to be a flat 400 chars, and
+    # this file's own comments routinely run longer than that).
     adopt_positions = [m.start() for m in re.finditer(r"self\._adopt\(", src)]
     assert adopt_positions, "no self._adopt( call sites found — did _adopt get renamed?"
+    event_positions = [m.start() for m in re.finditer(r"@rx\.event", src)]
 
     for pos in adopt_positions:
-        window = src[pos:pos + 400]
+        later_events = [e for e in event_positions if e > pos]
+        end = min(later_events) if later_events else len(src)
+        window = src[pos:end]
         assert "run_history" in window, (
             f"a self._adopt(...) call near offset {pos} in _imovel.py has no "
-            "run_history trigger within 400 chars after it — the MapBiomas "
+            "run_history trigger before the next handler — the MapBiomas "
             "trajectory will never run for this path. Add "
             "`return self.__class__.run_history` after the `async with self:` "
             "block that calls _adopt."

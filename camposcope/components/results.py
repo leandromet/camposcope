@@ -514,19 +514,52 @@ def paisagem_tab() -> rx.Component:
     )
 
 
+def _tab_trigger_with_hint(label, value: str, hint) -> rx.Component:
+    """A tabs.trigger with a small info icon carrying an explanatory
+    tooltip — the tooltip can't wrap the trigger itself (Reflex enforces
+    tabs.trigger's parent to be tabs.list at the component level), so the
+    icon lives *inside* the trigger instead, right next to the label.
+    Ported from naturametrics' same helper."""
+    return rx.tabs.trigger(
+        rx.hstack(
+            rx.text(label),
+            rx.tooltip(
+                rx.icon("info", size=12, color="var(--gray-9)"),
+                content=hint,
+            ),
+            spacing="1", align="center",
+        ),
+        value=value,
+    )
+
+
 def results_panel() -> rx.Component:
     return rx.cond(
         AppState.has_imovel,
         rx.box(
             rx.tabs.root(
                 rx.tabs.list(
-                    rx.tabs.trigger(AppState.tr["tab_cobertura"], value="cobertura"),
-                    rx.tabs.trigger(AppState.tr["tab_transicoes"], value="transicoes"),
-                    rx.tabs.trigger(AppState.tr["tab_floresta"], value="floresta"),
-                    rx.tabs.trigger(AppState.tr["tab_biomassa"], value="biomassa"),
-                    rx.tabs.trigger(AppState.tr["tab_paisagem"], value="paisagem"),
-                    rx.tabs.trigger(AppState.tr["tab_fogo"], value="fogo"),
-                    rx.tabs.trigger(AppState.tr["tab_validacao"], value="validacao"),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_cobertura"], "cobertura",
+                        AppState.tr["tab_cobertura_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_transicoes"], "transicoes",
+                        AppState.tr["tab_transicoes_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_floresta"], "floresta",
+                        AppState.tr["tab_floresta_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_biomassa"], "biomassa",
+                        AppState.tr["tab_biomassa_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_paisagem"], "paisagem",
+                        AppState.tr["tab_paisagem_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_fogo"], "fogo",
+                        AppState.tr["tab_fogo_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_validacao"], "validacao",
+                        AppState.tr["tab_validacao_hint"]),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),

@@ -61,10 +61,30 @@ def zone_selector() -> rx.Component:
     )
 
 
-def section(title: str, *children, **props) -> rx.Component:
+def _info_icon(text) -> rx.Component:
+    """A tap/click affordance, not a hover tooltip — see the Brazil page's
+    own ``components/layout.py::_info_icon`` for the full rationale."""
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.icon_button(
+                rx.icon("info", size=12),
+                size="1", variant="ghost", color_scheme="gray",
+                aria_label=text,
+            ),
+        ),
+        rx.popover.content(
+            rx.text(text, size="1", style={"lineHeight": "1.4"}),
+            max_width="260px",
+        ),
+    )
+
+
+def section(title: str, *children, info=None, **props) -> rx.Component:
+    header = rx.text(title, size="1", weight="bold", color=MUTED,
+                     letter_spacing="0.08em", text_transform="uppercase")
     return rx.vstack(
-        rx.text(title, size="1", weight="bold", color=MUTED,
-                letter_spacing="0.08em", text_transform="uppercase"),
+        rx.hstack(header, _info_icon(info), spacing="1", align="center")
+        if info is not None else header,
         *children,
         align_items="stretch", spacing="2", width="100%", padding_y="3",
         border_bottom=BORDER, **props,

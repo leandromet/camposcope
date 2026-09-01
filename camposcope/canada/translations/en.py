@@ -10,12 +10,14 @@ TRANSLATIONS_EN: dict[str, str] = {
     "nav_subtitle": "Rural property analysis from the ParcelMap BC parcel fabric",
     "go_to_brazil": "Brazil",
     "language_label": "Language",
+    "start_hint": "Click Somewhere in Canada to start",
     "nav_toggle_layers_aria": "Show layers",
     "drawer_title": "Layers",
     "drawer_close_aria": "Close",
     "sidebar_show_aria": "Show sidebar",
     "sidebar_hide_aria": "Hide sidebar",
     "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
+    "mobile_options_toggle": "Search options",
     "close_button": "Close",
     "calcular": "Calculate",
     "calculando": "Calculating…",
@@ -47,6 +49,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     # --- parcel card -------------------------------------------------------- #
     "parcel_title": "Parcel",
     "parcel_identifier": "Identifier",
+    "parcel_details_toggle": "Registration details",
     "parcel_area_registered": "Registered area",
     "parcel_area_calculated": "Calculated area (geometry)",
     "parcel_area_disagreement_prefix": "The registered and geometric areas "
