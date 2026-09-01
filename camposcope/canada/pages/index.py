@@ -10,7 +10,7 @@ from ..components.layout import ACCENT, BORDER, _info_icon, header
 from ..components.map_legend import map_legend
 from ..components.parcel_card import parcel_card, zones_panel
 from ..components.results import results_panel
-from ..components.search import search_panel
+from ..components.search import candidate_chooser, search_panel
 from ..config.datasets import ALL_BASEMAPS
 from ..state import CanadaState as S
 
@@ -204,6 +204,28 @@ def _start_hint() -> rx.Component:
     )
 
 
+def _mobile_group(value: str, icon: str, title, *children: rx.Component) -> rx.Component:
+    """One collapsible cluster inside the mobile sheet's accordion — closed
+    by default. See the Brazil page's own `pages/index.py::_mobile_group`
+    for the full rationale."""
+    return rx.accordion.item(
+        rx.accordion.header(
+            rx.accordion.trigger(
+                rx.hstack(
+                    rx.icon(icon, size=13),
+                    rx.text(title, size="1", weight="medium"),
+                    spacing="2", align="center",
+                ),
+            ),
+        ),
+        rx.accordion.content(
+            rx.vstack(*children, spacing="2", width="100%"),
+            padding_x="0",
+        ),
+        value=value,
+    )
+
+
 def _layers_panel() -> rx.Component:
     from ..components.layout import section
 
@@ -272,6 +294,7 @@ def _sidebar() -> rx.Component:
                 width="100%", padding_top="8px",
             ),
             search_panel(),
+            candidate_chooser(),
             parcel_card(),
             zones_panel(),
             _layers_panel(),
@@ -316,41 +339,21 @@ def _mobile_sheet() -> rx.Component:
                     handle_id="ca-mobile-sheet-handle", snap=True),
         rx.box(
             # See the Brazil page's own `_mobile_sheet()` for the full
-            # rationale — same fix: search/parcel-card/zones/layers all
-            # collapse behind one accordion so reaching the results tabs on
-            # a phone doesn't mean scrolling past the whole stack first.
-            # Open by default, so nothing changes for a first visit.
+            # rationale. What the map already told you — a pending pick, or
+            # the selected parcel/park/square and its zones — stays always
+            # visible; only the search form and the layer toggles collapse,
+            # closed by default.
+            candidate_chooser(),
+            parcel_card(),
+            zones_panel(),
             rx.accordion.root(
-                rx.accordion.item(
-                    rx.accordion.header(
-                        rx.accordion.trigger(
-                            rx.hstack(
-                                rx.icon("sliders-horizontal", size=13),
-                                rx.text(S.tr["mobile_options_toggle"],
-                                       size="1", weight="medium"),
-                                spacing="2", align="center",
-                            ),
-                        ),
-                    ),
-                    rx.accordion.content(
-                        rx.vstack(
-                            search_panel(),
-                            parcel_card(),
-                            zones_panel(),
-                            _layers_panel(),
-                            spacing="2", width="100%",
-                        ),
-                        # See the Brazil page's own `pages/index.py::
-                        # _mobile_sheet` for why this needs `padding_x="0"`.
-                        padding_x="0",
-                    ),
-                    value="options",
-                ),
-                type="single", collapsible=True, variant="ghost", width="100%",
-                # `default_value`, not `value` — see the Brazil page's own
-                # `pages/index.py::_mobile_sheet` for why `value` here would
-                # make this accordion controlled-but-never-updated.
-                default_value="options",
+                _mobile_group("busca", "search", S.tr["mobile_options_toggle"],
+                              search_panel()),
+                _mobile_group("camadas", "layers",
+                              S.tr["mobile_layers_group_toggle"],
+                              _layers_panel()),
+                type="multiple", collapsible=True, variant="surface",
+                width="100%",
             ),
             results_panel(),
             padding_x="4", overflow_y="auto", flex="1", min_height="0",

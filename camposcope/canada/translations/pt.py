@@ -23,6 +23,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "sidebar_hide_aria": "Ocultar painel lateral",
     "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
     "mobile_options_toggle": "Opções de busca",
+    "mobile_layers_group_toggle": "Camadas",
     "close_button": "Fechar",
     "calcular": "Calcular",
     "calculando": "Calculando…",

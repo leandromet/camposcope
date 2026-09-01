@@ -141,6 +141,10 @@ def candidate_chooser() -> rx.Component:
 
 
 def search_panel() -> rx.Component:
+    """Note: ``candidate_chooser()`` is NOT called from here (it used to
+    be) — see the Brazil page's own ``search.py::search_panel`` for why:
+    it's shown separately, outside whatever collapsible group this panel
+    ends up inside, since a pending pick needs action, not hiding."""
     return section(
         S.tr["search_title"],
         _search_field(),
@@ -157,5 +161,4 @@ def search_panel() -> rx.Component:
         ),
         _area_hits(),
         _place_hits(),
-        candidate_chooser(),
     )

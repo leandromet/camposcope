@@ -233,6 +233,12 @@ def municipio_browser() -> rx.Component:
 
 
 def search_panel() -> rx.Component:
+    """Note: ``candidate_chooser()`` is NOT called from here (it used to
+    be) — it's shown separately, outside whatever collapsible group this
+    panel ends up inside, because a pending pick is something the user has
+    to act on, not a search-form field that's fine to hide by default.
+    See ``pages/index.py::_mobile_sheet()``, where that distinction is what
+    the "Busca" accordion is scoped to exclude."""
     return section(
         AppState.tr["search_title"],
         _search_field(),
@@ -248,5 +254,4 @@ def search_panel() -> rx.Component:
         ),
         _municipio_hits(),
         _place_hits(),
-        candidate_chooser(),
     )

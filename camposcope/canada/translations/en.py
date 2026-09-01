@@ -18,6 +18,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "sidebar_hide_aria": "Hide sidebar",
     "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
     "mobile_options_toggle": "Search options",
+    "mobile_layers_group_toggle": "Layers",
     "close_button": "Close",
     "calcular": "Calculate",
     "calculando": "Calculating…",

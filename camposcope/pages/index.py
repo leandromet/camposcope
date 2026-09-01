@@ -9,7 +9,7 @@ from ..components.layout import ACCENT, BORDER, MUTED, _info_icon, header, secti
 from ..components.map.leaflet_map import leaflet_map
 from ..components.map_legend import map_legend
 from ..components.results import results_panel
-from ..components.search import municipio_browser, search_panel
+from ..components.search import candidate_chooser, municipio_browser, search_panel
 from ..config.datasets import ALL_BASEMAPS
 from ..state import AppState
 
@@ -281,6 +281,31 @@ def _start_hint() -> rx.Component:
     )
 
 
+def _mobile_group(value: str, icon: str, title, *children: rx.Component) -> rx.Component:
+    """One collapsible cluster inside the mobile sheet's accordion — closed
+    by default (see `_mobile_sheet()`'s own docstring for why)."""
+    return rx.accordion.item(
+        rx.accordion.header(
+            rx.accordion.trigger(
+                rx.hstack(
+                    rx.icon(icon, size=13),
+                    rx.text(title, size="1", weight="medium"),
+                    spacing="2", align="center",
+                ),
+            ),
+        ),
+        rx.accordion.content(
+            rx.vstack(*children, spacing="2", width="100%"),
+            # Radix's own AccordionContent bakes in `padding_x:
+            # var(--space-4)` (16px) — stacked on top of this box's own
+            # `padding_x="4"`, that squeezed everything inward instead of
+            # sitting flush with the rest of the sheet.
+            padding_x="0",
+        ),
+        value=value,
+    )
+
+
 def _layers_panel() -> rx.Component:
     return section(
         AppState.tr["layers_title"],
@@ -353,6 +378,7 @@ def _sidebar() -> rx.Component:
                 width="100%", padding_top="8px",
             ),
             search_panel(),
+            candidate_chooser(),
             cadastral_card(),
             municipio_browser(),
             zones_panel(),
@@ -428,50 +454,28 @@ def _mobile_sheet() -> rx.Component:
         _drag_handle(drawer_id="mobile-sheet", handle_id="mobile-sheet-handle",
                     snap=True),
         rx.box(
-            # Search, the cadastral card, the município browser, zones and
-            # the layers panel all go in one collapsible accordion — on a
-            # phone, with the sheet at "half" (its own default height),
-            # scrolling past that whole stack just to reach the results tabs
-            # was the actual complaint: everything the map already told you
-            # (a property or square is selected) stayed on screen, pushing
-            # the charts further down every time. One tap collapses it all
-            # at once; open by default so nothing changes for a first visit.
+            # What the map already told you — a pending pick, or the
+            # selected property/square and its zones — stays always
+            # visible, never behind a tap. Only the search FORM and the
+            # layer toggles collapse, and they start CLOSED: on a phone,
+            # with the sheet at "half" (its own default height), those two
+            # blocks alone used to be tall enough that reaching the results
+            # tabs meant scrolling past everything the map had just shown,
+            # every single time. Open only whichever one is actually
+            # wanted; a fresh search still opens "Busca" itself the moment
+            # its own field is tapped, so nothing about typing a query
+            # changes.
+            candidate_chooser(),
+            cadastral_card(),
+            zones_panel(),
             rx.accordion.root(
-                rx.accordion.item(
-                    rx.accordion.header(
-                        rx.accordion.trigger(
-                            rx.hstack(
-                                rx.icon("sliders-horizontal", size=13),
-                                rx.text(AppState.tr["mobile_options_toggle"],
-                                       size="1", weight="medium"),
-                                spacing="2", align="center",
-                            ),
-                        ),
-                    ),
-                    rx.accordion.content(
-                        rx.vstack(
-                            search_panel(),
-                            cadastral_card(),
-                            municipio_browser(),
-                            zones_panel(),
-                            _layers_panel(),
-                            spacing="2", width="100%",
-                        ),
-                        # See `components/cadastro.py::_imovel_details_card`
-                        # for why this needs `padding_x="0"` — Radix's
-                        # AccordionContent otherwise bakes in its own 16px on
-                        # top of this box's own `padding_x="4"`, squeezing
-                        # everything inward instead of sitting flush with it.
-                        padding_x="0",
-                    ),
-                    value="options",
-                ),
-                type="single", collapsible=True, variant="ghost", width="100%",
-                # `default_value`, not `value` — see `components/cadastro.py::
-                # _imovel_details_card` for why `value` here would make this
-                # accordion controlled-but-never-updated, i.e. stuck open and
-                # unable to respond to clicks.
-                default_value="options",
+                _mobile_group("busca", "search",
+                              AppState.tr["mobile_options_toggle"],
+                              search_panel(), municipio_browser()),
+                _mobile_group("camadas", "layers", AppState.tr["layers_title"],
+                              _layers_panel()),
+                type="multiple", collapsible=True, variant="surface",
+                width="100%",
             ),
             results_panel(),
             padding_x="4", overflow_y="auto", flex="1", min_height="0",
