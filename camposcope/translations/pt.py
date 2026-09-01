@@ -260,6 +260,9 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- on-map legend (components/map_legend.py) -------------------------- #
     "legend_mapbiomas": "MapBiomas",
+    "legend_title": "Legenda",
+    "legend_collapse_aria": "Recolher a legenda",
+    "legend_expand_aria": "Expandir a legenda",
     "legend_mapbiomas_palette": "Cores: paleta oficial MapBiomas",
     "legend_floresta_hansen": "Floresta — Hansen",
     "legend_hansen_since_2008": "desde 2008",

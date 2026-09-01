@@ -128,6 +128,9 @@ TRANSLATIONS_EN: dict[str, str] = {
         "Canada); ecoregion and ecodistrict are finer tiers of the same "
         "framework — ecodistrict carries no name of its own, only the "
         "ecoregion and ecozone it sits inside.",
+    "legend_title": "Legend",
+    "legend_collapse_aria": "Collapse the legend",
+    "legend_expand_aria": "Expand the legend",
     "legend_aci": "AAFC Crop Inventory",
     "legend_aci_palette": "Official AAFC legend colours.",
     "legend_run_calcular": "Click Calculate on the Validation tab to see the classes.",

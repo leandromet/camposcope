@@ -28,6 +28,12 @@ class CanadaUIMixin(rx.State, mixin=True):
 
     results_tab: str = "cobertura"
 
+    #: The on-map legend collapsed to just its header — see the Brazil page's
+    #: own ``state/_ui.py`` for why the default is decided in the browser
+    #: rather than here.
+    legend_open: bool = True
+    _viewport_adopted: bool = False
+
     #: The header's dialogs, fully controlled — Dialog.Close's Radix "asChild"
     #: prop-cloning never reaches a button Reflex has extracted into its own
     #: standalone helper component (same trap ``camposcope/state/_ui.py``
@@ -58,6 +64,19 @@ class CanadaUIMixin(rx.State, mixin=True):
 
     def toggle_sidebar(self) -> None:
         self.sidebar_open = not self.sidebar_open
+
+    def toggle_legend(self) -> None:
+        self.legend_open = not self.legend_open
+
+    def adopt_viewport(self, narrow: bool) -> None:
+        """Collapse the legend on a phone, once per session — the Brazil
+        page's ``state/_ui.py::adopt_viewport``, ported. Only ever collapses,
+        so it can never fight a user who opened the legend themselves."""
+        if self._viewport_adopted:
+            return
+        self._viewport_adopted = True
+        if narrow:
+            self.legend_open = False
 
     def set_results_tab(self, tab: str) -> None:
         self.results_tab = tab

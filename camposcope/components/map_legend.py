@@ -26,19 +26,32 @@ _BOX_STYLE = dict(
     box_shadow="0 2px 8px rgba(0,0,0,.15)",
     padding="8px 10px",
     z_index="900",           # above Leaflet's panes (~700), below the results
-    min_width="180px",       # drawer (1000) — see pages/index.py's own note.
+    # Collapsed this box is just "LEGENDA ⌄", so the 180px floor the
+    # expanded panel wants would leave a wide empty bar sitting over the
+    # map — exactly the clutter collapsing it is meant to remove.
+    min_width=rx.cond(AppState.legend_open, "180px", "0"),  # drawer (1000) —
+                             # see pages/index.py's own note.
+    # Collapsed, this box is just its header row; expanded on a phone it was
+    # free to grow to whatever the widest class label happened to be and to
+    # run off the bottom of the screen. Both are capped here rather than on
+    # the inner panels so every tab's legend obeys the same bounds.
+    max_width=["62vw", "62vw", "240px", "240px"],
+    max_height="60vh",
+    overflow_y="auto",
     font_size="0.75rem",
 )
 
 
-def _header(title) -> rx.Component:
-    return rx.hstack(
-        rx.text(title, size="1", weight="bold"),
-        rx.spacer(),
-        rx.switch(checked=AppState.analysis_layer_enabled,
-                  on_change=AppState.toggle_analysis_layer, size="1"),
-        width="100%", align="center",
-    )
+def _layer_switch() -> rx.Component:
+    """The active layer's on/off toggle. Every tab's panel used to open with
+    its own title-plus-switch row; the title moved up into
+    ``_collapse_header`` (where it stays readable with the panel closed) and
+    the switch came with it, so this is now used once, there, rather than
+    seven times below. The layer it toggles is the same in every tab —
+    ``analysis_layer_enabled`` is a single layer slot re-minted per tab
+    (state/_layers.py::mint_analysis_layer)."""
+    return rx.switch(checked=AppState.analysis_layer_enabled,
+                     on_change=AppState.toggle_analysis_layer, size="1")
 
 
 def _swatch_row(color: str, label) -> rx.Component:
@@ -73,7 +86,6 @@ def _class_legend_rows(rows: rx.Var) -> rx.Component:
 
 def _cobertura_legend() -> rx.Component:
     return rx.vstack(
-        _header(AppState.tr["legend_mapbiomas"]),
         rx.select(
             [str(y) for y in mb.MAPBIOMAS_YEARS],
             value=AppState.mapbiomas_layer_year.to_string(),
@@ -162,7 +174,6 @@ def _spot_section() -> rx.Component:
 
 def _floresta_legend() -> rx.Component:
     return rx.vstack(
-        _header(AppState.tr["legend_floresta_hansen"]),
         rx.segmented_control.root(
             rx.segmented_control.item(AppState.tr["legend_hansen_since_2008"],
                                       value="2008"),
@@ -181,7 +192,6 @@ def _floresta_legend() -> rx.Component:
 
 def _biomassa_legend() -> rx.Component:
     return rx.vstack(
-        _header(AppState.tr["legend_biomassa_esa"]),
         rx.select(
             [str(y) for y in AGB_YEARS],
             value=AppState.biomass_layer_year.to_string(),
@@ -208,7 +218,6 @@ def _fire_legend() -> rx.Component:
     services/layers.py::fire_frequency_spec, so the on-map colours and this
     swatch never drift apart."""
     return rx.vstack(
-        _header(AppState.tr["legend_fogo_frequencia"]),
         rx.hstack(
             rx.box(width="60px", height="8px", border_radius="2px",
                   background="linear-gradient(to right, #ffffb2, "
@@ -231,7 +240,6 @@ def _transicoes_legend() -> rx.Component:
     same `sankey_year_a`/`sankey_year_b` the two-stage Sankey uses, so this
     legend has nothing of its own to set, only to say what is showing."""
     return rx.vstack(
-        _header(AppState.tr["legend_mapbiomas_comparacao"]),
         rx.cond(
             AppState.map_swipe_enabled,
             rx.hstack(
@@ -256,7 +264,9 @@ def _paisagem_legend() -> rx.Component:
     (patch A being red says nothing beyond "different patch from its
     neighbour"). So this is on/off only, same header every other legend
     uses for its own toggle."""
-    return _header(AppState.tr["legend_paisagem_fragmentos"])
+    # Nothing but the title and the layer switch, both of which now live in
+    # `_collapse_header` — so this tab's panel body is genuinely empty.
+    return rx.fragment()
 
 
 def _validacao_side(title, rows: rx.Var, fallback) -> rx.Component:
@@ -282,13 +292,6 @@ def _validacao_legend() -> rx.Component:
     the same as ibge_2022's both sides do (state._analysis.py's
     validacao_ibge_classes / validacao_mb_classes / validacao_spot_mb_classes)."""
     return rx.vstack(
-        _header(
-            rx.cond(
-                AppState.validacao_mode == "spot_2008",
-                AppState.tr["validacao_mode_spot"],
-                AppState.tr["validacao_mode_ibge"],
-            ),
-        ),
         rx.cond(
             AppState.validacao_mode == "spot_2008",
             rx.segmented_control.root(
@@ -337,23 +340,140 @@ def _validacao_legend() -> rx.Component:
     )
 
 
+#: Asked once per session, from the browser, when the legend first mounts.
+#: A Reflex state default is one Python value with no idea what it is being
+#: rendered on, and this default genuinely differs by screen: on desktop the
+#: legend is a small box in a large corner; on a phone the same box covers a
+#: third of the only map there is, over exactly the pixels a legend is
+#: describing. 768px is Radix's own `md`, the cutoff the rest of this app
+#: already splits mobile from desktop on.
+_NARROW_VIEWPORT_JS = "window.innerWidth < 768"
+
+
+def _active_layer_title() -> rx.Component:
+    """What the legend is currently describing, for the collapse row.
+
+    Not the generic word "legend": this app shows exactly ONE map layer at a
+    time and swaps it with the active results tab (`map_legend`'s `rx.match`
+    below), so each tab's own panel already opens with its layer's name —
+    "MapBiomas", "Floresta — Hansen", and so on. A second, generic header
+    above that would just say the same thing twice while expanded, and while
+    COLLAPSED it would be strictly worse: the one line still on screen would
+    no longer tell you which of seven layers is painted on the map. Same
+    strings the panels used to open with themselves, before that row moved
+    up here.
+    """
+    return rx.match(
+        AppState.results_tab,
+        ("cobertura", rx.text(AppState.tr["legend_mapbiomas"])),
+        ("transicoes", rx.text(AppState.tr["legend_mapbiomas_comparacao"])),
+        ("floresta", rx.text(AppState.tr["legend_floresta_hansen"])),
+        ("biomassa", rx.text(AppState.tr["legend_biomassa_esa"])),
+        ("paisagem", rx.text(AppState.tr["legend_paisagem_fragmentos"])),
+        ("fogo", rx.text(AppState.tr["legend_fogo_frequencia"])),
+        ("validacao", rx.text(
+            rx.cond(
+                AppState.validacao_mode == "spot_2008",
+                AppState.tr["validacao_mode_spot"],
+                AppState.tr["validacao_mode_ibge"],
+            ),
+        )),
+        rx.text(AppState.tr["legend_title"]),
+    )
+
+
+def _collapse_header() -> rx.Component:
+    """The legend's own title bar, and its only collapse affordance.
+
+    The whole row is the control, not a small chevron button inside it —
+    a legend on a phone is competing with the map for touch targets, and the
+    row is already there.
+    """
+    return rx.hstack(
+        rx.icon("list", size=13, color="var(--gray-11)", flex_shrink="0"),
+        rx.box(
+            _active_layer_title(),
+            style={
+                "fontSize": "var(--font-size-1)",
+                "fontWeight": "bold",
+                "color": "var(--gray-11)",
+                "textTransform": "uppercase",
+                "letterSpacing": "0.06em",
+                "whiteSpace": "nowrap",
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+                "minWidth": "0",
+            },
+        ),
+        rx.spacer(),
+        # The layer's own on/off switch, hoisted out of the panels below so it
+        # is still reachable with the legend collapsed — turning a layer off
+        # is the single most likely reason to be looking at this box on a
+        # phone, and it should not require expanding the thing that is in the
+        # way. `on_click` stops here: the switch drives its own state, and
+        # letting the click bubble to the row would toggle the panel open or
+        # shut every time a layer is switched.
+        rx.box(
+            _layer_switch(),
+            on_click=rx.stop_propagation,
+            display="flex", align_items="center", flex_shrink="0",
+        ),
+        rx.icon(
+            "chevron-down", size=14, color="var(--gray-11)", flex_shrink="0",
+            style={
+                "transition": "transform 150ms ease",
+                "transform": rx.cond(AppState.legend_open,
+                                     "rotate(180deg)", "rotate(0deg)"),
+            },
+        ),
+        on_click=AppState.toggle_legend,
+        role="button",
+        tab_index=0,
+        cursor="pointer",
+        aria_expanded=AppState.legend_open.to_string(),
+        aria_label=rx.cond(AppState.legend_open,
+                           AppState.tr["legend_collapse_aria"],
+                           AppState.tr["legend_expand_aria"]),
+        width="100%", spacing="2", align="center",
+        # A touch target, not a text row: 28px is the same height the
+        # sidebar's own collapse control uses (pages/index.py::_sidebar).
+        min_height="28px",
+    )
+
+
 def map_legend() -> rx.Component:
     """Shown only once a property is selected and the active tab has a map
-    layer of its own."""
+    layer of its own.
+
+    Collapsible, and collapsed by default on a phone — see
+    `_NARROW_VIEWPORT_JS` and `AppState.adopt_viewport`. Collapsing leaves
+    the header row in place rather than hiding the box outright: a legend
+    that vanishes completely needs a *second* affordance somewhere else to
+    bring it back, and there is no room on this map for one.
+    """
     return rx.cond(
         AppState.has_imovel,
         rx.box(
-            rx.match(
-                AppState.results_tab,
-                ("cobertura", _cobertura_legend()),
-                ("transicoes", _transicoes_legend()),
-                ("floresta", _floresta_legend()),
-                ("biomassa", _biomassa_legend()),
-                ("paisagem", _paisagem_legend()),
-                ("fogo", _fire_legend()),
-                ("validacao", _validacao_legend()),
-                rx.fragment(),
+            _collapse_header(),
+            rx.cond(
+                AppState.legend_open,
+                rx.box(
+                    rx.match(
+                        AppState.results_tab,
+                        ("cobertura", _cobertura_legend()),
+                        ("transicoes", _transicoes_legend()),
+                        ("floresta", _floresta_legend()),
+                        ("biomassa", _biomassa_legend()),
+                        ("paisagem", _paisagem_legend()),
+                        ("fogo", _fire_legend()),
+                        ("validacao", _validacao_legend()),
+                        rx.fragment(),
+                    ),
+                    padding_top="6px",
+                ),
             ),
+            on_mount=rx.call_script(_NARROW_VIEWPORT_JS,
+                                   callback=AppState.adopt_viewport),
             **_BOX_STYLE,
         ),
     )

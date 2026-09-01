@@ -15,6 +15,16 @@ class UIMixin(rx.State, mixin=True):
     lang: str = "pt"
     sidebar_open: bool = True
     results_tab: str = "cobertura"
+    #: The on-map legend (components/map_legend.py) collapsed to just its
+    #: header. Open by default; `adopt_viewport` below closes it on a narrow
+    #: screen before the first paint the user sees.
+    legend_open: bool = True
+    #: Whether `adopt_viewport` has already run for this session. The legend
+    #: is conditionally rendered (it appears with the first selected
+    #: property), so its `on_mount` fires again on every remount — without
+    #: this guard a phone user who opened the legend would have it snap shut
+    #: again the next time it re-rendered.
+    _viewport_adopted: bool = False
     #: One transient message. Cadastral and Earth Engine failures each render in
     #: their own place (doc/08-ui-ux.md §6); this is for everything else.
     toast: str = ""
@@ -47,6 +57,32 @@ class UIMixin(rx.State, mixin=True):
     @rx.event
     def toggle_sidebar(self) -> None:
         self.sidebar_open = not self.sidebar_open
+
+    @rx.event
+    def toggle_legend(self) -> None:
+        self.legend_open = not self.legend_open
+
+    @rx.event
+    def adopt_viewport(self, narrow: bool) -> None:
+        """Collapse the legend on a phone, once per session.
+
+        The default has to differ by screen size — on a desktop map the legend
+        is a small box in a large corner, on a phone it is a slab over a third
+        of the only map there is — and a Reflex state default is a single
+        Python value that knows nothing about the client. Radix's `display`
+        breakpoints cannot express it either: this is one boolean feeding
+        `rx.cond`, not two variants to show and hide. So the viewport is asked
+        once, from the browser, via `rx.call_script(..., callback=...)` — see
+        `components/map_legend.py::map_legend`.
+
+        Only ever collapses. A wide viewport leaves the default alone, so
+        this can never fight a user who opened the legend themselves.
+        """
+        if self._viewport_adopted:
+            return
+        self._viewport_adopted = True
+        if narrow:
+            self.legend_open = False
 
     @rx.event
     def dismiss_toast(self) -> None:

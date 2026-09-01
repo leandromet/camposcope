@@ -239,6 +239,9 @@ TRANSLATIONS_EN: dict[str, str] = {
 
     # --- on-map legend -------------------------------------------------------- #
     "legend_mapbiomas": "MapBiomas",
+    "legend_title": "Legend",
+    "legend_collapse_aria": "Collapse the legend",
+    "legend_expand_aria": "Expand the legend",
     "legend_mapbiomas_palette": "Colours: official MapBiomas palette",
     "legend_floresta_hansen": "Forest — Hansen",
     "legend_hansen_since_2008": "since 2008",

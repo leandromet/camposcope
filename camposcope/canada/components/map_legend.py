@@ -18,7 +18,17 @@ _BOX_STYLE = dict(
     position="absolute", top="12px", right="12px",
     background="var(--color-panel-solid)", border="1px solid var(--gray-5)",
     border_radius="var(--radius-3)", box_shadow="0 2px 8px rgba(0,0,0,.15)",
-    padding="8px 10px", z_index="900", min_width="180px", font_size="0.75rem",
+    # Collapsed this box is just "LEGENDA ⌄", so the 180px floor the
+    # expanded panel wants would leave a wide empty bar sitting over the
+    # map — exactly the clutter collapsing it is meant to remove.
+    padding="8px 10px", z_index="900",
+    min_width=rx.cond(S.legend_open, "180px", "0"),
+    # Same caps as the Brazil page's own legend box: collapsed this is just
+    # the header row, and expanded on a phone it would otherwise grow to the
+    # widest class label and off the bottom of the screen.
+    max_width=["62vw", "62vw", "240px", "240px"],
+    max_height="60vh", overflow_y="auto",
+    font_size="0.75rem",
 )
 
 
@@ -269,26 +279,71 @@ def _validacao_legend() -> rx.Component:
     )
 
 
+#: See the Brazil page's own ``components/map_legend.py`` for why this default
+#: is asked of the browser instead of being a Python state default.
+_NARROW_VIEWPORT_JS = "window.innerWidth < 768"
+
+
+def _collapse_header() -> rx.Component:
+    """The legend's title bar, and its only collapse affordance — the whole
+    row is the control. Ported from the Brazil page's own legend."""
+    return rx.hstack(
+        rx.icon("list", size=13, color="var(--gray-11)", flex_shrink="0"),
+        rx.text(S.tr["legend_title"], size="1", weight="bold",
+                color="var(--gray-11)",
+                style={"textTransform": "uppercase", "letterSpacing": "0.06em"}),
+        rx.spacer(),
+        rx.icon(
+            "chevron-down", size=14, color="var(--gray-11)", flex_shrink="0",
+            style={
+                "transition": "transform 150ms ease",
+                "transform": rx.cond(S.legend_open, "rotate(180deg)",
+                                     "rotate(0deg)"),
+            },
+        ),
+        on_click=S.toggle_legend,
+        role="button",
+        tab_index=0,
+        cursor="pointer",
+        aria_expanded=S.legend_open.to_string(),
+        aria_label=rx.cond(S.legend_open, S.tr["legend_collapse_aria"],
+                           S.tr["legend_expand_aria"]),
+        width="100%", spacing="2", align="center", min_height="28px",
+    )
+
+
 def map_legend() -> rx.Component:
+    """Collapsible, and collapsed by default on a phone. Collapsing leaves
+    the header row in place — a legend that disappears entirely would need a
+    second affordance elsewhere on a map with no room for one."""
     return rx.box(
-        _basemap_section(),
+        _collapse_header(),
         rx.cond(
-            S.has_parcel,
+            S.legend_open,
             rx.vstack(
-                rx.divider(),
-                rx.match(
-                    S.results_tab,
-                    ("cobertura", _cobertura_legend()),
-                    ("transicoes", _transicoes_legend()),
-                    ("floresta", _floresta_legend()),
-                    ("biomassa", _biomassa_legend()),
-                    ("paisagem", _paisagem_legend()),
-                    ("fogo", _fogo_legend()),
-                    ("validacao", _validacao_legend()),
-                    rx.fragment(),
+                _basemap_section(),
+                rx.cond(
+                    S.has_parcel,
+                    rx.vstack(
+                        rx.divider(),
+                        rx.match(
+                            S.results_tab,
+                            ("cobertura", _cobertura_legend()),
+                            ("transicoes", _transicoes_legend()),
+                            ("floresta", _floresta_legend()),
+                            ("biomassa", _biomassa_legend()),
+                            ("paisagem", _paisagem_legend()),
+                            ("fogo", _fogo_legend()),
+                            ("validacao", _validacao_legend()),
+                            rx.fragment(),
+                        ),
+                        spacing="2", width="100%",
+                    ),
                 ),
-                spacing="2", width="100%",
+                spacing="2", width="100%", padding_top="6px",
             ),
         ),
+        on_mount=rx.call_script(_NARROW_VIEWPORT_JS,
+                               callback=S.adopt_viewport),
         **_BOX_STYLE,
     )

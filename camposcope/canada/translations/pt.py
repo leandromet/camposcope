@@ -136,6 +136,9 @@ TRANSLATIONS_PT: dict[str, str] = {
         "Canadá); ecorregião e ecodistrito são níveis mais finos do mesmo "
         "marco — ecodistrito não tem nome próprio, apenas a ecorregião e "
         "ecozona em que se encontra.",
+    "legend_title": "Legenda",
+    "legend_collapse_aria": "Recolher a legenda",
+    "legend_expand_aria": "Expandir a legenda",
     "legend_aci": "Inventário de Culturas (AAFC)",
     "legend_aci_palette": "Cores da legenda oficial do AAFC.",
     "legend_run_calcular": "Clique em Calcular na aba Validação para ver as classes.",
