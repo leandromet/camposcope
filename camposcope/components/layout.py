@@ -115,9 +115,17 @@ def section(title: str, *children, info=None, **props) -> rx.Component:
         if info is not None else header,
         *children,
         align_items="stretch",
-        spacing="2",
+        # One token up from the previous "2"/"3" on both (`spacing` only
+        # accepts Radix's literal 0-9 scale, not an arbitrary calc() — a
+        # calc string here is a Reflex TypeError at build time) — a section
+        # sitting right up against its neighbour above/below, and its own
+        # rows sitting right up against each other, was the "everything
+        # reads as compressed" complaint once the sidebar started showing
+        # real content (a cadastral record, its zones) instead of empty
+        # placeholders.
+        spacing="3",
         width="100%",
-        padding_y="3",
+        padding_y="calc(var(--space-3) + 3px)",
         border_bottom=BORDER,
         **props,
     )

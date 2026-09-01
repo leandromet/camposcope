@@ -300,6 +300,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "sidebar_show_aria": "Mostrar painel",
     "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
     "mobile_options_toggle": "Opções de busca",
+    "mobile_panel_toggle": "Dados e opções",
+    "mobile_cadastro_zonas_toggle": "Cadastro e zonas",
 
     # --- runtime errors (state/*.py — set from background event handlers,
     # not JSX, so they read through get_translations() directly rather

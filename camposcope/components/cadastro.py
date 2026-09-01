@@ -47,6 +47,23 @@ def _row(label, value, *, mono: bool = False, emphasis: bool = False) -> rx.Comp
     )
 
 
+def _disclosure_box(text) -> rx.Component:
+    """The permanent, non-dismissible C4 statement box, shared by both card
+    kinds. ``margin_bottom`` (new) gives the footnote room before whatever
+    section follows (ZONAS) — without it the box's own bottom border sat
+    right against that section's top edge, on top of them both, reading as
+    one unbroken block."""
+    return rx.box(
+        rx.text(text, size="1", color=MUTED, line_height="1.45"),
+        padding="2",
+        background="var(--gray-2)",
+        border=BORDER,
+        border_radius="var(--radius-2)",
+        margin_top="2",
+        margin_bottom="6px",
+    )
+
+
 def _area_block() -> rx.Component:
     """Declared vs. computed. The disagreement is information, not an error."""
     return rx.vstack(
@@ -175,15 +192,7 @@ def _imovel_details_card() -> rx.Component:
         # app in one line (constraint C4). AppState.disclosure already
         # reads config/sicar.py's DISCLOSURE_PT/DISCLOSURE_EN directly —
         # the one legal statement, not duplicated into this table.
-        rx.box(
-            rx.text(AppState.disclosure, size="1", color=MUTED,
-                    line_height="1.45"),
-            padding="2",
-            background="var(--gray-2)",
-            border=BORDER,
-            border_radius="var(--radius-2)",
-            margin_top="2",
-        ),
+        _disclosure_box(AppState.disclosure),
     )
 
 
@@ -198,15 +207,7 @@ def _square_card() -> rx.Component:
         _row(AppState.tr["square_coordinate"], AppState.imovel["coordinates"],
              mono=True),
         _row(AppState.tr["cadastro_area_declarada"], "500 ha", emphasis=True),
-        rx.box(
-            rx.text(AppState.tr["square_disclosure"], size="1", color=MUTED,
-                    line_height="1.45"),
-            padding="2",
-            background="var(--gray-2)",
-            border=BORDER,
-            border_radius="var(--radius-2)",
-            margin_top="2",
-        ),
+        _disclosure_box(AppState.tr["square_disclosure"]),
     )
 
 

@@ -299,7 +299,8 @@ def _sidebar() -> rx.Component:
             zones_panel(),
             _layers_panel(),
             width="340px", max_width="340px", min_width="340px",
-            height="100%", overflow_y="auto", padding_x="4",
+            height="100%", overflow_y="auto",
+            padding_x="calc(var(--space-4) + 3px)",
             border_right=BORDER, background="var(--color-panel-solid)",
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
@@ -339,24 +340,52 @@ def _mobile_sheet() -> rx.Component:
                     handle_id="ca-mobile-sheet-handle", snap=True),
         rx.box(
             # See the Brazil page's own `_mobile_sheet()` for the full
-            # rationale. What the map already told you — a pending pick, or
-            # the selected parcel/park/square and its zones — stays always
-            # visible; only the search form and the layer toggles collapse,
-            # closed by default.
+            # rationale and the same two-level structure: a pending pick
+            # stays always visible, everything else collapses into three
+            # groups inside one outer wrapper, open by default.
             candidate_chooser(),
-            parcel_card(),
-            zones_panel(),
             rx.accordion.root(
-                _mobile_group("busca", "search", S.tr["mobile_options_toggle"],
-                              search_panel()),
-                _mobile_group("camadas", "layers",
-                              S.tr["mobile_layers_group_toggle"],
-                              _layers_panel()),
-                type="multiple", collapsible=True, variant="surface",
+                rx.accordion.item(
+                    rx.accordion.header(
+                        rx.accordion.trigger(
+                            rx.hstack(
+                                rx.icon("panel-left", size=15),
+                                rx.text(S.tr["mobile_panel_toggle"],
+                                       size="2", weight="bold"),
+                                spacing="2", align="center",
+                            ),
+                        ),
+                    ),
+                    rx.accordion.content(
+                        rx.accordion.root(
+                            _mobile_group(
+                                "parcel_zones", "file-text",
+                                S.tr["mobile_parcel_zones_toggle"],
+                                parcel_card(), zones_panel()),
+                            _mobile_group(
+                                "busca", "search",
+                                S.tr["mobile_options_toggle"],
+                                search_panel()),
+                            _mobile_group(
+                                "camadas", "layers",
+                                S.tr["mobile_layers_group_toggle"],
+                                _layers_panel()),
+                            type="multiple", collapsible=True,
+                            variant="surface", width="100%",
+                        ),
+                        padding_x="0",
+                    ),
+                    value="panel",
+                ),
+                type="single", collapsible=True, variant="ghost",
                 width="100%",
+                default_value="panel",
             ),
             results_panel(),
-            padding_x="4", overflow_y="auto", flex="1", min_height="0",
+            # +3px (~2pt) over the token default — see the Brazil page's
+            # own `components/layout.py::section` for the rationale.
+            padding_x="calc(var(--space-4) + 3px)",
+            overflow_y="auto", flex="1", min_height="0",
         ),
         id="ca-mobile-sheet",
         display=["flex", "flex", "none", "none"],

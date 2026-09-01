@@ -60,10 +60,13 @@ def _coordinate_row() -> rx.Component:
 
 
 def _disclosure_box(text) -> rx.Component:
+    # `margin_bottom` gives the footnote room before whatever section
+    # follows (ZONAS) — see the Brazil page's own `cadastro.py::
+    # _disclosure_box` for the full rationale.
     return rx.box(
         rx.text(text, size="1", color=MUTED, line_height="1.45"),
         padding="2", background="var(--gray-2)", border=BORDER,
-        border_radius="var(--radius-2)", margin_top="2",
+        border_radius="var(--radius-2)", margin_top="2", margin_bottom="6px",
     )
 
 

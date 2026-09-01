@@ -313,7 +313,15 @@ def _layers_panel() -> rx.Component:
             list(ALL_BASEMAPS.keys()),
             value=AppState.basemap,
             on_change=AppState.set_basemap,
-            size="1",
+            # size="2", not "1": at "1" (Radix's smallest control height)
+            # stacked on top of this sidebar's own -3px font-size shrink,
+            # the select's value text was rendering taller than the
+            # trigger's own computed height and getting clipped at the top
+            # — "2" has enough headroom built in to absorb the shrink
+            # cleanly. Every other size="1" control in this panel is
+            # unaffected; this is the one place plain text sits inside a
+            # fixed-height control rather than flowing freely.
+            size="2",
             width="100%",
         ),
         rx.cond(
@@ -384,7 +392,10 @@ def _sidebar() -> rx.Component:
             zones_panel(),
             _layers_panel(),
             width="340px", max_width="340px", min_width="340px",
-            height="100%", overflow_y="auto", padding_x="4",
+            height="100%", overflow_y="auto",
+            # +3px (~2pt) over the token default — see `components/
+            # layout.py::section` for the same adjustment and rationale.
+            padding_x="calc(var(--space-4) + 3px)",
             border_right=BORDER, background="var(--color-panel-solid)",
             align_items="stretch", spacing="0",
             display=["none", "none", "flex", "flex"],
@@ -454,31 +465,58 @@ def _mobile_sheet() -> rx.Component:
         _drag_handle(drawer_id="mobile-sheet", handle_id="mobile-sheet-handle",
                     snap=True),
         rx.box(
-            # What the map already told you — a pending pick, or the
-            # selected property/square and its zones — stays always
-            # visible, never behind a tap. Only the search FORM and the
-            # layer toggles collapse, and they start CLOSED: on a phone,
-            # with the sheet at "half" (its own default height), those two
-            # blocks alone used to be tall enough that reaching the results
-            # tabs meant scrolling past everything the map had just shown,
-            # every single time. Open only whichever one is actually
-            # wanted; a fresh search still opens "Busca" itself the moment
-            # its own field is tapped, so nothing about typing a query
-            # changes.
+            # A pending pick stays always visible, never behind a tap — it
+            # needs an answer, not hiding. Everything else (the selected
+            # property/square and its zones, the search form, the layer
+            # toggles) now lives one level down: three independently
+            # collapsible groups (closed by default — see `_mobile_group`)
+            # inside ONE outer wrapper that can hide all three at once for
+            # maximum map space, open by default so nothing about a first
+            # visit changes. Mirrors naturametrics' own two-level sidebar
+            # (`components/layer_panel.py::_group`/`_all_groups`).
             candidate_chooser(),
-            cadastral_card(),
-            zones_panel(),
             rx.accordion.root(
-                _mobile_group("busca", "search",
-                              AppState.tr["mobile_options_toggle"],
-                              search_panel(), municipio_browser()),
-                _mobile_group("camadas", "layers", AppState.tr["layers_title"],
-                              _layers_panel()),
-                type="multiple", collapsible=True, variant="surface",
+                rx.accordion.item(
+                    rx.accordion.header(
+                        rx.accordion.trigger(
+                            rx.hstack(
+                                rx.icon("panel-left", size=15),
+                                rx.text(AppState.tr["mobile_panel_toggle"],
+                                       size="2", weight="bold"),
+                                spacing="2", align="center",
+                            ),
+                        ),
+                    ),
+                    rx.accordion.content(
+                        rx.accordion.root(
+                            _mobile_group(
+                                "cadastro_zonas", "file-text",
+                                AppState.tr["mobile_cadastro_zonas_toggle"],
+                                cadastral_card(), zones_panel()),
+                            _mobile_group(
+                                "busca", "search",
+                                AppState.tr["mobile_options_toggle"],
+                                search_panel(), municipio_browser()),
+                            _mobile_group(
+                                "camadas", "layers",
+                                AppState.tr["layers_title"],
+                                _layers_panel()),
+                            type="multiple", collapsible=True,
+                            variant="surface", width="100%",
+                        ),
+                        padding_x="0",
+                    ),
+                    value="panel",
+                ),
+                type="single", collapsible=True, variant="ghost",
                 width="100%",
+                default_value="panel",
             ),
             results_panel(),
-            padding_x="4", overflow_y="auto", flex="1", min_height="0",
+            # +3px (~2pt) over the token default — see `components/
+            # layout.py::section` for the same adjustment and rationale.
+            padding_x="calc(var(--space-4) + 3px)",
+            overflow_y="auto", flex="1", min_height="0",
             # Same font-size shrink as the desktop sidebar/results-drawer —
             # see the comment there.
             style={

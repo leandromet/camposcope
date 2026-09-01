@@ -279,6 +279,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "sidebar_show_aria": "Show panel",
     "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
     "mobile_options_toggle": "Search options",
+    "mobile_panel_toggle": "Data & options",
+    "mobile_cadastro_zonas_toggle": "Registration & zones",
 
     # --- runtime errors --------------------------------------------------- #
     "erro_fora_brasil": (

@@ -24,6 +24,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "sheet_handle_aria": "Redimensionar painel — arraste ou use as setas",
     "mobile_options_toggle": "Opções de busca",
     "mobile_layers_group_toggle": "Camadas",
+    "mobile_panel_toggle": "Dados e opções",
+    "mobile_parcel_zones_toggle": "Parcela e zonas",
     "close_button": "Fechar",
     "calcular": "Calcular",
     "calculando": "Calculando…",

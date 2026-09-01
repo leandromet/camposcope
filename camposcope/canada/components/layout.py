@@ -86,7 +86,12 @@ def section(title: str, *children, info=None, **props) -> rx.Component:
         rx.hstack(header, _info_icon(info), spacing="1", align="center")
         if info is not None else header,
         *children,
-        align_items="stretch", spacing="2", width="100%", padding_y="3",
+        # See the Brazil page's own `components/layout.py::section` for
+        # why `spacing` jumps a whole token (arbitrary calc() strings fail
+        # Reflex's build-time validation there) while `padding_y` uses a
+        # calc() on top of the token instead.
+        align_items="stretch", spacing="3", width="100%",
+        padding_y="calc(var(--space-3) + 3px)",
         border_bottom=BORDER, **props,
     )
 

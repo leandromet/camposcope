@@ -19,6 +19,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "sheet_handle_aria": "Resize panel — drag or use the arrow keys",
     "mobile_options_toggle": "Search options",
     "mobile_layers_group_toggle": "Layers",
+    "mobile_panel_toggle": "Data & options",
+    "mobile_parcel_zones_toggle": "Parcel & zones",
     "close_button": "Close",
     "calcular": "Calculate",
     "calculando": "Calculating…",
