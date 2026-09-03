@@ -820,7 +820,7 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
     if (hoverRef.current) hoverRef.current(props || {});
   };
 
-  const attachPointHandlers = (L, spec, featureLayer, feature) => {
+  const attachPointHandlers = (L, spec, featureLayer, feature, hasPopup) => {
     const props = (feature && feature.properties) || {};
     // pointStyleFor, not spec.point_style: on a layer that colours per feature
     // (spec.color_property) the flat style is only half the answer, and using
@@ -874,6 +874,15 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
         // Python side (state/_conglomerado.py) is what interprets the shape,
         // not this hook.
         selectRef.current({...props, lat: props.lat, lon: props.lon});
+      } else if (hasPopup) {
+        // Pin this feature's own details open instead of forwarding the click
+        // to the generic map-click handler. For a GBIF occurrence sitting
+        // inside the already-selected property, that handler would re-run the
+        // SICAR lookup at this exact coordinate and silently re-adopt the
+        // property, wiping the very results the user clicked the point to
+        // read. The popup (vs. the hover tooltip) stays open after the cursor
+        // leaves, ships its own close (x) button, and its text is selectable.
+        featureLayer.openPopup();
       } else if (clickRef.current && e.latlng) {
         clickRef.current(Math.round(e.latlng.lat * 1e6) / 1e6,
                          Math.round(e.latlng.lng * 1e6) / 1e6);
@@ -904,7 +913,21 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
           });
         }
         if (spec.point_style) {
-          attachPointHandlers(L, spec, featureLayer, feature);
+          if (html) {
+            // Bound alongside the hover tooltip, not instead of it: the
+            // tooltip is the quick preview while sweeping the cursor across
+            // a cluster of dots, the popup is what a click "fixes" open for
+            // reading and copying. Leaflet's own close button and
+            // one-popup-at-a-time auto-close give the requested X and
+            // dismiss-on-elsewhere-click behaviour for free.
+            featureLayer.bindPopup(html, {
+              className: "cs-vector-popup",
+              closeButton: true,
+              autoClose: true,
+              maxWidth: 390,
+            });
+          }
+          attachPointHandlers(L, spec, featureLayer, feature, !!html);
         } else {
           // An interactive polygon swallows the click that would otherwise
           // reach the map, so the study-point selection has to be forwarded
@@ -1450,7 +1473,21 @@ function tooltipHtml(spec, feature) {
       const value = props[entry.property];
       if (value === undefined || value === null || value === "") return null;
       const labelHtml = splitLabel(entry.label).map(escapeHtml).join("<br>");
-      const valueHtml = wrapWords(value, 25).map(escapeHtml).join("<br>");
+      let valueHtml;
+      // https:// only: this value is server-built (see e.g. services/gbif.py's
+      // gbif_url), but it still lands in innerHTML, so a stray non-http(s)
+      // scheme (a would-be `javascript:`) falls back to plain escaped text
+      // instead of becoming a clickable anchor.
+      if (entry.link && /^https:\/\//.test(String(value))) {
+        // Inert in the hover tooltip (pointer-events: none there) and only
+        // actually clickable once a click has pinned this as a popup — see
+        // buildLayer's bindPopup. Still renders as a text preview on hover,
+        // which is fine.
+        const text = escapeHtml(entry.link_text || String(value));
+        valueHtml = `<a href="${escapeHtml(value)}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      } else {
+        valueHtml = wrapWords(value, 25).map(escapeHtml).join("<br>");
+      }
       return `<div class="cs-tip-row"><span class="cs-tip-label">${labelHtml}</span><span class="cs-tip-value">${valueHtml}</span></div>`;
     })
     .filter(Boolean);

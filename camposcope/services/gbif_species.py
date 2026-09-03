@@ -47,6 +47,7 @@ from shapely.ops import unary_union
 
 from ..config import gbif as gc
 from ..config.settings import (
+    GBIF_EXPORT_SPECIES_LIMIT,
     GBIF_FACET_LIMIT,
     GBIF_TIMEOUT_CONNECT,
     GBIF_TIMEOUT_READ,
@@ -200,7 +201,10 @@ def _one_zone(zone_key: str, zone_label: str, geom) -> ZoneSpecies:
 
     out.total = payload.get("count", 0)
     names = _facet_rows(payload, "SCIENTIFIC_NAME")
-    out.species = names
+    # Kept up to GBIF_EXPORT_SPECIES_LIMIT (not just the on-screen
+    # GBIF_SPECIES_TABLE_LIMIT) so the spreadsheet export is not silently
+    # truncated to what happened to fit on a results card.
+    out.species = names[:GBIF_EXPORT_SPECIES_LIMIT]
     out.richness = len(names)
     out.richness_truncated = len(names) >= GBIF_FACET_LIMIT
     out.kingdoms = [

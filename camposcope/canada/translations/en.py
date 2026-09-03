@@ -323,6 +323,13 @@ TRANSLATIONS_EN: dict[str, str] = {
         "cumulative: the \"2 km – 5 km\" zone already includes everything "
         "inside the parcel and the inner rings, not only what is found "
         "exclusively between 2 and 5 km.",
+    "gbif_export_ods_hint": "ODS workbook: one metadata tab (parcel, "
+        "caveats and licences) and one tab per zone, with species and "
+        "their record counts.",
+    "gbif_export_csv_hint": "Single CSV with every zone (zone, species, "
+        "records, % of zone). No metadata — the workbook's caveats still "
+        "apply.",
+    "gbif_export_nothing": "Calculate the species before exporting.",
 
     # --- errors --------------------------------------------------------------------------- #
     "erro_fora_canada": "That point is outside Canada. This page covers "

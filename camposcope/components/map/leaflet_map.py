@@ -46,15 +46,40 @@ if (typeof document !== "undefined" && !document.getElementById("cs-vector-tip-c
       color: #1c2024;
       max-width: 390px;
     }
-    .cs-vector-tip .cs-tip-row { display: flex; gap: 8px; justify-content: space-between; align-items: flex-start; }
-    .cs-vector-tip .cs-tip-row + .cs-tip-row {
+    .cs-vector-tip .cs-tip-row,
+    .cs-vector-popup .cs-tip-row { display: flex; gap: 8px; justify-content: space-between; align-items: flex-start; }
+    .cs-vector-tip .cs-tip-row + .cs-tip-row,
+    .cs-vector-popup .cs-tip-row + .cs-tip-row {
       margin-top: 5px;
       padding-top: 5px;
       border-top: 1px solid rgba(0,0,0,.1);
     }
-    .cs-vector-tip .cs-tip-row:first-child { font-weight: 600; }
-    .cs-vector-tip .cs-tip-label { color: #60646c; white-space: nowrap; flex-shrink: 0; }
-    .cs-vector-tip .cs-tip-value { text-align: left; }
+    .cs-vector-tip .cs-tip-row:first-child,
+    .cs-vector-popup .cs-tip-row:first-child { font-weight: 600; }
+    .cs-vector-tip .cs-tip-label,
+    .cs-vector-popup .cs-tip-label { color: #60646c; white-space: nowrap; flex-shrink: 0; }
+    .cs-vector-tip .cs-tip-value,
+    .cs-vector-popup .cs-tip-value { text-align: left; }
+    .cs-vector-popup .cs-tip-value a {
+      color: var(--accent-9, #2a6f4f);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .cs-vector-popup .cs-tip-value a:hover { text-decoration: underline; }
+    /* Fixed-open click popup for point layers (e.g. GBIF occurrences): same
+       row styling as the hover tooltip above, but content stays selectable
+       so it can be copied — the hover tooltip is deliberately not
+       user-selectable since it disappears the moment the cursor that would
+       select it moves. */
+    .cs-vector-popup .leaflet-popup-content-wrapper {
+      border-radius: 6px;
+    }
+    .cs-vector-popup .leaflet-popup-content {
+      font: 12px/1.45 Inter, system-ui, sans-serif;
+      color: #1c2024;
+      margin: 10px 14px;
+      user-select: text;
+    }
     .cs-vector-label {
       font: 600 11px/1.25 Inter, system-ui, sans-serif;
       color: #ffffff;

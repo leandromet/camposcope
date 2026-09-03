@@ -342,6 +342,13 @@ TRANSLATIONS_PT: dict[str, str] = {
         "zona \"2 km – 5 km\" já inclui tudo que está na parcela e nos "
         "anéis mais internos, não apenas o que está exclusivamente entre "
         "2 e 5 km.",
+    "gbif_export_ods_hint": "Planilha ODS: uma aba de metadados (parcela, "
+        "ressalvas e licenças) e uma aba por zona, com as espécies e seus "
+        "registros.",
+    "gbif_export_csv_hint": "CSV único com todas as zonas (zona, espécie, "
+        "registros, % da zona). Sem os metadados — as ressalvas da "
+        "planilha valem igual.",
+    "gbif_export_nothing": "Calcule as espécies antes de exportar.",
 
     # --- errors --------------------------------------------------------------------------- #
     "erro_fora_canada": "Esse ponto está fora do Canadá. Esta página cobre "

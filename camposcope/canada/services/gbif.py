@@ -104,6 +104,13 @@ def _slim(record: dict) -> dict | None:
 
     props["lat"] = lat
     props["lon"] = lon
+    # The canonical page for this exact record — "key" is GBIF's own
+    # occurrence id, stable across the API and the website, so this is the
+    # one link that reliably lands on the record itself rather than a search
+    # for it.
+    gbif_id = props.get("gbif_id")
+    if gbif_id is not None:
+        props["gbif_url"] = f"{gc.PORTAL_URL}/occurrence/{gbif_id}"
 
     return {
         "type": "Feature",
@@ -230,6 +237,8 @@ def vector_spec(opacity: float = 0.85, min_zoom: int | None = None,
             {"label": "Institution", "property": "institution_code"},
             {"label": "Dataset", "property": "dataset_name"},
             {"label": "Uncertainty (m)", "property": "coordinate_uncertainty_m"},
+            {"label": "Record", "property": "gbif_url", "link": True,
+             "link_text": "View on GBIF ↗"},
         ],
     }
 

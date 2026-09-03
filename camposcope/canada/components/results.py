@@ -858,12 +858,43 @@ def gbif_tab() -> rx.Component:
     """Species recorded in GBIF, one cumulative zone at a time — see the
     Brazil page's own `gbif_tab` for the full contract."""
     return rx.vstack(
-        rx.hstack(_run_button(S.gbif_running, S.run_gbif_species),
-                 width="100%", align="start"),
+        rx.hstack(
+            _run_button(S.gbif_running, S.run_gbif_species),
+            rx.spacer(),
+            rx.cond(
+                S.gbif_zone_rows.length() > 0,
+                rx.hstack(
+                    rx.tooltip(
+                        rx.button(
+                            rx.icon("table", size=14), "ODS",
+                            size="1", variant="soft", color_scheme="gray",
+                            on_click=S.download_gbif_species_ods,
+                        ),
+                        content=S.tr["gbif_export_ods_hint"],
+                    ),
+                    rx.tooltip(
+                        rx.button(
+                            rx.icon("download", size=14), "CSV",
+                            size="1", variant="soft", color_scheme="gray",
+                            on_click=S.download_gbif_species_csv,
+                        ),
+                        content=S.tr["gbif_export_csv_hint"],
+                    ),
+                    spacing="2", align="center",
+                ),
+                rx.fragment(),
+            ),
+            width="100%", align="center",
+        ),
         rx.text(S.tr["gbif_cumulative_note"], size="1", color=MUTED),
         rx.cond(
             S.gbif_error,
             rx.callout(S.gbif_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            S.gbif_export_error != "",
+            rx.callout(S.gbif_export_error, icon="triangle-alert",
                       color_scheme="amber", size="1"),
         ),
         rx.cond(

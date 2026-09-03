@@ -208,6 +208,12 @@ GBIF_TIMEOUT_READ = _int("CS_GBIF_TIMEOUT_READ", 45)
 GBIF_FACET_LIMIT = _int("CS_GBIF_FACET_LIMIT", 1200)
 
 #: Species rows actually rendered per zone card. A zone can hold far more
-#: distinct names than fit a results card, and there is no export to spare
-#: the rest for (unlike Naturametrics' equivalent) — this is the only limit.
+#: distinct names than fit a results card — the rest are still kept, up to
+#: GBIF_EXPORT_SPECIES_LIMIT below, for the spreadsheet export.
 GBIF_SPECIES_TABLE_LIMIT = _int("CS_GBIF_SPECIES_TABLE_LIMIT", 40)
+
+#: Species rows kept per zone for the spreadsheet export (services/
+#: gbif_export.py) — well above GBIF_SPECIES_TABLE_LIMIT so the file is not
+#: silently truncated to what happened to fit on screen, but well under
+#: GBIF_FACET_LIMIT, because every retained row is held in state per zone.
+GBIF_EXPORT_SPECIES_LIMIT = _int("CS_GBIF_EXPORT_SPECIES_LIMIT", 500)

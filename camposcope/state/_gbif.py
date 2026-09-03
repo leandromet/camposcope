@@ -17,13 +17,13 @@ its ``state/_gbif.py::GbifBufferRow``).
 from __future__ import annotations
 
 import logging
-from typing import List
+from typing import Any, List
 
 import reflex as rx
 from pydantic import BaseModel
 
 from ..config.settings import GBIF_SPECIES_TABLE_LIMIT
-from ..services import gbif_species
+from ..services import gbif_export, gbif_species
 from ._proxy import plain
 
 logger = logging.getLogger(__name__)
@@ -50,9 +50,13 @@ class GbifZoneRow(BaseModel):
     total_label: str
     richness: int
     richness_label: str
-    #: Capped at GBIF_SPECIES_TABLE_LIMIT — the only list rendered, and (with
-    #: no export to spare the rest for, unlike Naturametrics) the only one
-    #: kept at all.
+    #: Up to GBIF_EXPORT_SPECIES_LIMIT rows — what the spreadsheet export
+    #: writes (services/gbif_export.py). Not rendered directly.
+    species: List[GbifSpeciesRow]
+    #: The first GBIF_SPECIES_TABLE_LIMIT of ``species``, and the only list
+    #: the results tab renders — rx.foreach has no way to take the head of a
+    #: list var, and 500 rows of DOM per card across four cards is a heavy
+    #: panel for a table nobody scrolls to the bottom of on screen.
     species_top: List[GbifSpeciesRow]
     kingdoms: List[GbifKingdomRow]
     error: str
@@ -64,6 +68,7 @@ class GbifMixin(rx.State, mixin=True):
     gbif_zone_rows: List[GbifZoneRow] = []
     gbif_running: bool = False
     gbif_error: str = ""
+    gbif_export_error: str = ""
 
     @rx.event(background=True)
     async def run_gbif_species(self):
@@ -109,16 +114,68 @@ class GbifMixin(rx.State, mixin=True):
                     richness=r.richness,
                     richness_label=(f"{r.richness}+" if r.richness_truncated
                                     else str(r.richness)),
-                    species_top=[
+                    species=(species := [
                         GbifSpeciesRow(name=n, count=c, count_label=f"{c:,}")
-                        for n, c in r.species[:GBIF_SPECIES_TABLE_LIMIT]
-                    ],
+                        for n, c in r.species
+                    ]),
+                    species_top=species[:GBIF_SPECIES_TABLE_LIMIT],
                     kingdoms=[GbifKingdomRow(name=n, count=c)
                              for n, c in r.kingdoms],
                     error=r.error,
                 )
                 for r in rows
             ]
+
+    # ---------------------------------------------------------------------- #
+    # Export
+    # ---------------------------------------------------------------------- #
+    def _gbif_export_context(self) -> List[List[Any]]:
+        """The property, as the metadata sheet's opening block."""
+        imovel = getattr(self, "imovel", {}) or {}
+        return [
+            ["  código do imóvel", imovel.get("cod_imovel") or "—"],
+            ["  UF", imovel.get("uf") or "—"],
+            ["  município", imovel.get("municipio") or "—"],
+            ["  área declarada (ha)", imovel.get("area_declarada_ha") or 0],
+            ["  tipo", imovel.get("tipo_imovel") or "—"],
+            ["  condição", imovel.get("condicao") or "—"],
+        ]
+
+    def download_gbif_species_ods(self):
+        """The workbook: metadata, then one tab per zone.
+
+        Built from the rows already in state — no re-query, so the file and
+        the screen cannot disagree. Synchronous, unlike the Earth Engine
+        exports: there is no computation here, only formatting a few hundred
+        rows already in memory.
+        """
+        if not self.gbif_zone_rows:
+            self.gbif_export_error = self.tr["gbif_export_nothing"]
+            return None
+        self.gbif_export_error = ""
+        try:
+            data, name = gbif_export.build_ods(
+                self.gbif_zone_rows, self._gbif_export_context(),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("GBIF species ODS export failed")
+            self.gbif_export_error = str(exc)
+            return None
+        return rx.download(data=data, filename=name,
+                           mime_type=gbif_export.MIMETYPE)
+
+    def download_gbif_species_csv(self):
+        """Every zone in one flat table, for a script rather than a reader.
+
+        Carries none of the workbook's caveats, which is why it sits beside
+        the ODS rather than replacing it — see services/gbif_export.build_csv.
+        """
+        if not self.gbif_zone_rows:
+            self.gbif_export_error = self.tr["gbif_export_nothing"]
+            return None
+        self.gbif_export_error = ""
+        data, name = gbif_export.build_csv(self.gbif_zone_rows)
+        return rx.download(data=data, filename=name, mime_type="text/csv")
 
 
 __all__ = ["GbifMixin", "GbifZoneRow", "GbifKingdomRow", "GbifSpeciesRow"]

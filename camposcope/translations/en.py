@@ -142,6 +142,15 @@ TRANSLATIONS_EN: dict[str, str] = {
         "the inner rings, not only what is found exclusively between 2 "
         "and 5 km."
     ),
+    "gbif_export_ods_hint": (
+        "ODS workbook: one metadata tab (property, caveats and licences) "
+        "and one tab per zone, with species and their record counts."
+    ),
+    "gbif_export_csv_hint": (
+        "Single CSV with every zone (zone, species, records, % of zone). "
+        "No metadata — the workbook's caveats still apply."
+    ),
+    "gbif_export_nothing": "Calculate the species before exporting.",
 
     # --- Cover tab ------------------------------------------------------- #
     "cobertura_ano": "Year",

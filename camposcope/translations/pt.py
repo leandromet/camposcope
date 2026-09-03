@@ -147,6 +147,15 @@ TRANSLATIONS_PT: dict[str, str] = {
         "km\" já inclui tudo que está no imóvel e nos anéis mais internos, "
         "não apenas o que está exclusivamente entre 2 e 5 km."
     ),
+    "gbif_export_ods_hint": (
+        "Planilha ODS: uma aba de metadados (imóvel, ressalvas e licenças) "
+        "e uma aba por zona, com as espécies e seus registros."
+    ),
+    "gbif_export_csv_hint": (
+        "CSV único com todas as zonas (zona, espécie, registros, % da "
+        "zona). Sem os metadados — as ressalvas da planilha valem igual."
+    ),
+    "gbif_export_nothing": "Calcule as espécies antes de exportar.",
 
     # --- Cobertura tab ---------------------------------------------------- #
     "cobertura_ano": "Ano",

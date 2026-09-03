@@ -626,12 +626,44 @@ def gbif_tab() -> rx.Component:
     return rx.vstack(
         rx.hstack(
             _run_button("calcular", AppState.gbif_running, AppState.run_gbif_species),
-            width="100%", align="start",
+            rx.spacer(),
+            # Only once there is something to export — two dead buttons
+            # beside a "calcular" call to action read as broken rather than
+            # as not-yet-applicable.
+            rx.cond(
+                AppState.gbif_zone_rows.length() > 0,
+                rx.hstack(
+                    rx.tooltip(
+                        rx.button(
+                            rx.icon("table", size=14), "ODS",
+                            size="1", variant="soft", color_scheme="gray",
+                            on_click=AppState.download_gbif_species_ods,
+                        ),
+                        content=AppState.tr["gbif_export_ods_hint"],
+                    ),
+                    rx.tooltip(
+                        rx.button(
+                            rx.icon("download", size=14), "CSV",
+                            size="1", variant="soft", color_scheme="gray",
+                            on_click=AppState.download_gbif_species_csv,
+                        ),
+                        content=AppState.tr["gbif_export_csv_hint"],
+                    ),
+                    spacing="2", align="center",
+                ),
+                rx.fragment(),
+            ),
+            width="100%", align="center",
         ),
         rx.text(AppState.tr["gbif_cumulative_note"], size="1", color=MUTED),
         rx.cond(
             AppState.gbif_error,
             rx.callout(AppState.gbif_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            AppState.gbif_export_error != "",
+            rx.callout(AppState.gbif_export_error, icon="triangle-alert",
                       color_scheme="amber", size="1"),
         ),
         rx.cond(
