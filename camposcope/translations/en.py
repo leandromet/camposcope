@@ -113,6 +113,35 @@ TRANSLATIONS_EN: dict[str, str] = {
         "Checks MapBiomas' classification against SPOT 2008 imagery or "
         "IBGE's vegetation map, to spot-check the 2008 classification."
     ),
+    "tab_gbif": "GBIF",
+    "tab_gbif_hint": (
+        "Species occurrences recorded in the area — observations, "
+        "collection specimens and other sources aggregated by the "
+        "worldwide biodiversity network (GBIF)."
+    ),
+    "gbif_zoom_note": (
+        "On the map: zoom in (10 or more) to see occurrence points — at "
+        "country zoom a single view can hold tens of thousands of records. "
+        "\"Calculate\" fetches something different: the exact species count "
+        "for each zone, with no zoom limit."
+    ),
+    "gbif_attribution": "GBIF.org — Global Biodiversity Information Facility",
+    "gbif_col_species": "Species",
+    "gbif_col_records": "Records",
+    "gbif_records_word": "records",
+    "gbif_species_word": "species",
+    "gbif_zone_empty": "No species recorded in this zone.",
+    "gbif_empty": (
+        "No results yet. Click Calculate to fetch the species already "
+        "recorded in GBIF for each zone around the property."
+    ),
+    "gbif_cumulative_note": (
+        "An aggregate query — it counts the records without downloading "
+        "them. Each zone's totals below are cumulative: the \"2 km – 5 "
+        "km\" zone already includes everything inside the property and "
+        "the inner rings, not only what is found exclusively between 2 "
+        "and 5 km."
+    ),
 
     # --- Cover tab ------------------------------------------------------- #
     "cobertura_ano": "Year",
@@ -261,6 +290,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "legend_mapbiomas_comparacao": "MapBiomas — comparison",
     "legend_choose_years": "Choose the years on the Transitions tab.",
     "legend_drag_to_compare": "Drag the bar on the map to compare.",
+    "legend_gbif": "GBIF — Occurrences",
+    "legend_gbif_zoom_note": "Zoom in to see the points.",
     "legend_choose_mode": "Choose the mode on the Validation tab.",
     "legend_run_calcular": "Click Calculate on the Validation tab to see the classes.",
     "legend_run_cobertura": "Run the Cover tab (year 2008) to see the classes.",

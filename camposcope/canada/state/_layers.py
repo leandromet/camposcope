@@ -29,6 +29,7 @@ from ..config.settings import (
 # map_layers is not cached, so nothing depends on the scan succeeding — but
 # hoisting the one import map_layers itself needs is what makes the warning
 # go away rather than living with it.
+from ..services import gbif as gbif_service
 from ..services.pmbc import wms_layer_spec
 from ..translations import get_translations
 
@@ -205,6 +206,15 @@ class CanadaLayersMixin(rx.State, mixin=True):
             cache_key = f"ca:landscape_patches:{year_landscape}:{identifier}"
             mint_fn = lambda: layer_service.landscape_patches_spec(
                 year_landscape, outer_geom, identifier)
+
+        elif tab == "gbif":
+            # See the Brazil page's own mint_analysis_layer for why this has
+            # to clear the key rather than fall through to "else: return" —
+            # otherwise whichever raster the previous tab minted stays on
+            # screen underneath the GBIF dots.
+            async with self:
+                self.active_analysis_layer_key = ""
+            return
 
         else:
             return
@@ -468,3 +478,32 @@ class CanadaLayersMixin(rx.State, mixin=True):
             show_labels=self.show_ecozone_labels,
             lang=getattr(self, "language", "en"),
         )]
+
+    @rx.var(cache=True, deps=["results_tab", "analysis_layer_enabled"],
+           auto_deps=False)
+    def gbif_vectors(self) -> List[Dict[str, Any]]:
+        """The GBIF occurrence point layer — shown only while the GBIF tab is
+        active, gated by the same on-map legend switch every other per-tab
+        layer uses (`analysis_layer_enabled`). See the Brazil page's own
+        `gbif_vectors` for the full contract, including why the explicit
+        ``results_tab`` dep is required rather than decorative (it lives on
+        the sibling ``CanadaUIMixin`` and is read via ``getattr`` below —
+        the same reasoning ``ecozone_vectors`` above already needed for
+        ``language``)."""
+        tab = getattr(self, "results_tab", "")
+        if tab != "gbif" or not self.analysis_layer_enabled:
+            return []
+        return [gbif_service.vector_spec()]
+
+    @rx.var(cache=True, deps=["show_ecozones", "ecozone_level",
+                              "show_ecozone_labels", "ecozone_opacity",
+                              "language", "results_tab",
+                              "analysis_layer_enabled"], auto_deps=False)
+    def map_vectors(self) -> List[Dict[str, Any]]:
+        """Every browser-fetched vector layer at once — the ecozone overlay
+        (an independent toggle) and the GBIF tab's own layer, combined
+        because `leaflet_map` takes a single `vectors` list. Deps are the
+        union of `ecozone_vectors`' and `gbif_vectors`' own — a computed var
+        built from other computed vars does not inherit their dependency
+        lists for free."""
+        return self.ecozone_vectors + self.gbif_vectors

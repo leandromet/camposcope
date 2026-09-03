@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import reflex as rx
 
+from ..config import gbif as gbif_cfg
 from ..config import mapbiomas as mb
 from ..config.datasets import AGB_YEARS
 from ..state import AppState
@@ -269,6 +270,23 @@ def _paisagem_legend() -> rx.Component:
     return rx.fragment()
 
 
+def _gbif_legend() -> rx.Component:
+    """Kingdom colour key plus the zoom gate — the dots
+    (services/gbif.py::vector_spec) are meaningless without knowing which
+    kingdom each colour is, and the layer draws nothing below
+    ``GBIF_MIN_ZOOM``."""
+    return rx.vstack(
+        *[
+            _swatch_row(f"#{color}", kingdom)
+            for kingdom, color in gbif_cfg.KINGDOM_COLORS.items()
+            if kingdom != "incertae sedis"
+        ],
+        rx.text(AppState.tr["legend_gbif_zoom_note"], size="1",
+               color="var(--gray-11)"),
+        spacing="2", width="100%",
+    )
+
+
 def _validacao_side(title, rows: rx.Var, fallback) -> rx.Component:
     """One side of the swipe divider: its own header plus real classes when
     available, or a hint for why there is nothing to show yet."""
@@ -378,6 +396,7 @@ def _active_layer_title() -> rx.Component:
                 AppState.tr["validacao_mode_ibge"],
             ),
         )),
+        ("gbif", rx.text(AppState.tr["legend_gbif"])),
         rx.text(AppState.tr["legend_title"]),
     )
 
@@ -467,6 +486,7 @@ def map_legend() -> rx.Component:
                         ("paisagem", _paisagem_legend()),
                         ("fogo", _fire_legend()),
                         ("validacao", _validacao_legend()),
+                        ("gbif", _gbif_legend()),
                         rx.fragment(),
                     ),
                     padding_top="6px",

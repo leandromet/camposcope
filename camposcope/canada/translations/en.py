@@ -144,6 +144,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "legend_ganho": "Gain (undated)",
     "legend_choose_years": "Choose the years on the Transitions tab.",
     "legend_drag_to_compare": "Drag the bar on the map to compare.",
+    "legend_gbif_zoom_note": "Zoom in to see the points.",
     "map_layer_note": "This tab's map layer can be turned on or off from "
         "the legend in the map corner.",
 
@@ -302,6 +303,26 @@ TRANSLATIONS_EN: dict[str, str] = {
     "validacao_col_agreement": "Agree?",
     "validacao_attribution": "AAFC Annual Crop Inventory · NTEMS VLCE2 "
         "(Hermosilla et al., Canadian Forest Service)",
+
+    # --- GBIF ----------------------------------------------------------------------------- #
+    "tab_gbif": "GBIF",
+    "gbif_zoom_note": "On the map: zoom in (10 or more) to see occurrence "
+        "points — at country zoom a single view can hold tens of "
+        "thousands of records. \"Calculate\" fetches something different: "
+        "the exact species count for each zone, with no zoom limit.",
+    "gbif_attribution": "GBIF.org — Global Biodiversity Information Facility",
+    "gbif_col_species": "Species",
+    "gbif_col_records": "Records",
+    "gbif_records_word": "records",
+    "gbif_species_word": "species",
+    "gbif_zone_empty": "No species recorded in this zone.",
+    "gbif_empty": "No results yet. Click Calculate to fetch the species "
+        "already recorded in GBIF for each zone around the parcel.",
+    "gbif_cumulative_note": "An aggregate query — it counts the records "
+        "without downloading them. Each zone's totals below are "
+        "cumulative: the \"2 km – 5 km\" zone already includes everything "
+        "inside the parcel and the inner rings, not only what is found "
+        "exclusively between 2 and 5 km.",
 
     # --- errors --------------------------------------------------------------------------- #
     "erro_fora_canada": "That point is outside Canada. This page covers "

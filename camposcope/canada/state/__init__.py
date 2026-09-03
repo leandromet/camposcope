@@ -24,6 +24,7 @@ from ._cover import CanadaCoverMixin
 from ._export import CanadaExportMixin
 from ._fire import CanadaFireMixin
 from ._forest import CanadaForestMixin
+from ._gbif import CanadaGbifMixin
 from ._landscape import CanadaLandscapeMixin
 from ._layers import CanadaLayersMixin
 from ._parcel import CanadaParcelMixin
@@ -35,7 +36,7 @@ from ._validation import CanadaValidationMixin
 class CanadaState(CanadaParcelMixin, CanadaLayersMixin, CanadaCoverMixin,
                   CanadaTransitionsMixin, CanadaForestMixin, CanadaBiomassMixin,
                   CanadaFireMixin, CanadaLandscapeMixin, CanadaValidationMixin,
-                  CanadaExportMixin, CanadaUIMixin, rx.State):
+                  CanadaGbifMixin, CanadaExportMixin, CanadaUIMixin, rx.State):
     """Root state for the ``/canada`` route."""
 
     @rx.event

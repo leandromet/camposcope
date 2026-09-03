@@ -822,8 +822,14 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
 
   const attachPointHandlers = (L, spec, featureLayer, feature) => {
     const props = (feature && feature.properties) || {};
-    const base = spec.point_style || {};
-    const over = spec.hover_style || base;
+    // pointStyleFor, not spec.point_style: on a layer that colours per feature
+    // (spec.color_property) the flat style is only half the answer, and using
+    // it here would repaint every dot to the fallback grey the first time the
+    // cursor left it.
+    const base = pointStyleFor(spec, feature);
+    const over = spec.hover_style
+      ? {...base, ...spec.hover_style, ...paletteFill(spec, feature)}
+      : base;
 
     featureLayer.on("mouseover", () => {
       featureLayer.setStyle(over);
@@ -879,10 +885,10 @@ function useCamposcopeMap(containerRef, config, layers, overlays, vectors, onMap
     const geoLayer = L.geoJSON(data, {
       pane: "nmVectors",
       style: (feature) => (spec.point_style
-        ? {...spec.point_style}
+        ? pointStyleFor(spec, feature)
         : styleFor(spec, feature)),
       pointToLayer: (feature, latlng) =>
-        L.circleMarker(latlng, {...(spec.point_style || {}), pane: "nmVectors"}),
+        L.circleMarker(latlng, {...pointStyleFor(spec, feature), pane: "nmVectors"}),
       onEachFeature: (feature, featureLayer) => {
         const html = tooltipHtml(spec, feature);
         if (html) {
@@ -1372,6 +1378,34 @@ function styleFor(spec, feature) {
     // fill, but a reader cannot tell the layer is on.
     fillOpacity: spec.opacity != null ? spec.opacity : 0.4,
   };
+}
+
+// The fill colour one feature takes from its spec's palette, or {} when the
+// spec does not colour per feature.
+//
+// Split out from pointStyleFor because the hover style has to re-apply exactly
+// this and nothing else: a hover_style that carried its own fillColor would
+// override the palette, and one that did not would fall back to whatever
+// circleMarker defaults to.
+function paletteFill(spec, feature) {
+  if (!spec.color_property) return {};
+  const props = (feature && feature.properties) || {};
+  const palette = spec.palette || {};
+  const color = palette[props[spec.color_property]] || spec.default_color;
+  return color ? {fillColor: `#${color}`} : {};
+}
+
+// A point layer's per-feature style: the spec's flat point_style with the
+// palette colour merged over it.
+//
+// Until the GBIF layer every point layer here (IFN conglomerados, pasted
+// points) drew in one flat colour, so point_style alone was the whole style
+// and styleFor's palette handling was reachable only by polygons. Colouring
+// occurrences by kingdom needs both at once — the radius/stroke from
+// point_style, the fill from the palette — which is the one combination the
+// two branches could not previously express.
+function pointStyleFor(spec, feature) {
+  return {...(spec.point_style || {}), ...paletteFill(spec, feature)};
 }
 
 // Build the hover tooltip from the spec's label/property pairs.

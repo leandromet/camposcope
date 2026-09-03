@@ -18,6 +18,7 @@ from ._analysis import (
     ValidacaoMixin,
 )
 from ._export import ExportMixin
+from ._gbif import GbifMixin
 from ._imovel import ImovelMixin
 from ._landscape import LandscapeMixin
 from ._layers import LayersMixin
@@ -29,8 +30,8 @@ from ._zones import ZonesMixin
 
 class AppState(SearchMixin, ImovelMixin, ZonesMixin, LayersMixin, AnalysisMixin,
                ForestChangeMixin, BiomassMixin, FireMixin, SpotCoverageMixin,
-               ValidacaoMixin, TransitionsMixin, LandscapeMixin, ExportMixin,
-               UIMixin, rx.State):
+               ValidacaoMixin, TransitionsMixin, LandscapeMixin, GbifMixin,
+               ExportMixin, UIMixin, rx.State):
     """Root application state."""
 
     @rx.event

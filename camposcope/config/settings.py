@@ -178,3 +178,36 @@ SANKEY_MIN_YEAR_GAP = _int("CS_SANKEY_MIN_YEAR_GAP", 5)
 #: and loss/gain map layers — a pixel below this was never forest, so it
 #: cannot show loss. Ported from Naturametrics' default.
 HANSEN_TREECOVER_THRESHOLD = _int("CS_HANSEN_TREECOVER_THRESHOLD", 30)
+
+# --------------------------------------------------------------------------- #
+# GBIF occurrences (services/gbif.py, GBIF tab)
+# --------------------------------------------------------------------------- #
+#: Below this zoom a viewport can hold tens of thousands of records and only
+#: one page comes back — an arbitrary, misleading sample. Same threshold
+#: Naturametrics uses for the same reason.
+GBIF_MIN_ZOOM = _int("CS_GBIF_MIN_ZOOM", 10)
+
+#: GBIF's own hard ceiling on one occurrence/search page. Not adjustable.
+GBIF_PAGE_SIZE = _int("CS_GBIF_PAGE_SIZE", 300)
+
+#: Pages fetched per viewport. Kept at 1 — this tab shows "what lives here",
+#: not a species census, so one page (300 records) is enough to paint the dots
+#: without turning a map pan into several sequential upstream requests.
+GBIF_MAX_PAGES = _int("CS_GBIF_MAX_PAGES", 1)
+
+#: A GBIF occurrence search is a live third-party feed, not a static asset —
+#: short-lived, just enough to de-duplicate the debounced refetch burst a
+#: single pan/zoom produces.
+GBIF_CACHE_TTL_S = _int("CS_GBIF_CACHE_TTL_S", 900)
+
+GBIF_TIMEOUT_CONNECT = _int("CS_GBIF_TIMEOUT_CONNECT", 10)
+GBIF_TIMEOUT_READ = _int("CS_GBIF_TIMEOUT_READ", 45)
+
+#: Facet rows requested for the species-per-zone analysis (the GBIF tab's
+#: "Calcular" button). GBIF accepts up to 1200 per facet field.
+GBIF_FACET_LIMIT = _int("CS_GBIF_FACET_LIMIT", 1200)
+
+#: Species rows actually rendered per zone card. A zone can hold far more
+#: distinct names than fit a results card, and there is no export to spare
+#: the rest for (unlike Naturametrics' equivalent) — this is the only limit.
+GBIF_SPECIES_TABLE_LIMIT = _int("CS_GBIF_SPECIES_TABLE_LIMIT", 40)

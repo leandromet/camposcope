@@ -501,7 +501,7 @@ def _mobile_sheet() -> rx.Component:
                                 "camadas", "layers",
                                 AppState.tr["layers_title"],
                                 _layers_panel()),
-                            type="multiple", collapsible=True,
+                            type="multiple",
                             variant="surface", width="100%",
                         ),
                         padding_x="0",
@@ -585,7 +585,7 @@ def _map() -> rx.Component:
             zoom=AppState.zoom,
             layers=AppState.map_layers,
             overlays=AppState.map_overlays,
-            vectors=AppState.biome_vectors,
+            vectors=AppState.map_vectors,
             fit_bounds=AppState.fit_bounds,
             on_map_click=AppState.select_at_point,
             # Transições: two MapBiomas years at once, older left / newer

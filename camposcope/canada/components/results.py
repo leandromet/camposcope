@@ -10,6 +10,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ..config import aafc as mb
+from ..config import gbif as gbif_cfg
 from ..config.datasets import FIRE_MIN_MEANINGFUL_HA
 from ..state import CanadaState as S
 from .export_widgets import chart_box, table_export_button
@@ -759,6 +760,141 @@ def fogo_tab() -> rx.Component:
 
 
 # --------------------------------------------------------------------------- #
+# GBIF — biodiversity occurrences
+# --------------------------------------------------------------------------- #
+def _kingdom_color(name: rx.Var) -> rx.Var:
+    """See the Brazil page's own `_kingdom_color` for why this is an
+    `rx.match` rather than a plain dict lookup."""
+    return rx.match(
+        name,
+        *[(k, f"#{c}") for k, c in gbif_cfg.KINGDOM_COLORS.items()
+          if k != "incertae sedis"],
+        f"#{gbif_cfg.DEFAULT_COLOR}",
+    )
+
+
+def _kingdom_chip(k: rx.Var) -> rx.Component:
+    color = _kingdom_color(k.name)
+    return rx.badge(
+        f"{k.name} · {k.count}",
+        variant="outline", size="1",
+        style={"color": color, "borderColor": color},
+    )
+
+
+def _kingdom_chips(row: rx.Var) -> rx.Component:
+    return rx.hstack(
+        rx.foreach(row.kingdoms, _kingdom_chip),
+        spacing="1", wrap="wrap",
+    )
+
+
+def _zone_species_table(row: rx.Var) -> rx.Component:
+    return rx.cond(
+        row.species_top.length() > 0,
+        rx.scroll_area(
+            rx.table.root(
+                rx.table.header(
+                    rx.table.row(
+                        rx.table.column_header_cell(S.tr["gbif_col_species"]),
+                        rx.table.column_header_cell(S.tr["gbif_col_records"],
+                                                    text_align="right"),
+                    ),
+                ),
+                rx.table.body(
+                    rx.foreach(
+                        row.species_top,
+                        lambda sp: rx.table.row(
+                            rx.table.cell(rx.text(sp.name, size="1",
+                                                  style={"fontStyle": "italic"})),
+                            rx.table.cell(rx.text(sp.count_label, size="1"),
+                                         text_align="right"),
+                        ),
+                    ),
+                ),
+                size="1", variant="ghost", width="100%",
+            ),
+            type="auto", scrollbars="vertical", style={"maxHeight": "220px"},
+        ),
+        rx.text(S.tr["gbif_zone_empty"], size="1", color=MUTED),
+    )
+
+
+def _zone_card(row: rx.Var) -> rx.Component:
+    """One zone: cumulative totals, kingdom split, species table — see the
+    Brazil page's own `_zone_card` for the full contract."""
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.badge(row.zone_label, color_scheme="jade", variant="solid",
+                        size="2"),
+                rx.spacer(),
+                rx.vstack(
+                    rx.text(row.total_label, size="3", weight="bold"),
+                    rx.text(S.tr["gbif_records_word"], size="1", color=MUTED),
+                    spacing="0", align_items="end",
+                ),
+                rx.vstack(
+                    rx.text(row.richness_label, size="3", weight="bold"),
+                    rx.text(S.tr["gbif_species_word"], size="1", color=MUTED),
+                    spacing="0", align_items="end",
+                ),
+                width="100%", align="center", spacing="4",
+            ),
+            rx.cond(
+                row.error != "",
+                rx.callout(row.error, icon="triangle-alert", color_scheme="amber",
+                          size="1"),
+            ),
+            _kingdom_chips(row),
+            _zone_species_table(row),
+            spacing="2", width="100%", align_items="stretch",
+        ),
+        width="100%",
+    )
+
+
+def gbif_tab() -> rx.Component:
+    """Species recorded in GBIF, one cumulative zone at a time — see the
+    Brazil page's own `gbif_tab` for the full contract."""
+    return rx.vstack(
+        rx.hstack(_run_button(S.gbif_running, S.run_gbif_species),
+                 width="100%", align="start"),
+        rx.text(S.tr["gbif_cumulative_note"], size="1", color=MUTED),
+        rx.cond(
+            S.gbif_error,
+            rx.callout(S.gbif_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            S.gbif_running,
+            rx.center(
+                rx.hstack(rx.spinner(),
+                         rx.text(S.tr["calculando"], size="2"), spacing="2"),
+                height="200px",
+            ),
+            rx.cond(
+                S.gbif_zone_rows,
+                rx.grid(
+                    rx.foreach(S.gbif_zone_rows, _zone_card),
+                    columns=rx.breakpoints(initial="1", md="2"),
+                    spacing="3", width="100%",
+                ),
+                rx.center(
+                    rx.text(S.tr["gbif_empty"], size="2", color=MUTED),
+                    height="150px",
+                ),
+            ),
+        ),
+        rx.callout(S.tr["gbif_zoom_note"], icon="zoom-in", size="1",
+                  color_scheme="blue"),
+        _map_layer_note(),
+        rx.text(S.tr["gbif_attribution"], size="1", color=MUTED, padding_bottom="2px"),
+        spacing="3", width="100%", padding="3",
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Results panel
 # --------------------------------------------------------------------------- #
 def results_panel() -> rx.Component:
@@ -774,6 +910,7 @@ def results_panel() -> rx.Component:
                     rx.tabs.trigger(S.tr["tab_paisagem"], value="paisagem"),
                     rx.tabs.trigger(S.tr["tab_fogo"], value="fogo"),
                     rx.tabs.trigger(S.tr["tab_validacao"], value="validacao"),
+                    rx.tabs.trigger(S.tr["tab_gbif"], value="gbif"),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),
@@ -782,6 +919,7 @@ def results_panel() -> rx.Component:
                 rx.tabs.content(paisagem_tab(), value="paisagem"),
                 rx.tabs.content(fogo_tab(), value="fogo"),
                 rx.tabs.content(validacao_tab(), value="validacao"),
+                rx.tabs.content(gbif_tab(), value="gbif"),
                 value=S.results_tab, on_change=S.set_results_tab, width="100%",
             ),
             width="100%", border_top=BORDER, background="var(--color-panel)",

@@ -13,6 +13,7 @@ import reflex as rx
 
 from ..config.datasets import ALL_BASEMAPS, BASEMAPS, is_ee_basemap
 from ..config.settings import DEFAULT_BASEMAP, DEFAULT_CENTER, DEFAULT_ZOOM
+from ..services import gbif as gbif_service
 from ..services import sicar
 from ..translations import get_translations
 from ._proxy import plain
@@ -206,6 +207,17 @@ class LayersMixin(rx.State, mixin=True):
             cache_key = f"landscape_patches:{year_landscape}:{cod_imovel}"
             mint_fn = lambda: layer_service.landscape_patches_spec(
                 year_landscape, outer_geom, cod_imovel)
+
+        elif tab == "gbif":
+            # No raster of its own — the GBIF tab's only map layer is the
+            # browser-fetched point vector (gbif_vectors). Clearing the
+            # active key here is what stops whichever raster the PREVIOUS
+            # tab minted (MapBiomas, Hansen, …) from staying on screen
+            # underneath the dots; without it `map_layers` keeps rendering
+            # the last tile this key ever pointed to.
+            async with self:
+                self.active_analysis_layer_key = ""
+            return
 
         else:
             return
@@ -468,6 +480,41 @@ class LayersMixin(rx.State, mixin=True):
             opacity=self.biome_opacity,
             show_labels=self.show_biome_labels,
         )]
+
+    @rx.var(cache=True, deps=["results_tab", "analysis_layer_enabled"],
+           auto_deps=False)
+    def gbif_vectors(self) -> List[Dict[str, Any]]:
+        """The GBIF occurrence point layer — shown only while the GBIF tab is
+        active, gated by the same on-map legend switch every other per-tab
+        layer uses (`analysis_layer_enabled`). Like `biome_vectors`, no
+        network call happens here: the fetch is browser-side, so unlike a
+        tile spec this cannot fail on the Python side.
+
+        ``deps=["results_tab", ...]`` is required, not decorative — same
+        gotcha ``state/_imovel.py::disclosure`` documents: Reflex's default
+        ``@rx.var`` is cached, and the auto-dependency tracker only sees
+        literal ``self.<attr>`` accesses. ``results_tab`` lives on the
+        sibling ``UIMixin`` and is read via ``getattr`` below, which the
+        tracker cannot see through — without this, the var computes once at
+        whatever tab was active on first render and never again, so
+        switching TO the GBIF tab would never actually show the layer.
+        """
+        tab = getattr(self, "results_tab", "")
+        if tab != "gbif" or not self.analysis_layer_enabled:
+            return []
+        return [gbif_service.vector_spec()]
+
+    @rx.var(cache=True, deps=["show_biomes", "show_biome_labels",
+                              "biome_opacity", "results_tab",
+                              "analysis_layer_enabled"], auto_deps=False)
+    def map_vectors(self) -> List[Dict[str, Any]]:
+        """Every browser-fetched vector layer at once. `leaflet_map` takes a
+        single `vectors` list, so the independent biome toggle and the
+        GBIF tab's own layer are combined here rather than the component
+        needing two separate props. Deps are the union of `biome_vectors`'
+        and `gbif_vectors`' own — a computed var built from other computed
+        vars does not inherit their dependency lists for free."""
+        return self.biome_vectors + self.gbif_vectors
 
     @rx.var
     def map_layers(self) -> List[Dict[str, Any]]:

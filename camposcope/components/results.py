@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import reflex as rx
 
+from ..config import gbif as gbif_cfg
 from ..config import mapbiomas as mb
 from ..config.datasets import AGB_YEARS
 from ..state import AppState
@@ -514,6 +515,154 @@ def paisagem_tab() -> rx.Component:
     )
 
 
+# --------------------------------------------------------------------------- #
+# GBIF — biodiversity occurrences
+# --------------------------------------------------------------------------- #
+def _kingdom_color(name: rx.Var) -> rx.Var:
+    """A kingdom name → its map-dot colour, for the chip labels below.
+
+    An ``rx.match`` rather than a Python dict lookup: ``name`` only exists as
+    a value inside the browser (one row of ``AppState.gbif_zone_rows``,
+    reached through ``rx.foreach``), so the lookup has to compile to a
+    client-side expression, not run once at component-definition time.
+    """
+    return rx.match(
+        name,
+        *[(k, f"#{c}") for k, c in gbif_cfg.KINGDOM_COLORS.items()
+          if k != "incertae sedis"],
+        f"#{gbif_cfg.DEFAULT_COLOR}",
+    )
+
+
+def _kingdom_chip(k: rx.Var) -> rx.Component:
+    color = _kingdom_color(k.name)
+    return rx.badge(
+        f"{k.name} · {k.count}",
+        variant="outline", size="1",
+        style={"color": color, "borderColor": color},
+    )
+
+
+def _kingdom_chips(row: rx.Var) -> rx.Component:
+    return rx.hstack(
+        rx.foreach(row.kingdoms, _kingdom_chip),
+        spacing="1", wrap="wrap",
+    )
+
+
+def _zone_species_table(row: rx.Var) -> rx.Component:
+    return rx.cond(
+        row.species_top.length() > 0,
+        rx.scroll_area(
+            rx.table.root(
+                rx.table.header(
+                    rx.table.row(
+                        rx.table.column_header_cell(AppState.tr["gbif_col_species"]),
+                        rx.table.column_header_cell(AppState.tr["gbif_col_records"],
+                                                    text_align="right"),
+                    ),
+                ),
+                rx.table.body(
+                    rx.foreach(
+                        row.species_top,
+                        lambda sp: rx.table.row(
+                            rx.table.cell(rx.text(sp.name, size="1",
+                                                  style={"fontStyle": "italic"})),
+                            rx.table.cell(rx.text(sp.count_label, size="1"),
+                                         text_align="right"),
+                        ),
+                    ),
+                ),
+                size="1", variant="ghost", width="100%",
+            ),
+            type="auto", scrollbars="vertical", style={"maxHeight": "220px"},
+        ),
+        rx.text(AppState.tr["gbif_zone_empty"], size="1", color=MUTED),
+    )
+
+
+def _zone_card(row: rx.Var) -> rx.Component:
+    """One zone: the cumulative totals, the kingdom split, and its species
+    table — the GBIF tab's counterpart to every other tab's chart+table
+    pair, ``split_panel``'d the same way but as a card per zone instead,
+    since there are four zones to show at once rather than one series."""
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.badge(row.zone_label, color_scheme="jade", variant="solid",
+                        size="2"),
+                rx.spacer(),
+                rx.vstack(
+                    rx.text(row.total_label, size="3", weight="bold"),
+                    rx.text(AppState.tr["gbif_records_word"], size="1", color=MUTED),
+                    spacing="0", align_items="end",
+                ),
+                rx.vstack(
+                    rx.text(row.richness_label, size="3", weight="bold"),
+                    rx.text(AppState.tr["gbif_species_word"], size="1", color=MUTED),
+                    spacing="0", align_items="end",
+                ),
+                width="100%", align="center", spacing="4",
+            ),
+            rx.cond(
+                row.error != "",
+                rx.callout(row.error, icon="triangle-alert", color_scheme="amber",
+                          size="1"),
+            ),
+            _kingdom_chips(row),
+            _zone_species_table(row),
+            spacing="2", width="100%", align_items="stretch",
+        ),
+        width="100%",
+    )
+
+
+def gbif_tab() -> rx.Component:
+    """Species recorded in GBIF, one cumulative zone at a time — "Calcular"
+    fans out one facet query per zone (state/_gbif.py::run_gbif_species,
+    services/gbif_species.py). Independent of the on-map point layer
+    (state/_layers.py::gbif_vectors), which needs no run and appears as soon
+    as this tab is selected."""
+    return rx.vstack(
+        rx.hstack(
+            _run_button("calcular", AppState.gbif_running, AppState.run_gbif_species),
+            width="100%", align="start",
+        ),
+        rx.text(AppState.tr["gbif_cumulative_note"], size="1", color=MUTED),
+        rx.cond(
+            AppState.gbif_error,
+            rx.callout(AppState.gbif_error, icon="triangle-alert",
+                      color_scheme="amber", size="1"),
+        ),
+        rx.cond(
+            AppState.gbif_running,
+            rx.center(
+                rx.hstack(rx.spinner(),
+                         rx.text(AppState.tr["calculando"], size="2"),
+                         spacing="2"),
+                height="200px",
+            ),
+            rx.cond(
+                AppState.gbif_zone_rows,
+                rx.grid(
+                    rx.foreach(AppState.gbif_zone_rows, _zone_card),
+                    columns=rx.breakpoints(initial="1", md="2"),
+                    spacing="3", width="100%",
+                ),
+                rx.center(
+                    rx.text(AppState.tr["gbif_empty"], size="2", color=MUTED),
+                    height="150px",
+                ),
+            ),
+        ),
+        rx.callout(AppState.tr["gbif_zoom_note"], icon="zoom-in", size="1",
+                  color_scheme="blue"),
+        _map_layer_note(),
+        rx.text(AppState.tr["gbif_attribution"], size="1", color=MUTED, padding_bottom="2px"),
+        spacing="3", width="100%", padding="3",
+    )
+
+
 def _tab_trigger_with_hint(label, value: str, hint) -> rx.Component:
     """A tabs.trigger with a small info icon carrying an explanatory
     tooltip — the tooltip can't wrap the trigger itself (Reflex enforces
@@ -560,6 +709,9 @@ def results_panel() -> rx.Component:
                     _tab_trigger_with_hint(
                         AppState.tr["tab_validacao"], "validacao",
                         AppState.tr["tab_validacao_hint"]),
+                    _tab_trigger_with_hint(
+                        AppState.tr["tab_gbif"], "gbif",
+                        AppState.tr["tab_gbif_hint"]),
                 ),
                 rx.tabs.content(cobertura_tab(), value="cobertura"),
                 rx.tabs.content(transitions_tab(), value="transicoes"),
@@ -568,6 +720,7 @@ def results_panel() -> rx.Component:
                 rx.tabs.content(paisagem_tab(), value="paisagem"),
                 rx.tabs.content(fogo_tab(), value="fogo"),
                 rx.tabs.content(validacao_tab(), value="validacao"),
+                rx.tabs.content(gbif_tab(), value="gbif"),
                 value=AppState.results_tab,
                 on_change=AppState.set_results_tab,
                 width="100%",

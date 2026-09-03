@@ -154,6 +154,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_ganho": "Ganho (sem data)",
     "legend_choose_years": "Escolha os anos na aba Transições.",
     "legend_drag_to_compare": "Arraste a barra no mapa para comparar.",
+    "legend_gbif_zoom_note": "Aproxime o mapa para ver os pontos.",
     "map_layer_note": "A camada desta aba pode ser ligada ou desligada "
         "pela legenda no canto do mapa.",
 
@@ -319,6 +320,28 @@ TRANSLATIONS_PT: dict[str, str] = {
     "validacao_col_agreement": "Concordam?",
     "validacao_attribution": "AAFC Annual Crop Inventory · NTEMS VLCE2 "
         "(Hermosilla et al., Serviço Florestal Canadense)",
+
+    # --- GBIF ----------------------------------------------------------------------------- #
+    "tab_gbif": "GBIF",
+    "gbif_zoom_note": "No mapa: aproxime (zoom 10 ou mais) para ver os "
+        "pontos de ocorrência — em zoom de país, uma única vista pode "
+        "conter dezenas de milhares de registros. \"Calcular\" busca algo "
+        "diferente: a contagem exata de espécies em cada zona, sem esse "
+        "limite de zoom.",
+    "gbif_attribution": "GBIF.org — Global Biodiversity Information Facility",
+    "gbif_col_species": "Espécie",
+    "gbif_col_records": "Registros",
+    "gbif_records_word": "registros",
+    "gbif_species_word": "espécies",
+    "gbif_zone_empty": "Nenhuma espécie registrada nesta zona.",
+    "gbif_empty": "Ainda sem resultado. Clique em Calcular para buscar as "
+        "espécies já registradas no GBIF em cada zona ao redor da "
+        "parcela.",
+    "gbif_cumulative_note": "É uma consulta agregada — conta os registros "
+        "sem baixá-los. Os totais de cada zona abaixo são cumulativos: a "
+        "zona \"2 km – 5 km\" já inclui tudo que está na parcela e nos "
+        "anéis mais internos, não apenas o que está exclusivamente entre "
+        "2 e 5 km.",
 
     # --- errors --------------------------------------------------------------------------- #
     "erro_fora_canada": "Esse ponto está fora do Canadá. Esta página cobre "

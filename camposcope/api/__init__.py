@@ -16,13 +16,18 @@ from __future__ import annotations
 
 import gzip
 import logging
+from typing import Optional
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from ..canada.config import ecozones as ecozones_cfg
+from ..canada.config.settings import CANADA_BBOX
 from ..canada.services import ecozones
+from ..canada.services import gbif as gbif_ca
+from ..config.settings import BRAZIL_BBOX
 from ..services import biomes
+from ..services import gbif
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +115,68 @@ async def ecodistricts_geojson(request: Request) -> Response:
     return await _ecoframework_geojson(request, "ecodistrict")
 
 
+def _float_param(request: Request, name: str) -> Optional[float]:
+    raw = request.query_params.get(name)
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+async def gbif_geojson(request: Request) -> Response:
+    """GBIF occurrences inside a viewport — the Brazil page's GBIF tab.
+
+    A missing/invalid bbox (the first fetch before the map has ever reported
+    its own viewport) falls back to the whole of Brazil rather than the whole
+    world — cheaper, and every result would be off-country anyway once
+    ``services/gbif.py`` filters on ``country``.
+    """
+    west = _float_param(request, "west")
+    south = _float_param(request, "south")
+    east = _float_param(request, "east")
+    north = _float_param(request, "north")
+    if None in (west, south, east, north):
+        west, south, east, north = BRAZIL_BBOX
+
+    try:
+        payload = await _run_blocking(
+            lambda: gbif.points_in_bbox(west, south, east, north)
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("GBIF GeoJSON could not be produced")
+        return JSONResponse(
+            {"error": "ocorrências GBIF indisponíveis", "detail": str(exc)},
+            status_code=503,
+        )
+
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})
+
+
+async def gbif_ca_geojson(request: Request) -> Response:
+    """GBIF occurrences inside a viewport — the Canada page's GBIF tab."""
+    west = _float_param(request, "west")
+    south = _float_param(request, "south")
+    east = _float_param(request, "east")
+    north = _float_param(request, "north")
+    if None in (west, south, east, north):
+        west, south, east, north = CANADA_BBOX
+
+    try:
+        payload = await _run_blocking(
+            lambda: gbif_ca.points_in_bbox(west, south, east, north)
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("GBIF GeoJSON (Canada) could not be produced")
+        return JSONResponse(
+            {"error": "GBIF occurrences unavailable", "detail": str(exc)},
+            status_code=503,
+        )
+
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})
+
+
 async def healthz(request: Request) -> Response:
     return JSONResponse({"status": "ok"})
 
@@ -127,9 +194,12 @@ def register(app) -> None:
                  ecoregions_geojson, methods=["GET"])
     api.add_route(ecozones_cfg.LEVELS["ecodistrict"].geojson_path,
                  ecodistricts_geojson, methods=["GET"])
+    api.add_route(gbif.GEOJSON_PATH, gbif_geojson, methods=["GET"])
+    api.add_route(gbif_ca.GEOJSON_PATH, gbif_ca_geojson, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
-    logger.info("Registered backend routes %s, %s, %s, %s, /healthz",
+    logger.info("Registered backend routes %s, %s, %s, %s, %s, %s, /healthz",
                 biomes.GEOJSON_PATH,
                 ecozones_cfg.LEVELS["ecozone"].geojson_path,
                 ecozones_cfg.LEVELS["ecoregion"].geojson_path,
-                ecozones_cfg.LEVELS["ecodistrict"].geojson_path)
+                ecozones_cfg.LEVELS["ecodistrict"].geojson_path,
+                gbif.GEOJSON_PATH, gbif_ca.GEOJSON_PATH)

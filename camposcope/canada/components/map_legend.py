@@ -10,6 +10,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ..config import aafc as mb
+from ..config import gbif as gbif_cfg
 from ..config.datasets import AGB_YEARS, LANDSAT_RENDERINGS
 from ..config.vlce2 import COMPARABLE_YEARS
 from ..state import CanadaState as S
@@ -239,6 +240,26 @@ def _fogo_legend() -> rx.Component:
     )
 
 
+def _gbif_legend() -> rx.Component:
+    """Kingdom colour key plus the zoom gate — see the Brazil page's own
+    ``_gbif_legend`` for the full contract."""
+    return rx.vstack(
+        _header(S.tr["tab_gbif"]),
+        *[
+            rx.hstack(
+                rx.box(width="10px", height="10px", border_radius="2px",
+                      background=f"#{color}"),
+                rx.text(kingdom, size="1"),
+                spacing="2", align="center",
+            )
+            for kingdom, color in gbif_cfg.KINGDOM_COLORS.items()
+            if kingdom != "incertae sedis"
+        ],
+        rx.text(S.tr["legend_gbif_zoom_note"], size="1", color="var(--gray-11)"),
+        spacing="2", width="100%",
+    )
+
+
 def _validacao_side(title, rows: rx.Var, fallback) -> rx.Component:
     """One side of the swipe divider: its own header plus real classes when
     available, or a hint for why there is nothing to show yet. Mirrors the
@@ -335,6 +356,7 @@ def map_legend() -> rx.Component:
                             ("paisagem", _paisagem_legend()),
                             ("fogo", _fogo_legend()),
                             ("validacao", _validacao_legend()),
+                            ("gbif", _gbif_legend()),
                             rx.fragment(),
                         ),
                         spacing="2", width="100%",

@@ -119,6 +119,34 @@ TRANSLATIONS_PT: dict[str, str] = {
         "com o mapa de vegetação do IBGE, para checar a classificação em "
         "2008."
     ),
+    "tab_gbif": "GBIF",
+    "tab_gbif_hint": (
+        "Ocorrências de espécies registradas na região — observações, "
+        "espécimes de coleção e outras fontes agregadas pela rede mundial "
+        "de biodiversidade (GBIF)."
+    ),
+    "gbif_zoom_note": (
+        "No mapa: aproxime (zoom 10 ou mais) para ver os pontos de "
+        "ocorrência — em zoom de país, uma única vista pode conter dezenas "
+        "de milhares de registros. \"Calcular\" busca algo diferente: a "
+        "contagem exata de espécies em cada zona, sem esse limite de zoom."
+    ),
+    "gbif_attribution": "GBIF.org — Global Biodiversity Information Facility",
+    "gbif_col_species": "Espécie",
+    "gbif_col_records": "Registros",
+    "gbif_records_word": "registros",
+    "gbif_species_word": "espécies",
+    "gbif_zone_empty": "Nenhuma espécie registrada nesta zona.",
+    "gbif_empty": (
+        "Ainda sem resultado. Clique em Calcular para buscar as espécies "
+        "já registradas no GBIF em cada zona ao redor do imóvel."
+    ),
+    "gbif_cumulative_note": (
+        "É uma consulta agregada — conta os registros sem baixá-los. Os "
+        "totais de cada zona abaixo são cumulativos: a zona \"2 km – 5 "
+        "km\" já inclui tudo que está no imóvel e nos anéis mais internos, "
+        "não apenas o que está exclusivamente entre 2 e 5 km."
+    ),
 
     # --- Cobertura tab ---------------------------------------------------- #
     "cobertura_ano": "Ano",
@@ -282,6 +310,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "legend_mapbiomas_comparacao": "MapBiomas — comparação",
     "legend_choose_years": "Escolha os anos na aba Transições.",
     "legend_drag_to_compare": "Arraste a barra no mapa para comparar.",
+    "legend_gbif": "GBIF — Ocorrências",
+    "legend_gbif_zoom_note": "Aproxime o mapa para ver os pontos.",
     "legend_choose_mode": "Escolha o modo na aba Validação.",
     "legend_run_calcular": "Clique em Calcular na aba Validação para ver as classes.",
     "legend_run_cobertura": "Rode a aba Cobertura (ano 2008) para ver as classes.",
