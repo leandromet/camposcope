@@ -190,10 +190,14 @@ GBIF_MIN_ZOOM = _int("CS_GBIF_MIN_ZOOM", 10)
 #: GBIF's own hard ceiling on one occurrence/search page. Not adjustable.
 GBIF_PAGE_SIZE = _int("CS_GBIF_PAGE_SIZE", 300)
 
-#: Pages fetched per viewport. Kept at 1 — this tab shows "what lives here",
-#: not a species census, so one page (300 records) is enough to paint the dots
-#: without turning a map pan into several sequential upstream requests.
-GBIF_MAX_PAGES = _int("CS_GBIF_MAX_PAGES", 1)
+#: Adaptive, not flat: services/gbif.py's _fetch() only ever requests as many
+#: pages as the viewport's true count actually needs, capped here, and fires
+#: any pages beyond the first CONCURRENTLY — so a 250-record view still costs
+#: one request, and a 1200+ one costs roughly one page's wall-clock time
+#: rather than four sequential ones. 4 pages = 1200 records, matching
+#: GBIF_FACET_LIMIT below. Ported from Naturametrics, which hit the same
+#: "points reshuffle every pan/zoom" issue at MAX_PAGES=1.
+GBIF_MAX_PAGES = _int("CS_GBIF_MAX_PAGES", 4)
 
 #: A GBIF occurrence search is a live third-party feed, not a static asset —
 #: short-lived, just enough to de-duplicate the debounced refetch burst a

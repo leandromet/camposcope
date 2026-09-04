@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -189,15 +190,54 @@ def _fetch_page(west: float, south: float, east: float, north: float,
 
 
 def _fetch(west: float, south: float, east: float, north: float) -> dict:
-    features: list[dict] = []
-    total = 0
-    for page in range(GBIF_MAX_PAGES):
-        payload = _fetch_page(west, south, east, north, page * GBIF_PAGE_SIZE)
-        total = payload.get("count", 0)
-        results = payload.get("results", [])
-        features.extend(f for f in (_slim(r) for r in results) if f is not None)
-        if payload.get("endOfRecords") or len(results) < GBIF_PAGE_SIZE:
-            break
+    """Page 1 first and alone — it is the only page that tells us ``count``,
+    the true match total. Any further pages needed to reach it (up to
+    GBIF_MAX_PAGES) are then fired at GBIF concurrently rather than in a
+    sequential loop: each page is its own ~1.5-2 s round trip (measured), so
+    a 4-page fetch done one at a time would add 4-6 s to a single pan/zoom.
+    Fetched in parallel it costs roughly what one page does. Ported from
+    Naturametrics' ``services/gbif.py``, same reasoning.
+
+    This also means the extra cost is adaptive, not a flat multiplier: a
+    viewport with 250 matching records still does exactly one request, the
+    same as before GBIF_MAX_PAGES was raised.
+    """
+    first = _fetch_page(west, south, east, north, 0)
+    # GBIF reports the true match count independently of what this page
+    # returned — the number the panel needs to admit how much is hidden.
+    total = first.get("count", 0)
+    first_results = first.get("results", [])
+    features = [f for f in (_slim(r) for r in first_results) if f is not None]
+
+    more_to_fetch = (
+        len(first_results) == GBIF_PAGE_SIZE and not first.get("endOfRecords")
+    )
+    if more_to_fetch:
+        capped_total = min(total, GBIF_MAX_PAGES * GBIF_PAGE_SIZE)
+        pages_wanted = -(-capped_total // GBIF_PAGE_SIZE)  # ceil
+        offsets = [p * GBIF_PAGE_SIZE for p in range(1, pages_wanted)]
+        if offsets:
+            with ThreadPoolExecutor(max_workers=len(offsets)) as pool:
+                future_offset = {
+                    pool.submit(_fetch_page, west, south, east, north,
+                               offset): offset
+                    for offset in offsets
+                }
+                for future in as_completed(future_offset):
+                    try:
+                        payload = future.result()
+                    except Exception as exc:  # noqa: BLE001
+                        # One page failing should not blank out the rest —
+                        # the map still shows what came back, just short of
+                        # the cap, same as any other truncation.
+                        logger.warning(
+                            "GBIF page at offset %d failed: %s",
+                            future_offset[future], exc)
+                        continue
+                    features.extend(
+                        f for f in (_slim(r) for r in payload.get("results", []))
+                        if f is not None
+                    )
 
     return {
         "type": "FeatureCollection",
