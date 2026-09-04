@@ -194,10 +194,11 @@ Source: IBGE malhas territoriais, public domain with attribution.
 ## 12. Basemaps
 
 Ported from Naturametrics along with its open caveat: the default Google tile endpoints
-(`mt1.google.com/vt`) are **undocumented, not a licensed API**. They work and they are fast,
-and they are fine for local development. Before any public deployment this must become
-either a Google Maps Platform key or a fall back to Esri/OSM, which are licensed for this
-use. Carried here as an inherited debt, not a decision.
+(`mt1.google.com/vt`) are undocumented, not a licensed Maps Platform API in their own
+right. As of 2026-09 the GCP project backing this app's Cloud Run deployment has the
+Google Maps API activated, which is the account-level cover this needed; `google_hybrid`
+is now the production default (cloudbuild.yaml). Esri/OSM remain available as fallback
+options in `BASEMAPS`.
 
 ## 13. Attribution block
 

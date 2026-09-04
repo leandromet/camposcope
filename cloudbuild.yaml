@@ -141,10 +141,14 @@ steps:
       # nothing to gate. Flipped true 2026-08 after confirming this against
       # naturametrics' working deployment; see doc/12-spot-2008.md.
       #
-      # CS_BASEMAP=esri_imagery: the default (google_hybrid) hits undocumented,
-      # unlicensed `mt1.google.com` endpoints — fine for local development, not
-      # for a public deployment (doc/04-data-sources.md §11). Esri World Imagery
-      # is licensed for this use and needs no key.
+      # CS_BASEMAP=google_hybrid (2026-09): previously pinned to esri_imagery
+      # because the mt1.google.com tile endpoints this app's `google_*`
+      # basemaps use are undocumented, not a licensed Maps Platform API in
+      # their own right (doc/04-data-sources.md §12). This project now has
+      # the Google Maps API activated on Cloud Run, which was the missing
+      # cover — a manual edit to this value in the Cloud Run console will NOT
+      # stick, since this line replaces the whole env-var list on every push;
+      # change it here instead.
       #
       # --set-env-vars REPLACES the whole env var list on every deploy — it is
       # not additive. CS_GA_MEASUREMENT_ID must live here, not be set later via
@@ -153,4 +157,4 @@ steps:
       # wired up). Not a secret — GA4 Measurement IDs are public by design,
       # shipped in every page's HTML — so a literal here is fine, same as the
       # other config values on this line.
-      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=esri_imagery,CS_SPOT_ENABLED=true,CS_SICAR_BASE=https://geoserver.car.gov.br/geoserver/sicar/ows,CS_SICAR_WMS=https://geoserver.car.gov.br/geoserver/sicar/wms,CS_SICAR_VERIFY_TLS=true,CS_GA_MEASUREMENT_ID=G-HKS5YTT9DP
+      - --set-env-vars=CS_GCP_PROJECT_ID=${PROJECT_ID},CS_EE_TIER=partner,CS_EE_CONCURRENCY=64,CS_BASEMAP=google_hybrid,CS_SPOT_ENABLED=true,CS_SICAR_BASE=https://geoserver.car.gov.br/geoserver/sicar/ows,CS_SICAR_WMS=https://geoserver.car.gov.br/geoserver/sicar/wms,CS_SICAR_VERIFY_TLS=true,CS_GA_MEASUREMENT_ID=G-HKS5YTT9DP
