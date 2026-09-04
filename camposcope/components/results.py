@@ -714,10 +714,36 @@ def _tab_trigger_with_hint(label, value: str, hint) -> rx.Component:
     )
 
 
+def _resize_button() -> rx.Component:
+    """Desktop only: steps the results drawer through three fixed heights.
+    Free-dragging its own handle already works (pages/index.py::
+    _drag_handle, snap=False) but that plain bar reads as decoration rather
+    than a control until someone already knows to try it — the same
+    discoverability gap the mobile sheet's own handle redesign fixed for
+    the sheet. A button needs no discovery at all."""
+    return rx.box(
+        rx.tooltip(
+            rx.button(
+                rx.icon("unfold-vertical", size=14),
+                rx.text(AppState.tr["results_resize_label"], size="1"),
+                on_click=rx.call_script(
+                    "window.__csResultsDrawerCycle && "
+                    "window.__csResultsDrawerCycle()"),
+                size="1", variant="solid", color_scheme="gray",
+                aria_label=AppState.tr["results_resize_aria"],
+            ),
+            content=AppState.tr["results_resize_hint"],
+        ),
+        position="absolute", top="0.4rem", right="0.6rem", z_index="1",
+        display=["none", "none", "flex", "flex"],
+    )
+
+
 def results_panel() -> rx.Component:
     return rx.cond(
         AppState.has_imovel,
         rx.box(
+            _resize_button(),
             rx.tabs.root(
                 rx.tabs.list(
                     _tab_trigger_with_hint(
@@ -760,5 +786,6 @@ def results_panel() -> rx.Component:
             width="100%",
             border_top=BORDER,
             background="var(--color-panel)",
+            position="relative",
         ),
     )

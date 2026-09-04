@@ -132,11 +132,13 @@ class ImovelMixin(rx.State, mixin=True):
         # Expands the mobile sheet from its default "half" toward a view of
         # the freshly-adopted property, mirroring the map-app convention of
         # a selection opening its own detail sheet rather than leaving the
-        # user to notice and drag it up themselves. A no-op on desktop and
-        # a no-op if the sheet is already open wider than "half" — see
-        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        # user to notice and drag it up themselves. A no-op on desktop, a
+        # no-op if the sheet is already open wider than "half", and — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetNudgeOpen` —
+        # a no-op past the very first property this session, so it stops
+        # fighting a deliberate later resize.
         return [self.__class__.run_history, self.__class__.mint_analysis_layer,
-               rx.call_script("window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
+               rx.call_script("window.__csSheetNudgeOpen && window.__csSheetNudgeOpen()")]
 
     @rx.event(background=True)
     async def select_at_point(self, lat: float, lon: float):
@@ -189,12 +191,14 @@ class ImovelMixin(rx.State, mixin=True):
         # Expands the mobile sheet from its default "half" toward a view of
         # the freshly-adopted area, mirroring the map-app convention of a
         # selection opening its own detail sheet rather than leaving the
-        # user to notice and drag it up themselves. A no-op on desktop and a
-        # no-op if the sheet is already open wider than "half" — see
-        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        # user to notice and drag it up themselves. A no-op on desktop, a
+        # no-op if the sheet is already open wider than "half", and — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetNudgeOpen` —
+        # a no-op past the very first selection this session, so it stops
+        # fighting a deliberate later resize.
         return [self.__class__.run_history, self.__class__.mint_analysis_layer,
                rx.call_script(
-                   "window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
+                   "window.__csSheetNudgeOpen && window.__csSheetNudgeOpen()")]
 
     @rx.event(background=True)
     async def choose_candidate(self, cod_imovel: str):
@@ -215,11 +219,13 @@ class ImovelMixin(rx.State, mixin=True):
         # Expands the mobile sheet from its default "half" toward a view of
         # the freshly-adopted property, mirroring the map-app convention of
         # a selection opening its own detail sheet rather than leaving the
-        # user to notice and drag it up themselves. A no-op on desktop and
-        # a no-op if the sheet is already open wider than "half" — see
-        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetSnapTo`.
+        # user to notice and drag it up themselves. A no-op on desktop, a
+        # no-op if the sheet is already open wider than "half", and — see
+        # `pages/index.py::_SHEET_SCRIPT`'s `window.__csSheetNudgeOpen` —
+        # a no-op past the very first property this session, so it stops
+        # fighting a deliberate later resize.
         return [self.__class__.run_history, self.__class__.mint_analysis_layer,
-               rx.call_script("window.__csSheetSnapTo && window.__csSheetSnapTo('half')")]
+               rx.call_script("window.__csSheetNudgeOpen && window.__csSheetNudgeOpen()")]
 
     @rx.var
     def municipio_pages(self) -> int:

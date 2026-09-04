@@ -928,10 +928,32 @@ def gbif_tab() -> rx.Component:
 # --------------------------------------------------------------------------- #
 # Results panel
 # --------------------------------------------------------------------------- #
+def _resize_button() -> rx.Component:
+    """Desktop only — see the Brazil page's own ``components/results.py::
+    _resize_button`` for the full rationale."""
+    return rx.box(
+        rx.tooltip(
+            rx.button(
+                rx.icon("unfold-vertical", size=14),
+                rx.text(S.tr["results_resize_label"], size="1"),
+                on_click=rx.call_script(
+                    "window.__caResultsDrawerCycle && "
+                    "window.__caResultsDrawerCycle()"),
+                size="1", variant="solid", color_scheme="gray",
+                aria_label=S.tr["results_resize_aria"],
+            ),
+            content=S.tr["results_resize_hint"],
+        ),
+        position="absolute", top="0.4rem", right="0.6rem", z_index="1",
+        display=["none", "none", "flex", "flex"],
+    )
+
+
 def results_panel() -> rx.Component:
     return rx.cond(
         S.has_parcel,
         rx.box(
+            _resize_button(),
             rx.tabs.root(
                 rx.tabs.list(
                     rx.tabs.trigger(S.tr["tab_cobertura"], value="cobertura"),
@@ -954,5 +976,6 @@ def results_panel() -> rx.Component:
                 value=S.results_tab, on_change=S.set_results_tab, width="100%",
             ),
             width="100%", border_top=BORDER, background="var(--color-panel)",
+            position="relative",
         ),
     )

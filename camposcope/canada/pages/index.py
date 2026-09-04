@@ -81,6 +81,38 @@ _SHEET_SCRIPT = """
     settle(el, target);
   };
 
+  // canada/state/_parcel.py calls this on every parcel selection, not just
+  // the first — so a user who deliberately dragged the sheet down to peek
+  // for more map, then picked a second or third parcel, had it forced back
+  // open to "half" every time, with no way to keep the map-heavy view they
+  // had just chosen. Nudging the sheet open only makes sense the first
+  // time, before anyone knows there is something to see down there.
+  // `nudged` deliberately does not persist across a reload — a fresh page
+  // load is a fresh "first time".
+  var nudged = false;
+  window.__caSheetNudgeOpen = function () {
+    if (nudged) return;
+    nudged = true;
+    window.__caSheetSnapTo('half');
+  };
+
+  // The desktop results drawer's own resize button (components/results.py)
+  // — see the Brazil page's own pages/index.py::_SHEET_SCRIPT for the full
+  // rationale (free-dragging the plain-bar handle already works, but reads
+  // as decoration until someone already knows to try it).
+  function resultsDrawerPoints() {
+    return [window.innerHeight * 0.22, window.innerHeight * 0.42,
+            window.innerHeight * 0.68];
+  }
+  window.__caResultsDrawerCycle = function () {
+    var el = document.getElementById('ca-results-drawer');
+    if (!el) return;
+    var pts = resultsDrawerPoints();
+    var current = nearest(el.offsetHeight, pts);
+    var idx = (pts.indexOf(current) + 1) % pts.length;
+    settle(el, pts[idx]);
+  };
+
   document.addEventListener('pointerdown', function (e) {
     var handle = e.target.closest && e.target.closest('[data-drawer-handle]');
     if (!handle) return;

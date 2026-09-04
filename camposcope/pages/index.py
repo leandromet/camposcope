@@ -127,6 +127,40 @@ _SHEET_SCRIPT = """
     settle(el, target);
   };
 
+  // state/_imovel.py calls this on every property selection, not just the
+  // first — so a user who deliberately dragged the sheet down to peek for
+  // more map, then picked a second or third property (browsing a município
+  // list, say), had it forced back open to "half" every time, with no way
+  // to keep the map-heavy view they had just chosen. Nudging the sheet open
+  // only makes sense the first time, before anyone knows there is something
+  // to see down there. `nudged` deliberately does not persist across a
+  // reload — a fresh page load is a fresh "first time".
+  var nudged = false;
+  window.__csSheetNudgeOpen = function () {
+    if (nudged) return;
+    nudged = true;
+    window.__csSheetSnapTo('half');
+  };
+
+  // The desktop results drawer's own resize button (components/results.py)
+  // — free dragging its plain-bar handle already works, but that handle
+  // reads as decoration rather than a control until someone already knows
+  // to try it (the exact discoverability problem the mobile sheet's own
+  // handle redesign fixed for the sheet). A button that steps through three
+  // fixed heights needs no discovery at all.
+  function resultsDrawerPoints() {
+    return [window.innerHeight * 0.22, window.innerHeight * 0.42,
+            window.innerHeight * 0.68];
+  }
+  window.__csResultsDrawerCycle = function () {
+    var el = document.getElementById('results-drawer');
+    if (!el) return;
+    var pts = resultsDrawerPoints();
+    var current = nearest(el.offsetHeight, pts);
+    var idx = (pts.indexOf(current) + 1) % pts.length;
+    settle(el, pts[idx]);
+  };
+
   document.addEventListener('pointerdown', function (e) {
     var handle = e.target.closest && e.target.closest('[data-drawer-handle]');
     if (!handle) return;
