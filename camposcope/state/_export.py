@@ -56,6 +56,11 @@ class ExportMixin(rx.State, mixin=True):
     #: default action.
     exp_report_figures: bool = False
     exp_report_tables: bool = False
+    #: The GBIF per-zone species tables — off by default like the two above,
+    #: but its own flag rather than folded into exp_report_tables: it governs
+    #: the workbook too (which has no other opt-in toggle), and the species
+    #: list can be large enough on its own to be worth a deliberate choice.
+    exp_include_gbif: bool = False
 
     export_busy: bool = False
     export_stage: str = ""
@@ -73,6 +78,9 @@ class ExportMixin(rx.State, mixin=True):
 
     def toggle_exp_report_tables(self, checked: bool):
         self.exp_report_tables = checked
+
+    def toggle_exp_include_gbif(self, checked: bool):
+        self.exp_include_gbif = checked
 
     @rx.var
     def export_report_any(self) -> bool:
@@ -130,6 +138,7 @@ class ExportMixin(rx.State, mixin=True):
             validacao_matrix=plain(self.validacao_matrix),
             validacao_zone_label=self.validacao_zone_label,
             validacao_provenance=plain(self.validacao_provenance),
+            gbif_zone_rows=plain(self.gbif_zone_rows),
         )
 
     # ---------------------------------------------------------------------- #
@@ -153,6 +162,7 @@ class ExportMixin(rx.State, mixin=True):
             self.export_stage = self.tr["export_stage_building"]
             payload = self._gather()
             payload["lang"] = self.lang
+            payload["include_gbif"] = self.exp_include_gbif
 
         loop = asyncio.get_running_loop()
         try:
@@ -197,6 +207,7 @@ class ExportMixin(rx.State, mixin=True):
             payload["lang"] = self.lang
             payload["include_figures"] = self.exp_report_figures
             payload["include_tables"] = self.exp_report_tables
+            payload["include_gbif"] = self.exp_include_gbif
 
         loop = asyncio.get_running_loop()
         try:

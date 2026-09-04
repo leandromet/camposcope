@@ -89,6 +89,11 @@ def export_dialog() -> rx.Component:
                     ),
                     rx.text(AppState.tr["workbook_desc"], size="1",
                            color="var(--gray-11)", style={"lineHeight": "1.45"}),
+                    _check(
+                        AppState.tr["check_gbif_label"],
+                        AppState.tr["check_gbif_detail"],
+                        AppState.exp_include_gbif, AppState.toggle_exp_include_gbif,
+                    ),
                     rx.button(
                         rx.icon("download", size=14),
                         AppState.tr["download_workbook_button"],

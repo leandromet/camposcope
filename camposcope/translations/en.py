@@ -396,6 +396,12 @@ TRANSLATIONS_EN: dict[str, str] = {
         "validation (if computed), the MapBiomas class dictionary, and a "
         "metadata tab with the provenance of every query."
     ),
+    "check_gbif_label": "Species (GBIF)",
+    "check_gbif_detail": (
+        "Includes the per-zone species tables (GBIF) in the spreadsheet "
+        "and the report below. Off by default — the species list can be "
+        "large, and needs the GBIF tab calculated first."
+    ),
     "report_section_title": "HTML report (paper-friendly layout)",
     "report_section_desc": (
         "One self-contained HTML file with the figures and/or tables "

@@ -137,6 +137,8 @@ def imovel_report_html(
     validacao_matrix: dict[str, Any] | None = None,
     validacao_zone_label: str = "",
     validacao_provenance: dict[str, Any] | None = None,
+    gbif_zone_rows: list[Any] | None = None,
+    include_gbif: bool = False,
     include_figures: bool = True,
     include_tables: bool = True,
     lang: str = "pt",
@@ -156,6 +158,7 @@ def imovel_report_html(
     fire_rows = fire_rows or []
     fire_annual_rows = fire_annual_rows or []
     validacao_matrix = validacao_matrix or {}
+    gbif_zone_rows = gbif_zone_rows or []
 
     title = "Relatório do imóvel — Camposcope" if lang == "pt" \
         else "Property report — Camposcope"
@@ -444,6 +447,39 @@ def imovel_report_html(
                  f"IBGE × MapBiomas validation — {validacao_zone_label}."),
                 "",
             )
+
+    if include_gbif and gbif_zone_rows:
+        parts.append(f'<h2>{"Biodiversidade (GBIF)" if lang == "pt" else "Biodiversity (GBIF)"}</h2>')
+        # gbif_zone_rows holds GbifZoneRow *objects*, not dicts — unlike every
+        # other *_rows argument here, plain() (state/_proxy.py) only unwraps
+        # dict/list/tuple, so a pydantic model passes through untouched.
+        # pd.DataFrame() on a list of arbitrary objects does not introspect
+        # their fields into columns, which silently produced a table with the
+        # right row count and no columns at all. Built explicitly instead,
+        # the same getattr() access services/gbif_export.py already uses for
+        # these same row objects.
+        gbif_df = pd.DataFrame([
+            {"zone_label": getattr(r, "zone_label", ""),
+             "total_label": getattr(r, "total_label", ""),
+             "richness_label": getattr(r, "richness_label", "")}
+            for r in gbif_zone_rows
+        ])
+        add_table(
+            gbif_df,
+            {"zone_label": "Zona" if lang == "pt" else "Zone",
+             "total_label": "Registros" if lang == "pt" else "Records",
+             "richness_label": "Espécies" if lang == "pt" else "Species"},
+            ("Espécies registradas no GBIF, por zona — cumulativo: cada zona "
+             "inclui o imóvel e os anéis mais internos." if lang == "pt" else
+             "Species recorded in GBIF, per zone — cumulative: each zone "
+             "includes the property and the inner rings."),
+            "",
+        )
+        parts.append(
+            f'<p class="cs-caveat">'
+            f'{"A lista completa de espécies por zona está na planilha (abas gbif_*) ou no download dedicado da aba GBIF — este relatório traz só o resumo acima." if lang == "pt" else "The full per-zone species list is in the spreadsheet (gbif_* tabs) or the GBIF tab’s own download — this report carries only the summary above."}'
+            f"</p>"
+        )
 
     provenances = [
         Provenance(**p) for p in (

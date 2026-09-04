@@ -25,7 +25,7 @@ import pandas as pd
 
 from ..config import mapbiomas as mb
 from ..config.citation import APP_URL, CITATION_TEXT, DATA_SOURCES
-from . import ods
+from . import gbif_export, ods
 from .provenance import Provenance
 
 logger = logging.getLogger(__name__)
@@ -195,6 +195,25 @@ def _conectividade_sheet(connectivity_rows: list[dict[str, Any]]) -> ods.Sheet:
     return ods.sheet_from_dataframe("conectividade", df)
 
 
+def _gbif_sheets(gbif_zone_rows: list[Any]) -> list[ods.Sheet]:
+    """One sheet per zone, same species-table shape as the GBIF tab's own
+    dedicated export (services/gbif_export.py) — reused rather than
+    reimplemented, so a species list means the same thing whether it arrived
+    via this bundled workbook or the GBIF tab's own download button.
+
+    Prefixed ``gbif_`` (not ``especies_``) to keep it visually distinct from
+    the workbook's other per-tab sheets in a spreadsheet's tab bar.
+    """
+    return [
+        ods.Sheet(
+            f"gbif_{gbif_export._zone_slug(index, str(getattr(row, 'zone_key', index)))}",
+            gbif_export.SPECIES_COLUMNS,
+            gbif_export._species_rows(row),
+        )
+        for index, row in enumerate(gbif_zone_rows)
+    ]
+
+
 def _validacao_sheet(matrix: dict[str, Any], zone_label: str) -> ods.Sheet:
     """The 6×6 IBGE×MapBiomas bucket matrix, flattened — every cell, not only
     the non-zero ones shown on screen (a CSV/ODS reader can filter zeros
@@ -243,6 +262,8 @@ def imovel_workbook(
     validacao_matrix: dict[str, Any] | None = None,
     validacao_zone_label: str = "",
     validacao_provenance: dict[str, Any] | None = None,
+    gbif_zone_rows: list[Any] | None = None,
+    include_gbif: bool = False,
     lang: str = "pt",
 ) -> tuple[bytes, str]:
     """One spreadsheet for the property currently on screen.
@@ -326,6 +347,12 @@ def imovel_workbook(
         ])
     if validacao_matrix:
         context.append(["aba validacao_ibge calculada para", validacao_zone_label])
+    if include_gbif and not gbif_zone_rows:
+        context.append([
+            "AVISO — abas gbif_*",
+            "Espécies (GBIF) marcado para incluir, mas ainda não calculado — "
+            "clique «Calcular» na aba GBIF e baixe novamente.",
+        ])
 
     provenances = [p for p in (history_prov, hansen_prov, biomass_prov,
                               landscape_prov, connectivity_prov,
@@ -348,6 +375,8 @@ def imovel_workbook(
     sheets.extend([fogo_summary, fogo_annual])
     if validacao_matrix:
         sheets.append(_validacao_sheet(validacao_matrix, validacao_zone_label))
+    if include_gbif and gbif_zone_rows:
+        sheets.extend(_gbif_sheets(gbif_zone_rows))
     sheets.append(_classes_sheet())
 
     label = imovel.get("cod_imovel") or "imovel"

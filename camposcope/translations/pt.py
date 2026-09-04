@@ -414,6 +414,12 @@ TRANSLATIONS_PT: dict[str, str] = {
         "(se calculada), o dicionário de classes do MapBiomas e uma aba de "
         "metadados com a proveniência de cada consulta."
     ),
+    "check_gbif_label": "Espécies (GBIF)",
+    "check_gbif_detail": (
+        "Inclui as tabelas de espécies por zona (GBIF) na planilha e no "
+        "relatório abaixo. Desmarcado por padrão — a lista de espécies pode "
+        "ser extensa e exige ter calculado a aba GBIF antes."
+    ),
     "report_section_title": "Relatório em HTML (formato de artigo)",
     "report_section_desc": (
         "Um único arquivo HTML autocontido com os gráficos e/ou tabelas já "
