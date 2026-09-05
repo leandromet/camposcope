@@ -191,6 +191,26 @@ and near a state line the property query itself is the arbiter.
 
 Source: IBGE malhas territoriais, public domain with attribution.
 
+## 11b. FUNAI terras indígenas and CNUC unidades de conservação — local, committed
+
+Two **simplified**, pre-gzipped GeoJSON files plus one CSV catalogue, committed to `data/`
+and built offline by `scripts/fetch_territorios.py` from the FUNAI and CNUC GeoPackages.
+657 terras indígenas and 3 247 unidades de conservação (2026-05 snapshot).
+
+They serve two purposes and only two: **map overlays** (gold for terras indígenas, dark
+purple for unidades de conservação, labelled from zoom 8) and a **search resolver** that
+frames the map on a named territory ([11-search-and-navigation.md](11-search-and-navigation.md)
+§6b). Simplified to ~200 m and rounded to ~110 m — orientation, never a determination that a
+property falls inside one. They are not an input to any number this app reports.
+
+Committed rather than fetched at runtime because reading a GeoPackage needs
+geopandas/fiona, which are deliberately absent from `requirements.txt`
+([09-dev-environment.md](09-dev-environment.md) §5), and the source files are not in this
+repo — same reasoning as §11 above.
+
+Sources: FUNAI — Terras Indígenas (poligonais e portarias); MMA/ICMBio — Cadastro Nacional
+de Unidades de Conservação (CNUC). Both public data with attribution.
+
 ## 12. Basemaps
 
 Ported from Naturametrics along with its open caveat: the default Google tile endpoints
@@ -211,4 +231,5 @@ Every export and the About page carry, in full:
 > ESA CCI Biomass v6.0, Santoro & Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat ·
 > Google LLC, Brazil Forest Imagery Dataset 2008, criado a partir de imagens SPOT de aproximadamente 2008 ·
 > IBGE — biomas e domínios morfoclimáticos 1:250.000, malhas territoriais e localidades ·
+> Funai — Terras Indígenas (poligonais e portarias) · MMA/ICMBio — Cadastro Nacional de Unidades de Conservação (CNUC) ·
 > Busca de lugares © colaboradores do OpenStreetMap (ODbL) · Processado no Google Earth Engine.

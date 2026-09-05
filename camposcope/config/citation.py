@@ -80,6 +80,18 @@ DATA_SOURCES = [
      "Fronteiras de UF e município, e o cadastro de municípios usado na "
      "busca.",
      "https://www.ibge.gov.br"),
+    ("Funai — Terras Indígenas",
+     "Fundação Nacional dos Povos Indígenas — poligonais e portarias das "
+     "terras indígenas. Camada de orientação e busca; limites simplificados "
+     "(~200 m), não determinam se um imóvel está dentro de uma terra "
+     "indígena.",
+     "https://www.gov.br/funai"),
+    ("ICMBio/MMA — Cadastro Nacional de Unidades de Conservação (CNUC)",
+     "Ministério do Meio Ambiente e ICMBio — CNUC, unidades de conservação "
+     "federais, estaduais e municipais. Camada de orientação e busca; limites "
+     "simplificados (~200 m), não determinam se um imóvel está dentro de uma "
+     "unidade de conservação.",
+     "https://www.gov.br/icmbio"),
     ("Nominatim (OpenStreetMap)",
      "Busca de lugares. © colaboradores do OpenStreetMap, licença ODbL.",
      "https://nominatim.openstreetmap.org"),
@@ -129,6 +141,18 @@ DATA_SOURCES_EN = [
      "UF and município boundaries, and the município catalogue used in "
      "search.",
      "https://www.ibge.gov.br"),
+    ("Funai — Indigenous lands",
+     "Fundação Nacional dos Povos Indígenas — indigenous land polygons and "
+     "the ordinances behind them. Orientation and search layer; boundaries "
+     "simplified (~200 m) and do not determine whether a property falls "
+     "inside an indigenous land.",
+     "https://www.gov.br/funai"),
+    ("ICMBio/MMA — National Registry of Conservation Units (CNUC)",
+     "Ministry of the Environment and ICMBio — CNUC, federal, state and "
+     "municipal conservation units. Orientation and search layer; boundaries "
+     "simplified (~200 m) and do not determine whether a property falls "
+     "inside a conservation unit.",
+     "https://www.gov.br/icmbio"),
     ("Nominatim (OpenStreetMap)",
      "Place search. © OpenStreetMap contributors, ODbL licence.",
      "https://nominatim.openstreetmap.org"),

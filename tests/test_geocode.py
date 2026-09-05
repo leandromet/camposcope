@@ -69,6 +69,30 @@ def test_precedence_municipio_before_place():
     assert r.kind == "municipio"
 
 
+def test_precedence_territorio_before_place():
+    """"Yanomami" is a terra indígena, so it must never reach the geocoder."""
+    r = geocode.resolve("Yanomami")
+    assert r.kind == "territorio"
+    assert r.payload[0]["nome"] == "Yanomami"
+
+
+def test_municipio_carries_its_territory_namesakes():
+    """A município and a territory can share a name, and picking one silently
+    would be a coin flip. "Jaú" is a município in São Paulo AND a national
+    park in Amazonas: the echo still reads "município", and the park is
+    offered rather than dropped."""
+    r = geocode.resolve("jau")
+    assert r.kind == "municipio"
+    assert any("JAÚ" in t["nome"].upper() for t in r.territorios)
+
+
+def test_only_a_municipio_hit_carries_territories():
+    """Every other kind is unambiguous, or reached the geocoder precisely
+    because nothing local matched."""
+    assert geocode.resolve("-12.4979, -55.4977").territorios == []
+    assert geocode.resolve("Fazenda Santa Luzia do Norte").territorios == []
+
+
 def test_unknown_text_falls_through_to_place():
     r = geocode.resolve("Fazenda Santa Luzia do Norte")
     assert r.kind == "lugar"

@@ -1,14 +1,23 @@
 """Resolving what the user typed (doc/11-search-and-navigation.md).
 
-Four resolvers, tried in a fixed order and stopping at the first match: a CAR
-code, a coordinate, a município, a place name. The order is not arbitrary — the
-first three are exact and local, and only the fourth is a guess against someone
-else's public service. Most searches therefore never reach a geocoder at all,
-which is what keeps the geocoder usage defensible (decision D11).
+Five resolvers, tried in a fixed order and stopping at the first match: a CAR
+code, a coordinate, a município, a protected territory (terra indígena or
+unidade de conservação), a place name. The order is not arbitrary — the first
+four are exact and local, and only the fifth is a guess against someone else's
+public service. Most searches therefore never reach a geocoder at all, which is
+what keeps the geocoder usage defensible (decision D11).
 
-**A place-name result frames the map and selects no property.** Finding a place
-and identifying a registration are different acts; a fuzzy address match must
-never become an implied claim about who holds what.
+The território resolver is the one that does not *only* stop at the first
+match. A município and a territory can share a name — "Jaú" is both a município
+in São Paulo and a national park in Amazonas — and picking one silently would
+be a coin flip. So a query that matches a município still carries its territory
+hits alongside (``Resolution.territorios``): the echo line still says
+"município", because that is what the input reads as first, and the territory
+matches are offered rather than assumed.
+
+**A place-name or territory result frames the map and selects no property.**
+Finding a place and identifying a registration are different acts; a fuzzy
+address match must never become an implied claim about who holds what.
 """
 
 from __future__ import annotations
@@ -17,7 +26,7 @@ import logging
 import re
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -282,9 +291,14 @@ class Resolution:
     quietly resolving somewhere plausible and wrong (doc/08-ui-ux.md §2).
     """
 
-    kind: str            # "codigo" | "coordenada" | "municipio" | "lugar" | "vazio"
+    kind: str            # "codigo" | "coordenada" | "municipio" | "territorio" | "lugar" | "vazio"
     echo: str            # human-readable "read as …"
     payload: Any = None
+    #: Territory matches carried ALONGSIDE a município hit, not instead of it —
+    #: see this module's docstring for why. Always empty for every other kind:
+    #: a CAR code or a coordinate is unambiguous, and a query that reached the
+    #: geocoder matched no territory by definition.
+    territorios: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def resolve(text: str) -> Resolution:
@@ -315,18 +329,32 @@ def resolve(text: str) -> Resolution:
         )
 
     # 3 — município. Exact and local (decision D12).
-    from . import municipios
+    from . import municipios, territorios
 
     matches = municipios.search(raw, limit=5)
+    # 4 — território. Exact and local too, so it costs the same nothing to run
+    # it even when a município already matched — which is exactly what lets a
+    # name shared by both be offered rather than silently decided.
+    territory_hits = territorios.search(raw, limit=8)
+
     if matches:
         first = matches[0]
         return Resolution(
             "municipio",
             f"município {first['nome']}/{first['uf']}",
             matches,
+            territory_hits,
         )
 
-    # 4 — place name. The only resolver that touches a third party.
+    if territory_hits:
+        first = territory_hits[0]
+        return Resolution(
+            "territorio",
+            f"território {first['nome']}",
+            territory_hits,
+        )
+
+    # 5 — place name. The only resolver that touches a third party.
     return Resolution("lugar", f"lugar “{raw}”", raw)
 
 

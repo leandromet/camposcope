@@ -1,9 +1,14 @@
 """The unified search box (doc/11-search-and-navigation.md).
 
-One field, four resolvers, tried in a fixed order and stopping at the first
-match: CAR code → coordinate → município → place name. The first three are exact
-and local; only the fourth reaches a third-party service, which is what keeps
-the geocoder volume defensible (decision D11).
+One field, five resolvers, tried in a fixed order and stopping at the first
+match: CAR code → coordinate → município → território → place name. The first
+four are exact and local; only the fifth reaches a third-party service, which
+is what keeps the geocoder volume defensible (decision D11).
+
+Território covers terras indígenas (FUNAI) and unidades de conservação
+(CNUC/ICMBio). Because a município and a territory can share a name, that one
+resolver is offered alongside a município hit rather than only after it — see
+``services/geocode.py``'s own docstring.
 
 The box **echoes how it read the input** before acting on it. That one line is
 what stops a transposed coordinate pair or a mistyped code from quietly
@@ -17,7 +22,7 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
-from ..services import geocode, municipios
+from ..services import geocode, municipios, territorios
 from ..services.geocode import GeocodeError
 from ..translations import get_translations
 
@@ -34,13 +39,16 @@ class SearchMixin(rx.State, mixin=True):
     search_error: str = ""
     searching_place: bool = False
 
-    #: Município candidates (local, instant) and place candidates (geocoded).
+    #: Município and território candidates (local, instant) and place
+    #: candidates (geocoded).
     municipio_hits: List[Dict[str, Any]] = []
+    territorio_hits: List[Dict[str, Any]] = []
     place_hits: List[Dict[str, Any]] = []
 
     @rx.var
     def has_results(self) -> bool:
-        return bool(self.municipio_hits or self.place_hits or self.candidates)
+        return bool(self.municipio_hits or self.territorio_hits
+                    or self.place_hits or self.candidates)
 
     def _echo_text(self, resolution) -> str:
         """Rebuild the echo line in the current language.
@@ -48,7 +56,8 @@ class SearchMixin(rx.State, mixin=True):
         ``geocode.resolve`` is PT-only by design (it is a pure classifier, not
         a UI-facing service — doc/11-search-and-navigation.md) and returns its
         own ``.echo`` pre-formatted in Portuguese. Only the noun ("código
-        CAR"/"coordenada"/"município"/"lugar") needs a language, so it is
+        CAR"/"coordenada"/"município"/"território"/"lugar") needs a language,
+        so it is
         rebuilt here from ``kind`` + ``payload`` rather than adding ``lang`` to
         a service that otherwise has no notion of it.
         """
@@ -61,6 +70,9 @@ class SearchMixin(rx.State, mixin=True):
         if kind == "municipio":
             first = payload[0]
             return f"{msgs['echo_municipio']} {first['nome']}/{first['uf']}"
+        if kind == "territorio":
+            first = payload[0]
+            return f"{msgs['echo_territorio']} {first['nome']}"
         if kind == "lugar":
             return f"{msgs['echo_lugar']} “{payload}”"
         return resolution.echo
@@ -100,6 +112,7 @@ class SearchMixin(rx.State, mixin=True):
             raw = self.query.strip()
             self.search_error = ""
             self.municipio_hits = []
+            self.territorio_hits = []
             self.place_hits = []
             if not raw:
                 return
@@ -125,10 +138,25 @@ class SearchMixin(rx.State, mixin=True):
         if kind == "municipio":
             async with self:
                 self.municipio_hits = resolution.payload
-            # A single unambiguous hit goes straight there; several are offered.
-            if len(resolution.payload) == 1:
+                self.territorio_hits = list(resolution.territorios)
+            # A single unambiguous hit goes straight there; several are
+            # offered. A territory sharing the name makes it ambiguous too,
+            # even when only one município matched — jumping to Jaú/SP while
+            # a Parque Nacional do Jaú sits unmentioned in the list below
+            # would be exactly the silent coin flip carrying both lists is
+            # meant to avoid.
+            if len(resolution.payload) == 1 and not resolution.territorios:
                 return self.__class__.choose_municipio(
                     resolution.payload[0]["cod_municipio_ibge"]
+                )
+            return
+
+        if kind == "territorio":
+            async with self:
+                self.territorio_hits = resolution.payload
+            if len(resolution.payload) == 1:
+                return self.__class__.choose_territorio(
+                    resolution.payload[0]["tipo"], resolution.payload[0]["codigo"]
                 )
             return
 
@@ -190,6 +218,53 @@ class SearchMixin(rx.State, mixin=True):
         return self.__class__.load_municipio_list
 
     @rx.event
+    def choose_territorio(self, tipo: str, codigo: str) -> None:
+        """Frame the map on a terra indígena or unidade de conservação, and
+        draw the layer it belongs to. **Selects no property.**
+
+        Turning the layer on is the point of the gesture: framing a territory
+        and then not drawing it would leave the user looking at an unmarked
+        rectangle of map and wondering whether the search worked. It is not a
+        viewport move triggered by a layer toggle (constraint C1 forbids that)
+        — it is the other way round, a search gesture that also draws what it
+        found.
+
+        No round trip, unlike ``choose_municipio``: the bbox is a committed
+        column in ``data/territorios.csv``, computed from the full geometry,
+        so framing is both instant and exact even though the drawn overlay is
+        simplified to ~200 m.
+        """
+        key = f"{tipo}:{codigo}"
+        row = territorios.by_key(key)
+        if row is None:
+            return
+
+        self.territorio_hits = []
+        self.municipio_hits = []
+        self.place_hits = []
+        if tipo == "indigena":
+            self.show_terras_indigenas = True
+        else:
+            self.show_unidades_conservacao = True
+
+        box = territorios.bounds(key)
+        if box:
+            self.fit_bounds = box
+
+        # Only for a single-UF territory. Several span two or three, and
+        # `search_uf` drives which of SICAR's 27 per-UF CAR layers is drawn —
+        # picking one of three arbitrarily would put the wrong state's
+        # registrations on screen and look like an answer.
+        ufs = [u for u in row["uf"].split(", ") if u]
+        if len(ufs) == 1:
+            self.search_uf = ufs[0]
+
+        self.query = row["nome"]
+        msgs = get_translations(getattr(self, "lang", "pt"))
+        self.echo = f"{msgs['echo_territorio']} {row['nome']}"
+        self.echo_kind = "territorio"
+
+    @rx.event
     def choose_place(self, index: int) -> None:
         """Frame the map on a geocoded place. **Selects no property.**"""
         try:
@@ -214,4 +289,5 @@ class SearchMixin(rx.State, mixin=True):
         self.echo_kind = ""
         self.search_error = ""
         self.municipio_hits = []
+        self.territorio_hits = []
         self.place_hits = []

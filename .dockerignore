@@ -31,8 +31,9 @@ reflex.db
 node_modules
 
 # Rebuildable at runtime (services/biomes.py caches the biome GeoJSON here on
-# first request) — data/municipios.csv and data/uf_boundaries.simplified.geojson
-# are NOT under data/cache and stay in the image; see Dockerfile.
+# first request) — data/municipios.csv, data/uf_boundaries.simplified.geojson,
+# data/territorios.csv and the two data/*.geojson.gz territory overlays are NOT
+# under data/cache and stay in the image; see Dockerfile.
 data/cache
 
 # Not needed to run the service

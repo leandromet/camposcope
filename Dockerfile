@@ -32,10 +32,13 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
 # ── Application code ─────────────────────────────────────────────────────────
-# data/municipios.csv and data/uf_boundaries.simplified.geojson are committed
-# and MUST ship in the image — they are the local tables click→UF routing (D5)
-# and the município selector (D12) read at runtime, with no network fallback.
-# Only data/cache/ (rebuildable, gitignored) is excluded — see .dockerignore.
+# data/municipios.csv, data/uf_boundaries.simplified.geojson,
+# data/territorios.csv and the two data/*.geojson.gz territory overlays are
+# committed and MUST ship in the image — they are the local tables click→UF
+# routing (D5), the município selector (D12) and the terra indígena / unidade
+# de conservação search and overlays read at runtime, with no network
+# fallback. Only data/cache/ (rebuildable, gitignored) is excluded — see
+# .dockerignore.
 COPY . .
 
 ENV REFLEX_ENV=prod \

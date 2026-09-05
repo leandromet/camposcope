@@ -1,20 +1,22 @@
 """The unified search box and its result lists (doc/11-search-and-navigation.md).
 
-One field resolves four kinds of input and **says how it read them** before
+One field resolves five kinds of input and **says how it read them** before
 acting. That echo line is not decoration: it is what stops a transposed
 coordinate pair or a mistyped code from quietly resolving somewhere plausible
 and wrong.
 
-Two result lists appear below it, and they are deliberately different in kind:
-a município or a place **frames the map**, while a CAR registration **is
-selected**. Finding a place and identifying a registration are different acts,
-and the UI never blurs them (constraint C4).
+Three result lists appear below it, and they are deliberately different in
+kind: a município, a território (terra indígena or unidade de conservação) or a
+place **frames the map**, while a CAR registration **is selected**. Finding a
+place and identifying a registration are different acts, and the UI never blurs
+them (constraint C4).
 """
 
 from __future__ import annotations
 
 import reflex as rx
 
+from ..config.datasets import TERRITORIOS
 from ..state import AppState
 from .layout import BORDER, MUTED, section
 
@@ -23,6 +25,7 @@ _ECHO_COLOR = {
     "codigo": "grass",
     "coordenada": "blue",
     "municipio": "amber",
+    "territorio": "purple",
     "lugar": "gray",
     "erro": "red",
 }
@@ -123,6 +126,51 @@ def _municipio_hits() -> rx.Component:
                     on_click=AppState.choose_municipio(m["cod_municipio_ibge"]),
                 ),
             ),
+            spacing="1",
+            width="100%",
+        ),
+    )
+
+
+def _territorio_hits() -> rx.Component:
+    """Terras indígenas and unidades de conservação. Framing only — no
+    property is selected from here, exactly as with a município or a place.
+
+    Each row carries the hue its layer draws in, so the list and the map are
+    the same two colours; the second line is the demarcation phase and ethnic
+    group for a terra indígena, or the category and administrative sphere for
+    a unidade de conservação, whichever the row is.
+    """
+    return rx.cond(
+        AppState.territorio_hits,
+        rx.vstack(
+            rx.text(AppState.tr["search_territorios_heading"], size="1",
+                    weight="medium", color=MUTED),
+            rx.foreach(
+                AppState.territorio_hits,
+                lambda t: _result_row(
+                    rx.hstack(
+                        rx.box(
+                            width="8px", height="8px", border_radius="2px",
+                            flex_shrink="0",
+                            background=rx.cond(
+                                t["tipo"] == "indigena",
+                                f"#{TERRITORIOS['indigena']['color']}",
+                                f"#{TERRITORIOS['conservacao']['color']}",
+                            ),
+                        ),
+                        rx.text(t["nome"], size="1", weight="medium"),
+                        spacing="2", align="center", wrap="wrap",
+                    ),
+                    rx.hstack(
+                        rx.text(t["uf"], size="1", color=MUTED),
+                        rx.text(t["detalhe"], size="1", color=MUTED),
+                        spacing="2", wrap="wrap",
+                    ),
+                    on_click=AppState.choose_territorio(t["tipo"], t["codigo"]),
+                ),
+            ),
+            rx.text(AppState.tr["search_territorios_note"], size="1", color=MUTED),
             spacing="1",
             width="100%",
         ),
@@ -253,5 +301,6 @@ def search_panel() -> rx.Component:
                        color_scheme="amber", size="1"),
         ),
         _municipio_hits(),
+        _territorio_hits(),
         _place_hits(),
     )

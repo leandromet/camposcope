@@ -10,7 +10,7 @@ from ..components.map.leaflet_map import leaflet_map
 from ..components.map_legend import map_legend
 from ..components.results import results_panel
 from ..components.search import candidate_chooser, municipio_browser, search_panel
-from ..config.datasets import ALL_BASEMAPS
+from ..config.datasets import ALL_BASEMAPS, TERRITORIOS
 from ..state import AppState
 
 #: Drag-to-resize, shared by the desktop results drawer and the mobile
@@ -340,6 +340,23 @@ def _mobile_group(value: str, icon: str, title, *children: rx.Component) -> rx.C
     )
 
 
+#: The two territory hues, read straight off the layer configs so the sidebar
+#: swatch and the polygon on the map cannot drift apart.
+TERRITORY_COLORS = {
+    tipo: conf["color"] for tipo, conf in TERRITORIOS.items()
+}
+
+
+def _layer_swatch(color: str) -> rx.Component:
+    """The colour a layer draws in, beside its switch — the same device
+    naturametrics' biome legend uses, and the only thing that says which of
+    these two overlays is the gold one without reading the label."""
+    return rx.box(
+        width="10px", height="10px", border_radius="2px",
+        background=f"#{color}", flex_shrink="0",
+    )
+
+
 def _layers_panel() -> rx.Component:
     return section(
         AppState.tr["layers_title"],
@@ -386,6 +403,37 @@ def _layers_panel() -> rx.Component:
             rx.text(AppState.tr["layers_biomes"], size="1"),
             _info_icon(AppState.tr["layers_biomes_note"]),
             spacing="2", align="center",
+        ),
+        # Terras indígenas and unidades de conservação. Two switches sharing
+        # one info note and one label toggle: they answer the same question
+        # ("what protected areas are near this property"), and the swatch on
+        # each row is what tells them apart on the map — gold and dark purple
+        # — so the note does not have to.
+        rx.hstack(
+            _layer_swatch(TERRITORY_COLORS["indigena"]),
+            rx.switch(checked=AppState.show_terras_indigenas,
+                      on_change=AppState.toggle_terras_indigenas, size="1"),
+            rx.text(AppState.tr["layers_terras_indigenas"], size="1"),
+            _info_icon(AppState.tr["layers_territorios_note"]),
+            spacing="2", align="center",
+        ),
+        rx.hstack(
+            _layer_swatch(TERRITORY_COLORS["conservacao"]),
+            rx.switch(checked=AppState.show_unidades_conservacao,
+                      on_change=AppState.toggle_unidades_conservacao, size="1"),
+            rx.text(AppState.tr["layers_unidades_conservacao"], size="1"),
+            spacing="2", align="center",
+        ),
+        # Only offered while at least one of the two is drawn — a switch that
+        # governs nothing currently on screen is noise.
+        rx.cond(
+            AppState.show_terras_indigenas | AppState.show_unidades_conservacao,
+            rx.hstack(
+                rx.switch(checked=AppState.show_territorio_labels,
+                          on_change=AppState.toggle_territorio_labels, size="1"),
+                rx.text(AppState.tr["layers_territorios_labels"], size="1"),
+                spacing="2", align="center", padding_left="calc(10px + var(--space-2))",
+            ),
         ),
     )
 

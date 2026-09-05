@@ -7,9 +7,10 @@ the session, held in server memory for as long as the session lives, and
 re-sent on every reload, none of which a static, identical-for-everyone
 FeatureCollection needs.
 
-So the biome polygons are served as an ordinary HTTP GET the browser can cache.
-Ported from Naturametrics' ``api/__init__.py``, trimmed to what Camposcope
-actually serves this way (no IFN points here).
+So the biome polygons — and the FUNAI/CNUC territory polygons, which are
+larger still — are served as ordinary HTTP GETs the browser can cache. Ported
+from Naturametrics' ``api/__init__.py``, trimmed to what Camposcope actually
+serves this way (no IFN points here).
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ from ..canada.services import gbif as gbif_ca
 from ..config.settings import BRAZIL_BBOX
 from ..services import biomes
 from ..services import gbif
+from ..services import territorios
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,44 @@ async def biomes_geojson(request: Request) -> Response:
     headers["Content-Length"] = str(len(payload))
     return Response(content=payload, media_type="application/geo+json",
                     headers=headers)
+
+
+async def _territorios_geojson(request: Request, tipo: str) -> Response:
+    """The simplified FUNAI / CNUC polygons, pre-gzipped.
+
+    Same shape as :func:`biomes_geojson`, and cheaper still: the payload is not
+    merely cached gzipped, it is *committed* gzipped
+    (``scripts/fetch_territorios.py``), so even the first request after a cold
+    start is a file read. One handler per type rather than a single
+    ``?tipo=`` route, so each stays a plain, cacheable static GET the browser
+    can key on its URL alone.
+    """
+    try:
+        payload = await _run_blocking(lambda: territorios.geojson_gzipped(tipo))
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("%s GeoJSON could not be produced", tipo)
+        return JSONResponse(
+            {"error": "territórios indisponíveis", "detail": str(exc)},
+            status_code=503,
+        )
+
+    headers = {"Cache-Control": _CACHE_CONTROL}
+    if "gzip" in request.headers.get("accept-encoding", ""):
+        headers["Content-Encoding"] = "gzip"
+    else:
+        payload = await _run_blocking(lambda: gzip.decompress(payload))
+
+    headers["Content-Length"] = str(len(payload))
+    return Response(content=payload, media_type="application/geo+json",
+                    headers=headers)
+
+
+async def terras_indigenas_geojson(request: Request) -> Response:
+    return await _territorios_geojson(request, "indigena")
+
+
+async def unidades_conservacao_geojson(request: Request) -> Response:
+    return await _territorios_geojson(request, "conservacao")
 
 
 async def _ecoframework_geojson(request: Request, level: str) -> Response:
@@ -188,6 +228,10 @@ def register(app) -> None:
         logger.warning("Reflex app exposes no Starlette instance — routes skipped")
         return
     api.add_route(biomes.GEOJSON_PATH, biomes_geojson, methods=["GET"])
+    api.add_route(territorios.GEOJSON_PATHS["indigena"],
+                 terras_indigenas_geojson, methods=["GET"])
+    api.add_route(territorios.GEOJSON_PATHS["conservacao"],
+                 unidades_conservacao_geojson, methods=["GET"])
     api.add_route(ecozones_cfg.LEVELS["ecozone"].geojson_path,
                  ecozones_geojson, methods=["GET"])
     api.add_route(ecozones_cfg.LEVELS["ecoregion"].geojson_path,
@@ -197,8 +241,10 @@ def register(app) -> None:
     api.add_route(gbif.GEOJSON_PATH, gbif_geojson, methods=["GET"])
     api.add_route(gbif_ca.GEOJSON_PATH, gbif_ca_geojson, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
-    logger.info("Registered backend routes %s, %s, %s, %s, %s, %s, /healthz",
+    logger.info("Registered backend routes %s, %s, %s, %s, %s, %s, %s, %s, /healthz",
                 biomes.GEOJSON_PATH,
+                territorios.GEOJSON_PATHS["indigena"],
+                territorios.GEOJSON_PATHS["conservacao"],
                 ecozones_cfg.LEVELS["ecozone"].geojson_path,
                 ecozones_cfg.LEVELS["ecoregion"].geojson_path,
                 ecozones_cfg.LEVELS["ecodistrict"].geojson_path,

@@ -16,11 +16,16 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- search panel (components/search.py) ---------------------------- #
     "search_title": "Busca",
-    "search_placeholder": "código CAR, coordenada, município ou lugar…",
+    "search_placeholder": "código CAR, coordenada, município, território ou lugar…",
     "search_read_as": "lido como:",
     "search_button": "Buscar",
     "search_button_busy": "Buscando…",
     "search_municipios_heading": "Municípios",
+    "search_territorios_heading": "Terras indígenas e unidades de conservação",
+    "search_territorios_note": (
+        "Um território apenas enquadra o mapa e liga a camada correspondente. "
+        "Clique sobre um imóvel para analisá-lo."
+    ),
     "search_places_heading": "Lugares",
     "search_places_note": (
         "Um lugar apenas enquadra o mapa. Clique sobre um imóvel para "
@@ -36,6 +41,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "echo_codigo": "código CAR",
     "echo_coordenada": "coordenada",
     "echo_municipio": "município",
+    "echo_territorio": "território",
     "echo_lugar": "lugar",
     "municipio_browser_title": "Imóveis no município",
     "municipio_browser_total": "registros",
@@ -337,6 +343,14 @@ TRANSLATIONS_PT: dict[str, str] = {
     "layers_biomes_note": (
         "Limites aproximados (~1 km) — orientação, não decide o bioma de um "
         "imóvel específico."
+    ),
+    "layers_terras_indigenas": "Terras indígenas (Funai)",
+    "layers_unidades_conservacao": "Unidades de conservação (ICMBio)",
+    "layers_territorios_labels": "Nomes dos territórios",
+    "layers_territorios_note": (
+        "Limites aproximados (~200 m) — orientação, não decide se um imóvel "
+        "está dentro de uma terra indígena ou unidade de conservação. Os nomes "
+        "aparecem a partir do zoom 8."
     ),
     "sidebar_hide_aria": "Esconder painel",
     "sidebar_show_aria": "Mostrar painel",

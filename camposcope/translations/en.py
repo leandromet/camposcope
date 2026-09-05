@@ -14,11 +14,16 @@ TRANSLATIONS_EN: dict[str, str] = {
 
     # --- search panel ----------------------------------------------------- #
     "search_title": "Search",
-    "search_placeholder": "CAR code, coordinate, município or place…",
+    "search_placeholder": "CAR code, coordinate, município, territory or place…",
     "search_read_as": "read as:",
     "search_button": "Search",
     "search_button_busy": "Searching…",
     "search_municipios_heading": "Municipalities",
+    "search_territorios_heading": "Indigenous lands and conservation units",
+    "search_territorios_note": (
+        "A territory only frames the map and switches its layer on. Click a "
+        "property to analyse it."
+    ),
     "search_places_heading": "Places",
     "search_places_note": (
         "A place only frames the map. Click on a property to analyse it."
@@ -33,6 +38,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "echo_codigo": "CAR code",
     "echo_coordenada": "coordinate",
     "echo_municipio": "municipality",
+    "echo_territorio": "territory",
     "echo_lugar": "place",
     "municipio_browser_title": "Properties in this municipality",
     "municipio_browser_total": "records",
@@ -317,6 +323,14 @@ TRANSLATIONS_EN: dict[str, str] = {
     "layers_biomes_note": (
         "Approximate boundaries (~1 km) — orientation only, does not "
         "decide a specific property's biome."
+    ),
+    "layers_terras_indigenas": "Indigenous lands (Funai)",
+    "layers_unidades_conservacao": "Conservation units (ICMBio)",
+    "layers_territorios_labels": "Territory names",
+    "layers_territorios_note": (
+        "Approximate boundaries (~200 m) — orientation only, does not decide "
+        "whether a property falls inside an indigenous land or a conservation "
+        "unit. Names appear from zoom 8 onward."
     ),
     "sidebar_hide_aria": "Hide panel",
     "sidebar_show_aria": "Show panel",

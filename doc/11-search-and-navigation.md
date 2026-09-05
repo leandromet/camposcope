@@ -14,7 +14,7 @@ nothing, because the user will click there and get somebody else's property.
 So Camposcope ships **one search box that resolves four kinds of input**, in a fixed
 precedence, with place-name geocoding at the bottom.
 
-## 2. One box, four resolvers
+## 2. One box, five resolvers
 
 The user types into a single field. The resolver tries, in order, and stops at the first
 that matches:
@@ -24,13 +24,22 @@ that matches:
 | 1 | `MT-5108501-CBE0F5…` | `config/sicar.py::parse_cod_imovel` | **The property**, directly |
 | 2 | Coordinates, any common format | `services/geocode.py::parse_coordinates` | A point → the `INTERSECTS` query ([05](05-sicar-geoserver.md) §5.2) |
 | 3 | A município name | local IBGE table (§4) | The município framed; the property list opened |
-| 4 | Anything else | a geocoding provider (§5) | A place, framed — **not** a property |
+| 4 | A terra indígena or unidade de conservação name | local FUNAI/CNUC table (§6b) | The territory framed and its layer drawn — **not** a property |
+| 5 | Anything else | a geocoding provider (§5) | A place, framed — **not** a property |
 
-The precedence is not arbitrary. 1 and 2 are **exact** and cost no third-party call; 3 is
-exact and local; only 4 is a guess against someone else's service. Trying them in that order
-means the common cases never touch a geocoder at all.
+The precedence is not arbitrary. 1 and 2 are **exact** and cost no third-party call; 3 and 4
+are exact and local; only 5 is a guess against someone else's service. Trying them in that
+order means the common cases never touch a geocoder at all.
 
-**Results 3 and 4 move the map; they never select a property.** That distinction is
+Resolver 4 is the one exception to "stops at the first that matches". A município and a
+territory can share a name — *Jaú* is a município in São Paulo **and** a national park in
+Amazonas — so a query that matched a município carries its territory hits alongside
+(`Resolution.territorios`). The echo line still reads "município", because that is what the
+input reads as first; the territory matches are **offered**, not assumed, and the "one
+unambiguous hit jumps straight there" shortcut is suppressed while any namesake exists.
+Both resolvers are local table scans, so running the second one costs nothing.
+
+**Results 3, 4 and 5 move the map; they never select a property.** That distinction is
 load-bearing: finding a *place* and identifying a *registration* are different acts, and
 collapsing them would let a fuzzy address match become an implied claim about who holds
 what. After a place is framed, the user still clicks to pick a property, which runs the
@@ -136,15 +145,64 @@ Given that constraint, the biome layer is filed here under navigation rather tha
 sources: it helps people find where they are, and it is not an input to any number the app
 reports.
 
+## 6b. Terras indígenas and unidades de conservação — the same trade, twice over
+
+The same navigation aid, for the two layers people actually ask about next to a rural
+property: **terras indígenas** (FUNAI, 657) and **unidades de conservação** (CNUC/ICMBio,
+3 247). Like the biome layer, and for the same reason, both are browser-side vectors rather
+than tiles: each polygon has to name itself on hover and carry a permanent on-map label, and
+a tile is pixels.
+
+They differ from the biome layer in exactly one respect — **where the geometry comes from**.
+The biome layer is built from an Earth Engine asset on first request and disk-cached. These
+two are built **offline** by `scripts/fetch_territorios.py` from the FUNAI and CNUC
+GeoPackages and **committed**, because reading a GeoPackage needs geopandas/fiona, which are
+deliberately not runtime dependencies ([09-dev-environment.md](09-dev-environment.md) §5),
+and the source files are not in this repo for a deploy to rebuild from. That is the same
+call `data/uf_boundaries.simplified.geojson` already makes.
+
+The script writes three artefacts:
+
+| File | What it is | Size |
+|---|---|---|
+| `data/territorios.csv` | name, code, UF, area, `detalhe`, **bbox** — the search table | 775 KiB |
+| `data/terras_indigenas.geojson.gz` | simplified FUNAI polygons, pre-gzipped | 0.34 MB |
+| `data/unidades_conservacao.geojson.gz` | simplified CNUC polygons, pre-gzipped | 1.06 MB |
+
+The split matters. The **list** is the whole of what the search box needs, and framing the
+map on a hit reads the bbox straight out of the row — so a territory search costs no round
+trip and no polygon parse, where `choose_municipio` still costs one Earth Engine call for a
+boundary. The bbox is computed from the *original* geometry, so framing is exact even though
+the drawn overlay is not.
+
+**The accuracy trade is the biome layer's, one order tighter**: simplified to ~200 m and
+rounded to ~110 m (a terra indígena can be a few hundred hectares where a biome never is).
+Boundaries drawn from these layers are orientation — *"this property sits just outside the
+Xingu"* — and must **never** decide whether a property falls inside a terra indígena or a
+unidade de conservação. Nothing in the app asks them to.
+
+Two decisions worth recording:
+
+* **One hue per layer, not a palette.** Gold (`d4af37`) for terras indígenas, dark purple
+  (`4b0082`) for unidades de conservação, both at ~35% fill with a full-strength outline. A
+  reader tells the two apart at a glance without a legend lookup, and the sidebar switch
+  carries the same swatch.
+* **The on-map label is a short name, not the official one.** CNUC names lead with their
+  category — "RESERVA PARTICULAR DO PATRIMÔNIO NATURAL TOCA FURADA" wraps to eight lines in
+  a 92 px label block, seven of which repeat what the swatch and tooltip already say. The
+  build script writes a `rotulo` property alongside `nome`; the tooltip, the search list and
+  `territorios.csv` all keep the full official name. Labels are hidden below zoom 8
+  regardless of the toggle.
+
 ## 7. What this adds to the UI
 
 The search panel of [08-ui-ux.md](08-ui-ux.md) §2 gains a fourth mode — or rather, its three
 modes collapse into **one box plus an explicit município browser**:
 
 ```
-┌──────────────────────────────────────────┐
-│ 🔍  código CAR, coordenada ou lugar…     │
-└──────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ 🔍  código CAR, coordenada, município, território…     │
+└────────────────────────────────────────────────────────┘
    ↳ resolved as: coordenada -12.4979, -55.4977
    ↳ 2 imóveis registrados neste ponto — escolha:
 ```

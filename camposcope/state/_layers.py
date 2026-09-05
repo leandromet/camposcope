@@ -1,5 +1,5 @@
 """Map layers: basemaps (XYZ and Earth Engine), the CAR context layer, the
-biome overlay.
+biome overlay, and the two protected-territory overlays.
 
 Trimmed from Naturametrics' ``state/_layers.py`` (decision D2).
 """
@@ -59,6 +59,20 @@ class LayersMixin(rx.State, mixin=True):
     show_biomes: bool = False
     show_biome_labels: bool = True
     biome_opacity: float = 0.45
+
+    #: Terras indígenas (FUNAI) and unidades de conservação (CNUC/ICMBio) —
+    #: the same kind of layer as the biome overlay above and for the same
+    #: reason: navigation and context, never an input to any number this app
+    #: reports. Off by default, like every optional overlay.
+    #:
+    #: Two toggles, one label switch and one opacity between them. They are
+    #: read together — "what protected areas are near this property" is one
+    #: question, not two — and a panel that asked for four decisions instead
+    #: of two would be answering a question nobody has.
+    show_terras_indigenas: bool = False
+    show_unidades_conservacao: bool = False
+    show_territorio_labels: bool = True
+    territorio_opacity: float = 0.35
 
     #: The map layer that matches the active results tab (doc/08-ui-ux.md §1:
     #: "show the map layer related to each tab as we switch them"). Cached by
@@ -463,6 +477,18 @@ class LayersMixin(rx.State, mixin=True):
     def toggle_biome_labels(self) -> None:
         self.show_biome_labels = not self.show_biome_labels
 
+    @rx.event
+    def toggle_terras_indigenas(self) -> None:
+        self.show_terras_indigenas = not self.show_terras_indigenas
+
+    @rx.event
+    def toggle_unidades_conservacao(self) -> None:
+        self.show_unidades_conservacao = not self.show_unidades_conservacao
+
+    @rx.event
+    def toggle_territorio_labels(self) -> None:
+        self.show_territorio_labels = not self.show_territorio_labels
+
     @rx.var(deps=["show_biomes", "show_biome_labels", "biome_opacity"],
             auto_deps=False)
     def biome_vectors(self) -> List[Dict[str, Any]]:
@@ -480,6 +506,38 @@ class LayersMixin(rx.State, mixin=True):
             opacity=self.biome_opacity,
             show_labels=self.show_biome_labels,
         )]
+
+    @rx.var(deps=["show_terras_indigenas", "show_unidades_conservacao",
+                  "show_territorio_labels", "territorio_opacity"],
+            auto_deps=False)
+    def territorio_vectors(self) -> List[Dict[str, Any]]:
+        """The FUNAI and CNUC overlays. No network call happens here — the
+        browser fetches both against the HTTP routes (camposcope/api), so like
+        `biome_vectors` this cannot fail on the Python side.
+
+        Terras indígenas are appended SECOND, and that is what puts them above
+        unidades de conservação where the two overlap — which they do in
+        several hundred places. Vector layers all share one Leaflet pane
+        (`nmVectors`, leaflet_map.js) and are added in the order this list
+        gives them, so stacking is list order; a vector spec's `z_index` is
+        carried for symmetry with the tile specs and orders nothing here.
+
+        The order is not arbitrary: there are five times as many unidades de
+        conservação, so the smaller set on top stays findable, and gold on
+        dark purple reads better than the reverse.
+        """
+        from ..services import territorios
+
+        specs: List[Dict[str, Any]] = []
+        if self.show_unidades_conservacao:
+            specs.append(territorios.vector_spec(
+                "conservacao", opacity=self.territorio_opacity, z_index=6,
+                show_labels=self.show_territorio_labels))
+        if self.show_terras_indigenas:
+            specs.append(territorios.vector_spec(
+                "indigena", opacity=self.territorio_opacity, z_index=7,
+                show_labels=self.show_territorio_labels))
+        return specs
 
     @rx.var(cache=True, deps=["results_tab", "analysis_layer_enabled"],
            auto_deps=False)
@@ -505,16 +563,20 @@ class LayersMixin(rx.State, mixin=True):
         return [gbif_service.vector_spec()]
 
     @rx.var(cache=True, deps=["show_biomes", "show_biome_labels",
-                              "biome_opacity", "results_tab",
+                              "biome_opacity", "show_terras_indigenas",
+                              "show_unidades_conservacao",
+                              "show_territorio_labels", "territorio_opacity",
+                              "results_tab",
                               "analysis_layer_enabled"], auto_deps=False)
     def map_vectors(self) -> List[Dict[str, Any]]:
         """Every browser-fetched vector layer at once. `leaflet_map` takes a
-        single `vectors` list, so the independent biome toggle and the
-        GBIF tab's own layer are combined here rather than the component
-        needing two separate props. Deps are the union of `biome_vectors`'
-        and `gbif_vectors`' own — a computed var built from other computed
-        vars does not inherit their dependency lists for free."""
-        return self.biome_vectors + self.gbif_vectors
+        single `vectors` list, so the independent biome and territory toggles
+        and the GBIF tab's own layer are combined here rather than the
+        component needing three separate props. Deps are the union of
+        `biome_vectors`', `territorio_vectors`' and `gbif_vectors`' own — a
+        computed var built from other computed vars does not inherit their
+        dependency lists for free."""
+        return self.biome_vectors + self.territorio_vectors + self.gbif_vectors
 
     @rx.var
     def map_layers(self) -> List[Dict[str, Any]]:
