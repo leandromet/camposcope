@@ -130,3 +130,15 @@ IBGE — biomes and domains 1:250,000, territorial meshes and localities ·
 Place search © OpenStreetMap contributors (ODbL) · Processed on Google Earth Engine.
 
 Full table with licences and caveats: [`doc/04-data-sources.md`](doc/04-data-sources.md).
+
+---
+
+## Licence
+
+**Code: GNU GPL v3** — see [LICENSE](LICENSE). The same licence covers Naturametrics and
+Yvynation, the two sibling apps this codebase shares engineering with.
+
+**Outputs: CC BY 4.0** — the property analyses, figures, and exported files (ODS
+workbooks, HTML reports, CSVs) this application generates are public, open and free to use
+with attribution, independent of the upstream licence on each input dataset (see
+[Data sources](#data-sources) above, which those inputs keep).
