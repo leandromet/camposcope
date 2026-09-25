@@ -186,7 +186,7 @@ def capture_specs(figs: Dict[str, dict]) -> Tuple[Dict[str, dict], Dict[str, dic
     for key, fig in figs.items():
         slot, aspect = FIGURE_LAYOUT.get(key, ("full", 0.56))
         prepared[key] = kit_images.prepare_figure(fig, slot, aspect)
-        opts[key] = kit_images.chart_opts(slot, aspect)
+        opts[key] = kit_images.figure_opts(prepared[key], slot)
     return prepared, opts
 
 
