@@ -17,8 +17,20 @@ import reflex as rx
 from ..config.settings import RING_RADII_M
 from ..services import zones as zones_svc
 from ..translations import get_translations
+from ._proxy import plain
 
 logger = logging.getLogger(__name__)
+
+
+def lookup_overlaps(code: str, geojson: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """The registrations overlapping ``code``'s polygon, with their overlap
+    areas (D7). Blocking — two SICAR calls; run it off the event loop."""
+    from ..services import sicar
+
+    record = sicar.by_code(code)
+    others = sicar.overlapping(record)
+    return zones_svc.overlap_areas(
+        geojson, [(o.cod_imovel, o.geometry) for o in others])
 
 
 class ZonesMixin(rx.State, mixin=True):
@@ -40,6 +52,11 @@ class ZonesMixin(rx.State, mixin=True):
 
     #: Other registrations overlapping this one. Listed, never dissolved (D7).
     overlaps: List[Dict[str, Any]] = []
+    #: Whether ``overlaps`` is an answer ("none found" when empty) or merely
+    #: not looked up yet — the report must never print "no overlapping
+    #: registration" for a lookup that never ran. Reset with the zones.
+    overlaps_checked: bool = False
+    overlaps_error: str = ""
 
     zones_error: str = ""
 
@@ -64,6 +81,10 @@ class ZonesMixin(rx.State, mixin=True):
         background task would put the rings on the map *later* for no gain.
         """
         geojson = getattr(self, "imovel_geojson", None)
+        # The overlaps belong to the previous property until looked up again.
+        self.overlaps = []
+        self.overlaps_checked = False
+        self.overlaps_error = ""
         if not geojson:
             self.zones = []
             self.zones_geojson = {}
@@ -125,26 +146,26 @@ class ZonesMixin(rx.State, mixin=True):
         isolated: an overlap list that cannot load must not take the cadastral
         card with it.
         """
-        from ..services import sicar
-
         async with self:
             code = self.imovel.get("cod_imovel", "")
             uf = self.imovel.get("uf", "")
-            geojson = self.imovel_geojson
+            geojson = plain(self.imovel_geojson)
         if not (code and uf and geojson):
             return
 
         try:
-            record = sicar.by_code(code)
-            others = sicar.overlapping(record)
-            rows = zones_svc.overlap_areas(
-                geojson, [(o.cod_imovel, o.geometry) for o in others]
-            )
+            rows = lookup_overlaps(code, geojson)
         except Exception as exc:
             logger.warning("overlap lookup failed: %s", exc)
             async with self:
                 self.overlaps = []
+                self.overlaps_checked = False
+                self.overlaps_error = str(exc)[:200]
             return
 
         async with self:
+            if self.imovel.get("cod_imovel", "") != code:
+                return                      # the user moved on meanwhile
             self.overlaps = rows
+            self.overlaps_checked = True
+            self.overlaps_error = ""

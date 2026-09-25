@@ -22,6 +22,13 @@ numpy>=2.0.0
 # Viz
 plotly>=6.1.1
 
+# Laid-out PDF report (camposcope/report_kit, vendored from Naturametrics —
+# doc/13-pdf-report.md). Pure wheels, no system packages: reportlab draws the
+# PDF; Pillow re-encodes images to their 150 dpi slot size (R9). Charts are
+# still rasterised in the browser, so this adds no Chromium/kaleido.
+reportlab>=4.2,<5
+pillow>=10
+
 # Geometry — rings, areas, overlaps. All local; none of it needs Earth Engine.
 # geopandas/fiona/gdal are deliberately absent: shapely + pyproj cover it.
 shapely>=2.0.2

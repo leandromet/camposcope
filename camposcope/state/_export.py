@@ -23,8 +23,11 @@ import io
 import logging
 
 import reflex as rx
+from reflex.utils.format import format_queue_events
 
+from ..report_kit import browser_capture
 from ..services import exports, report
+from ..translations import get_translations
 from ._proxy import plain
 
 logger = logging.getLogger(__name__)
@@ -50,17 +53,25 @@ class ExportMixin(rx.State, mixin=True):
 
     export_open: bool = False
 
-    #: The study-point "paper-friendly" HTML report (services.report) — a
-    #: third export path alongside the ODS workbook and the per-chart/per-
-    #: table icons. Both default off: the workbook button stays the one-click
-    #: default action.
-    exp_report_figures: bool = False
-    exp_report_tables: bool = False
+    #: The laid-out report's checkboxes (doc/13 §7, shared anatomy §2.9) —
+    #: what goes into the PDF/HTML. Maps cost four Earth Engine thumbnails.
+    exp_report_maps: bool = True
+    exp_report_figures: bool = True
+    exp_report_tables: bool = True
+    exp_report_appendix: bool = False
     #: The GBIF per-zone species tables — off by default like the two above,
     #: but its own flag rather than folded into exp_report_tables: it governs
     #: the workbook too (which has no other opt-in toggle), and the species
     #: list can be large enough on its own to be worth a deliberate choice.
     exp_include_gbif: bool = False
+
+    report_busy: bool = False
+    report_stage: str = ""
+    report_error: str = ""
+    report_result: str = ""
+    #: Which property a running report was started for — chart PNGs captured
+    #: for one property are never laid out under another's identity.
+    _report_for: str = ""
 
     export_busy: bool = False
     export_stage: str = ""
@@ -72,6 +83,9 @@ class ExportMixin(rx.State, mixin=True):
         if value:
             self.export_error = ""
             self.export_result = ""
+            if not self.report_busy:
+                self.report_error = ""
+                self.report_result = ""
 
     def toggle_exp_report_figures(self, checked: bool):
         self.exp_report_figures = checked
@@ -82,9 +96,11 @@ class ExportMixin(rx.State, mixin=True):
     def toggle_exp_include_gbif(self, checked: bool):
         self.exp_include_gbif = checked
 
-    @rx.var
-    def export_report_any(self) -> bool:
-        return self.exp_report_figures or self.exp_report_tables
+    def toggle_exp_report_maps(self, checked: bool):
+        self.exp_report_maps = checked
+
+    def toggle_exp_report_appendix(self, checked: bool):
+        self.exp_report_appendix = checked
 
     # ---------------------------------------------------------------------- #
     # Shared: gather whatever the property's results tabs have computed
@@ -138,7 +154,14 @@ class ExportMixin(rx.State, mixin=True):
             validacao_matrix=plain(self.validacao_matrix),
             validacao_zone_label=self.validacao_zone_label,
             validacao_provenance=plain(self.validacao_provenance),
+            spot_summary=plain(self.spot_summary),
+            spot_provenance=plain(self.spot_provenance),
             gbif_zone_rows=plain(self.gbif_zone_rows),
+            overlaps=plain(self.overlaps),
+            overlaps_checked=self.overlaps_checked,
+            area_calculada_ha=self.area_calculada_ha,
+            area_delta_ha=self.area_delta_ha,
+            area_delta_pct=self.area_delta_pct,
         )
 
     # ---------------------------------------------------------------------- #
@@ -183,48 +206,199 @@ class ExportMixin(rx.State, mixin=True):
                            mime_type="application/vnd.oasis.opendocument.spreadsheet")
 
     # ---------------------------------------------------------------------- #
-    # The HTML report
+    # The laid-out report, PDF or HTML (doc/13, shared kit contract §2.7)
+    #
+    # start_report   normal      snapshot → chart figures → capture job; returns
+    #                            [one capture script, build_report]
+    # receive_report_chart  normal  one browser-rendered chart → JobStore
+    # build_report   background  maps (EE, executor) while the browser renders,
+    #                            then wait for the charts, build, render, download
     # ---------------------------------------------------------------------- #
 
-    @rx.event(background=True)
-    async def download_imovel_report(self):
-        async with self:
-            if not self.has_imovel:
-                self.export_error = self.tr["export_choose_imovel_first"]
-                return
-            if not self.export_report_any:
-                return
-            self.export_busy = True
-            self.export_stage = self.tr["export_stage_building"]
-            self.export_error = ""
-            self.export_result = ""
+    def _report_disabled_reason(self) -> str:
+        tr = get_translations(getattr(self, "lang", "pt"))
+        if not getattr(self, "imovel", None):
+            return tr["report_reason_no_property"]
+        if self.report_busy:
+            return tr["report_reason_busy"]
+        if getattr(self, "history_running", False):
+            return tr["report_reason_history"]
+        return ""
 
+    @rx.var(cache=True, deps=["imovel", "report_busy", "history_running", "lang"],
+            auto_deps=False)
+    def report_disabled_reason(self) -> str:
+        """Why the PDF/HTML buttons are disabled ("" when they are not).
+        Explicit deps: ``imovel``/``history_running``/``lang`` live on sibling
+        mixins and are read through getattr (see ImovelMixin.disclosure).
+        Disabled while Cobertura is still loading, so the charts captured at
+        start_report are the ones the report is built from."""
+        return self._report_disabled_reason()
+
+    @rx.var(cache=True, deps=["imovel", "report_busy", "history_running", "lang"],
+            auto_deps=False)
+    def report_disabled(self) -> bool:
+        return bool(self._report_disabled_reason())
+
+    def _report_subject(self) -> str:
+        imovel = getattr(self, "imovel", {}) or {}
+        return str(imovel.get("cod_imovel") or imovel.get("coordinates") or "")
+
+    @rx.event
+    def start_report(self, fmt: str):
+        """PDF or HTML. A normal (not background) handler: it snapshots the
+        charts and, for the PDF, hands the browser ONE capture script whose
+        per-chart callbacks post each PNG back to receive_report_chart, then
+        chains the background build (doc/13 §2.7)."""
+        fmt = "html" if fmt == "html" else "pdf"
+        tr = self.tr
+        if self.report_busy:
+            return None
+        reason = self._report_disabled_reason()
+        if reason:
+            self.report_error = reason
+            return None
+        self.report_busy = True
+        self.report_error = ""
+        self.report_result = ""
+        self._report_for = self._report_subject()
+        if fmt == "html" or not self.exp_report_figures:
+            self.report_stage = tr["report_stage_building"]
+            return self.__class__.build_report("", fmt)
+
+        snapshot = self._gather()
+        figs = report.report_figures(**snapshot, focus_zone=self.active_zone,
+                                     lang=self.lang)
+        if not figs:
+            self.report_stage = tr["report_stage_building"]
+            return self.__class__.build_report("", fmt)
+        prepared, opts = report.capture_specs(figs)
+        job_id = browser_capture.STORE.create(self.router.session.client_token,
+                                              prepared.keys())
+        callbacks = {
+            key: str(format_queue_events(
+                self.__class__.receive_report_chart(job_id, key),
+                args_spec=lambda d: [d]))
+            for key in prepared
+        }
+        self.report_stage = tr["report_stage_charts"].format(got=0, total=len(prepared))
+        return [
+            rx.call_script(browser_capture.build_capture_script(prepared, callbacks, opts)),
+            self.__class__.build_report(job_id, fmt),
+        ]
+
+    @rx.event
+    def receive_report_chart(self, job_id: str, key: str, data: str):
+        """One chart rasterised by the browser. A public RPC: JobStore.put
+        checks the job's client token, the PNG prefix, size and dimensions."""
+        store = browser_capture.STORE
+        if not store.put(job_id, key, data, self.router.session.client_token):
+            return
+        got, total = store.progress(job_id)
+        if self.report_busy and total:
+            self.report_stage = self.tr["report_stage_charts"].format(got=got, total=total)
+
+    @rx.event(background=True)
+    async def build_report(self, job_id: str, fmt: str):
+        from ..services import report_maps
+        from ..services.report import ReportOptions
+
+        fmt = "html" if fmt == "html" else "pdf"
         await self._wait_for_history()
 
         async with self:
-            self.export_stage = self.tr["export_stage_building"]
+            tr = self.tr
+            lang = self.lang
             payload = self._gather()
-            payload["lang"] = self.lang
-            payload["include_figures"] = self.exp_report_figures
-            payload["include_tables"] = self.exp_report_tables
-            payload["include_gbif"] = self.exp_include_gbif
+            payload["zones_geojson"] = plain(self.zones_geojson)
+            payload["overlaps_error"] = self.overlaps_error
+            focus_zone = self.active_zone
+            subject_changed = self._report_subject() != self._report_for
+            options = ReportOptions(
+                maps=self.exp_report_maps, figures=self.exp_report_figures,
+                tables=self.exp_report_tables, appendix=self.exp_report_appendix,
+                gbif=self.exp_include_gbif)
+            imovel_geojson = plain(self.imovel_geojson)
+            self.report_stage = tr["report_stage_maps"]
 
+        imovel = payload["imovel"]
         loop = asyncio.get_running_loop()
+
+        maps_future = None
+        if options.maps:
+            maps_future = loop.run_in_executor(None, lambda: report_maps.fetch_report_maps(
+                imovel=imovel, zones=payload["zones"],
+                zones_geojson=payload["zones_geojson"],
+                spot_summary=payload["spot_summary"],
+                history_rows=payload["history_rows"], lang=lang))
+        overlaps_future = None
+        if (imovel.get("kind") != "square" and not payload["overlaps_checked"]
+                and imovel.get("cod_imovel") and imovel_geojson):
+            from ._zones import lookup_overlaps
+            overlaps_future = loop.run_in_executor(
+                None, lambda: lookup_overlaps(imovel["cod_imovel"], imovel_geojson))
+
+        # The charts: the browser has been rendering since start_report.
+        pngs: dict = {}
+        errors: dict = {}
+        if job_id:
+            store = browser_capture.STORE
+            _, total = store.progress(job_id)
+            deadline = loop.time() + browser_capture.wait_deadline_s(total)
+            while not store.done(job_id) and loop.time() < deadline:
+                await asyncio.sleep(0.25)
+            pngs, errors = store.take(job_id)
+            if subject_changed:     # captured for another property: never mix
+                pngs, errors = {}, {k: "property changed" for k in pngs}
+
+        maps_list, map_errors, map_attr = [], {}, []
+        if maps_future is not None:
+            async with self:
+                self.report_stage = tr["report_stage_maps"]
+            try:
+                maps_list, map_errors, map_attr = await asyncio.wait_for(maps_future, 180)
+            except Exception as exc:                   # noqa: BLE001
+                logger.warning("report maps failed: %s", exc)
+                map_errors = {"maps": str(exc)[:200] or type(exc).__name__}
+        if overlaps_future is not None:
+            try:
+                payload["overlaps"] = await asyncio.wait_for(overlaps_future, 60)
+                payload["overlaps_checked"] = True
+                async with self:
+                    if self._report_subject() == self._report_for:
+                        self.overlaps = payload["overlaps"]
+                        self.overlaps_checked = True
+                        self.overlaps_error = ""
+            except Exception as exc:                   # noqa: BLE001
+                logger.warning("overlap lookup for the report failed: %s", exc)
+                payload["overlaps_error"] = str(exc)[:160] or type(exc).__name__
+
+        async with self:
+            self.report_stage = tr["report_stage_building"]
         try:
-            data, name = await loop.run_in_executor(
-                None, lambda: report.imovel_report_html(**payload))
+            def build() -> bytes:
+                rep = report.build_imovel_report(
+                    **payload, focus_zone=focus_zone, lang=lang, options=options,
+                    figure_pngs=pngs, figure_errors=errors, maps=maps_list,
+                    map_errors=map_errors, map_attributions=map_attr)
+                return report.render(rep, fmt)
+
+            data = await loop.run_in_executor(None, build)
         except Exception as exc:                       # noqa: BLE001
             logger.exception("Property report failed")
             async with self:
-                self.export_busy = False
-                self.export_error = self.tr["export_report_failed"].format(exc=exc)
+                self.report_busy = False
+                self.report_stage = ""
+                self.report_error = tr["export_report_failed"].format(exc=exc)
             return
 
+        name = report.report_filename(imovel, fmt)
         async with self:
-            self.export_busy = False
-            self.export_stage = ""
-            self.export_result = f"{name} ({len(data) // 1024} KiB)"
-        return rx.download(data=data, filename=name, mime_type="text/html")
+            self.report_busy = False
+            self.report_stage = ""
+            self.report_result = f"{name} ({len(data) // 1024} KiB)"
+        return rx.download(data=data, filename=name,
+                           mime_type="application/pdf" if fmt == "pdf" else "text/html")
 
     # ---------------------------------------------------------------------- #
     # Per-table CSV — the raw records behind each results-tab table, not the

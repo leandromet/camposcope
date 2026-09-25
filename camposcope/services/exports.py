@@ -26,6 +26,7 @@ import pandas as pd
 from ..config import mapbiomas as mb
 from ..config.citation import APP_URL, CITATION_TEXT, DATA_SOURCES
 from . import gbif_export, ods
+from ..config.sicar import DISCLOSURE_PT, disclosure_for
 from .provenance import Provenance
 
 logger = logging.getLogger(__name__)
@@ -69,8 +70,29 @@ def _provenance_rows(prov: Provenance) -> list[list[Any]]:
     return rows
 
 
+def spot_coverage_line(summary: dict[str, Any], lang: str = "pt") -> str:
+    """The SPOT 2008 coverage in one sentence — acquisition dates and the share
+    imaged before the Forest Code cutoff, the only things doc/12 §4 allows to
+    be said about it (never an "área consolidada")."""
+    if not summary.get("has_coverage"):
+        return ("sem cobertura SPOT sobre esta zona" if lang == "pt"
+                else "no SPOT coverage over this zone")
+    cutoff = summary.get("cutoff", "2008-07-22")
+    pre = summary.get("pre_cutoff_pct")
+    if lang == "pt":
+        pre_txt = (f"{pre:.1f} % imageado antes de {cutoff}" if pre is not None
+                   else f"parcela imageada antes de {cutoff} indisponível")
+        return (f"{summary.get('covered_pct') or 0:.1f} % coberto; imagens de "
+                f"{summary.get('date_min')} a {summary.get('date_max')}; {pre_txt}")
+    pre_txt = (f"{pre:.1f}% imaged before {cutoff}" if pre is not None
+               else f"share imaged before {cutoff} unavailable")
+    return (f"{summary.get('covered_pct') or 0:.1f}% covered; images from "
+            f"{summary.get('date_min')} to {summary.get('date_max')}; {pre_txt}")
+
+
 def _metadata_sheet(title: str, context: Sequence[Sequence[Any]],
-                    provenances: Iterable[Provenance]) -> ods.Sheet:
+                    provenances: Iterable[Provenance],
+                    disclosure: str = DISCLOSURE_PT) -> ods.Sheet:
     """The tab every workbook opens with — prose plus key/value pairs, not raw
     JSON: this is the sheet somebody reads months later to decide whether they
     can defend the numbers beside it."""
@@ -79,6 +101,9 @@ def _metadata_sheet(title: str, context: Sequence[Sequence[Any]],
         ["gerado em (UTC)", _now_iso()],
         ["versão do aplicativo", APP_VERSION],
         ["endereço", APP_URL],
+        # Constraint C4 (doc/01 §5): every export carries the disclosure, and
+        # carries it at the top rather than among the attributions.
+        ["AVISO", disclosure],
         ["", ""],
     ]
     rows.extend([list(r) for r in context])
@@ -262,11 +287,22 @@ def imovel_workbook(
     validacao_matrix: dict[str, Any] | None = None,
     validacao_zone_label: str = "",
     validacao_provenance: dict[str, Any] | None = None,
+    spot_summary: dict[str, Any] | None = None,
+    spot_provenance: dict[str, Any] | None = None,
     gbif_zone_rows: list[Any] | None = None,
+    overlaps: list[dict[str, Any]] | None = None,
+    overlaps_checked: bool = False,
+    area_calculada_ha: float = 0.0,
+    area_delta_ha: float = 0.0,
+    area_delta_pct: float = 0.0,
     include_gbif: bool = False,
     lang: str = "pt",
 ) -> tuple[bytes, str]:
     """One spreadsheet for the property currently on screen.
+
+    Takes the whole ``state/_export.py::_gather()`` snapshot (the report reads
+    the same one); the overlaps and the computed area are shown in the
+    metadata context only — the report is where they are laid out.
 
     Every argument is already-computed state (``.to_dict("records")``/
     ``Provenance.to_dict()``), matching every ``run_*`` handler in
@@ -277,6 +313,7 @@ def imovel_workbook(
     def revive(d: dict[str, Any] | None) -> Provenance | None:
         return Provenance(**d) if d else None
 
+    overlaps = overlaps or []
     history_prov = revive(history_provenance)
     hansen_prov = revive(hansen_provenance)
     biomass_prov = revive(biomass_provenance)
@@ -285,6 +322,7 @@ def imovel_workbook(
     sankey_prov = revive(sankey_provenance)
     fire_prov = revive(fire_provenance)
     validacao_prov = revive(validacao_provenance)
+    spot_prov = revive(spot_provenance)
 
     context: list[list[Any]] = [
         ["ESCOPO", "imóvel do CAR"],
@@ -292,6 +330,13 @@ def imovel_workbook(
         ["UF", imovel.get("uf", "")],
         ["município", imovel.get("municipio", "")],
         ["área declarada (ha)", imovel.get("area_declarada_ha", "")],
+        ["área calculada do polígono (ha)", area_calculada_ha or ""],
+        ["diferença calculada − declarada (ha)", area_delta_ha if area_calculada_ha else ""],
+        ["diferença calculada − declarada (%)", area_delta_pct if area_calculada_ha else ""],
+        ["registros do CAR sobrepostos",
+         ("; ".join(f"{o.get('cod_imovel', '')} ({o.get('overlap_ha', '')} ha)"
+                    for o in overlaps) or "nenhum encontrado")
+         if overlaps_checked else "não consultado"],
         ["condição", imovel.get("condicao", "")],
         ["situação", imovel.get("status_imovel", "")],
         ["data de criação", imovel.get("dat_criacao", "")],
@@ -347,6 +392,8 @@ def imovel_workbook(
         ])
     if validacao_matrix:
         context.append(["aba validacao_ibge calculada para", validacao_zone_label])
+    if spot_summary:
+        context.append(["SPOT 2008 — cobertura", spot_coverage_line(spot_summary)])
     if include_gbif and not gbif_zone_rows:
         context.append([
             "AVISO — abas gbif_*",
@@ -356,11 +403,12 @@ def imovel_workbook(
 
     provenances = [p for p in (history_prov, hansen_prov, biomass_prov,
                               landscape_prov, connectivity_prov,
-                              sankey_prov, fire_prov, validacao_prov)
+                              sankey_prov, fire_prov, validacao_prov, spot_prov)
                   if p is not None]
 
     sheets = [
-        _metadata_sheet("imóvel do CAR", context, provenances),
+        _metadata_sheet("imóvel do CAR", context, provenances,
+                        disclosure_for(imovel, "pt")),
         _zones_sheet(zones),
         _cobertura_sheet(history_rows),
     ]

@@ -96,8 +96,8 @@ def _species_rows(row: Any) -> list[list[Any]]:
     return out
 
 
-def _metadata_sheet(rows: Sequence[Any], context: Sequence[Sequence[Any]]
-                    ) -> ods.Sheet:
+def _metadata_sheet(rows: Sequence[Any], context: Sequence[Sequence[Any]],
+                    disclosure: str = "") -> ods.Sheet:
     """The tab the workbook opens with — where the property was, and which
     of these numbers are floors rather than counts."""
     out: list[list[Any]] = [
@@ -107,6 +107,8 @@ def _metadata_sheet(rows: Sequence[Any], context: Sequence[Sequence[Any]]
         ["", ""],
         ["IMÓVEL", ""],
     ]
+    if disclosure:  # constraint C4 — see config.sicar.disclosure_for
+        out.append(["  AVISO", disclosure])
     out.extend([list(c) for c in context])
 
     out.append(["", ""])
@@ -184,10 +186,10 @@ def _metadata_sheet(rows: Sequence[Any], context: Sequence[Sequence[Any]]
     return ods.Sheet("metadados", ["campo", "valor"], out)
 
 
-def build_ods(rows: Sequence[Any], context: Sequence[Sequence[Any]]
-             ) -> tuple[bytes, str]:
+def build_ods(rows: Sequence[Any], context: Sequence[Sequence[Any]],
+              disclosure: str = "") -> tuple[bytes, str]:
     """The workbook: ``metadados`` plus one tab per zone."""
-    sheets = [_metadata_sheet(rows, context)]
+    sheets = [_metadata_sheet(rows, context, disclosure)]
     for index, row in enumerate(rows):
         zone_key = str(getattr(row, "zone_key", index))
         sheets.append(ods.Sheet(

@@ -398,7 +398,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "export_dialog_title": "Download data",
     "export_dialog_desc": (
         "A spreadsheet with everything already computed for this property, "
-        "or an HTML report ready for reading or printing."
+        "or a laid-out report (PDF or HTML)."
     ),
     "export_choose_imovel_first": "Select a property first.",
     "export_stage_waiting": "Waiting for the MapBiomas trajectory to finish…",
@@ -419,24 +419,39 @@ TRANSLATIONS_EN: dict[str, str] = {
         "and the report below. Off by default — the species list can be "
         "large, and needs the GBIF tab calculated first."
     ),
-    "report_section_title": "HTML report (paper-friendly layout)",
+    # --- the laid-out report (doc/13 §7; shared anatomy doc/13 §2.9) ------- #
+    "report_section_title": "Report",
     "report_section_desc": (
-        "One self-contained HTML file with the figures and/or tables "
-        "already computed, laid out for reading or printing to PDF — "
-        "complements the spreadsheet above, not a replacement for it."
+        "A laid-out document: identification, the CAR notice, maps, charts "
+        "and tables with short explanations. Language = the interface's. "
+        "Tabs not yet calculated are listed as «not run»."
     ),
-    "check_report_figures_label": "Figures",
-    "check_report_figures_detail": (
-        "Land cover, forest change, biomass and fire — one chart per zone "
-        "— plus transitions, if already computed."
+    "report_check_maps_label": "Maps",
+    "report_check_maps_detail": (
+        "Sentinel-2, MapBiomas, Hansen and — where covered — SPOT 2008, with "
+        "the declared boundary and the rings."
     ),
-    "check_report_tables_label": "Tables",
-    "check_report_tables_detail": (
-        "Latest land cover, forest loss, biomass, transitions, fire, IBGE "
-        "validation (if already computed) and the provenance of every "
-        "query."
+    "report_check_figures_label": "Charts",
+    "report_check_figures_detail": (
+        "The same charts as on screen, for the active zone, rendered by the "
+        "browser."
     ),
-    "download_report_button": "Download report (HTML)",
+    "report_check_tables_label": "Summary tables",
+    "report_check_tables_detail": (
+        "One table per section, with the numbers quoted in the text."
+    ),
+    "report_check_appendix_label": "Appendix",
+    "report_check_appendix_detail": (
+        "Full land-cover and fire tables per zone (several pages)."
+    ),
+    "report_pdf_button": "Download PDF",
+    "report_html_button": "HTML",
+    "report_stage_charts": "Charts {got}/{total}…",
+    "report_stage_maps": "Maps: querying Earth Engine…",
+    "report_stage_building": "Building the report…",
+    "report_reason_no_property": "Select a property first.",
+    "report_reason_busy": "A report is already being built.",
+    "report_reason_history": "Wait for the MapBiomas trajectory to finish.",
     "export_close_button": "Close",
 
     # --- per-chart/per-table export icons (components/export_widgets.py) --- #

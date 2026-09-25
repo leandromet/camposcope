@@ -136,3 +136,15 @@ DISCLOSURE_EN = (
     "the landholder and does not constitute proof of ownership, possession or "
     "environmental compliance."
 )
+
+
+def disclosure_for(imovel: dict | None, lang: str = "pt") -> str:
+    """The statement that heads an export of ``imovel`` — the one place that
+    decides between the CAR disclosure and the synthetic square's own (a
+    square is not a CAR record at all, so the CAR sentence would be wrong
+    about it). Every export path calls this rather than picking a constant,
+    which is how the HTML report and the ODS once shipped with neither."""
+    if (imovel or {}).get("kind") == "square":
+        from ..translations import get_translations  # lazy: no import cycle
+        return get_translations(lang)["square_disclosure"]
+    return DISCLOSURE_EN if lang == "en" else DISCLOSURE_PT

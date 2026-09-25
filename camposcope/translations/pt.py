@@ -416,7 +416,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "export_dialog_title": "Baixar dados",
     "export_dialog_desc": (
         "Uma planilha com tudo o que já foi calculado para este imóvel, ou um "
-        "relatório em HTML pronto para leitura ou impressão."
+        "relatório diagramado (PDF ou HTML)."
     ),
     "export_choose_imovel_first": "Selecione um imóvel primeiro.",
     "export_stage_waiting": "Aguardando a trajetória MapBiomas terminar…",
@@ -437,24 +437,38 @@ TRANSLATIONS_PT: dict[str, str] = {
         "relatório abaixo. Desmarcado por padrão — a lista de espécies pode "
         "ser extensa e exige ter calculado a aba GBIF antes."
     ),
-    "report_section_title": "Relatório em HTML (formato de artigo)",
+    # --- the laid-out report (doc/13 §7; shared anatomy doc/13 §2.9) ------- #
+    "report_section_title": "Relatório",
     "report_section_desc": (
-        "Um único arquivo HTML autocontido com os gráficos e/ou tabelas já "
-        "calculados, formatado para leitura ou impressão em PDF — "
-        "complementa a planilha acima, não a substitui."
+        "Um documento diagramado: identificação, aviso do CAR, mapas, "
+        "gráficos e tabelas com explicações curtas. Idioma = o da interface. "
+        "Abas não calculadas aparecem como «não calculado»."
     ),
-    "check_report_figures_label": "Gráficos",
-    "check_report_figures_detail": (
-        "Cobertura, floresta, biomassa e fogo — um gráfico por zona — mais "
-        "as transições, se já calculadas."
+    "report_check_maps_label": "Mapas",
+    "report_check_maps_detail": (
+        "Sentinel-2, MapBiomas, Hansen e — se houver cobertura — SPOT 2008, "
+        "com o limite declarado e os anéis."
     ),
-    "check_report_tables_label": "Tabelas",
-    "check_report_tables_detail": (
-        "Cobertura mais recente, perda florestal, biomassa, transições, "
-        "fogo, validação IBGE (se já calculada) e a proveniência de cada "
-        "consulta."
+    "report_check_figures_label": "Gráficos",
+    "report_check_figures_detail": (
+        "Os mesmos gráficos da tela, para a zona ativa, gerados pelo navegador."
     ),
-    "download_report_button": "Baixar relatório (HTML)",
+    "report_check_tables_label": "Tabelas-resumo",
+    "report_check_tables_detail": (
+        "Uma tabela por seção, com os números citados no texto."
+    ),
+    "report_check_appendix_label": "Apêndice",
+    "report_check_appendix_detail": (
+        "Tabelas completas de cobertura e fogo por zona (várias páginas)."
+    ),
+    "report_pdf_button": "Baixar PDF",
+    "report_html_button": "HTML",
+    "report_stage_charts": "Gráficos {got}/{total}…",
+    "report_stage_maps": "Mapas: consultando o Earth Engine…",
+    "report_stage_building": "Montando o relatório…",
+    "report_reason_no_property": "Selecione um imóvel primeiro.",
+    "report_reason_busy": "Um relatório já está sendo gerado.",
+    "report_reason_history": "Aguarde a trajetória MapBiomas terminar.",
     "export_close_button": "Fechar",
 
     # --- per-chart/per-table export icons (components/export_widgets.py) --- #

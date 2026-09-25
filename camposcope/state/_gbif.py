@@ -22,6 +22,7 @@ from typing import Any, List
 import reflex as rx
 from pydantic import BaseModel
 
+from ..config.sicar import disclosure_for
 from ..config.settings import GBIF_SPECIES_TABLE_LIMIT
 from ..services import gbif_export, gbif_species
 from ._proxy import plain
@@ -156,6 +157,7 @@ class GbifMixin(rx.State, mixin=True):
         try:
             data, name = gbif_export.build_ods(
                 self.gbif_zone_rows, self._gbif_export_context(),
+                disclosure_for(getattr(self, "imovel", {}) or {}, "pt"),
             )
         except Exception as exc:  # noqa: BLE001
             logger.exception("GBIF species ODS export failed")

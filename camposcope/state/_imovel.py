@@ -10,6 +10,7 @@ The fields are carried and displayed verbatim.
 
 from __future__ import annotations
 
+import copy
 import logging
 from typing import Any, Dict, List
 
@@ -21,6 +22,31 @@ from ..services.sicar import SicarError
 from ..translations import get_translations
 
 logger = logging.getLogger(__name__)
+
+
+#: Every per-property result a tab holds, with its empty value. All but
+#: Cobertura are computed on demand ("Calcular"), and each tab used to clear
+#: only its own fields when re-run — so after choosing another property the
+#: previous one's Hansen/biomass/fire/landscape/validation/Sankey/SPOT/GBIF
+#: numbers stayed in state, and the ODS and HTML exports (state/_export.py
+#: _gather) shipped them under the *new* property's identity. Cleared in one
+#: place, on every change of property (_adopt, _adopt_square).
+#: Cobertura's own fields are left to run_history, which _adopt always chains.
+PROPERTY_RESULT_DEFAULTS: Dict[str, Any] = {
+    "hansen_error": "", "hansen_loss_rows": [], "hansen_gain_ha": 0.0,
+    "hansen_has_run": False, "hansen_provenance": {},
+    "biomass_error": "", "biomass_rows": [], "biomass_provenance": {},
+    "spot_error": "", "spot_summary": {}, "spot_provenance": {},
+    "validacao_error": "", "validacao_matrix": {}, "validacao_provenance": {},
+    "validacao_zone_label": "", "validacao_raw_rows": [],
+    "fire_error": "", "fire_rows": [], "fire_annual_rows": [], "fire_provenance": {},
+    "landscape_error": "", "landscape_rows": [], "landscape_provenance": {},
+    "connectivity_error": "", "connectivity_degraded": False,
+    "connectivity_rows": [], "connectivity_provenance": {},
+    "sankey_error": "", "sankey_transitions": {}, "sankey_provenance": {},
+    "sankey_zone_label": "", "multi_stage_error": "", "_multi_stage_stages": [],
+    "gbif_error": "", "gbif_export_error": "", "gbif_zone_rows": [],
+}
 
 
 class ImovelMixin(rx.State, mixin=True):
@@ -315,6 +341,14 @@ class ImovelMixin(rx.State, mixin=True):
             "municipio": record.municipio,
         }
 
+    def _clear_property_results(self) -> None:
+        """Forget every result computed for the previous property — see
+        PROPERTY_RESULT_DEFAULTS. setattr because the fields live on sibling
+        mixins (same cross-mixin reasoning as the getattr(self, "lang")
+        pattern); fresh copies so no two properties share a list object."""
+        for field, empty in PROPERTY_RESULT_DEFAULTS.items():
+            setattr(self, field, copy.copy(empty))
+
     def _adopt(self, record: sicar.Imovel) -> None:
         """Make this record the selected property and rebuild the zones.
 
@@ -338,6 +372,7 @@ class ImovelMixin(rx.State, mixin=True):
             "queried_at": record.queried_at,
             "coordinates": "",
         }
+        self._clear_property_results()
         self.imovel_geojson = record.geometry or {}
         self.build_zones()          # provided by ZonesMixin
         # Selecting a new property IS a request to look somewhere else, so this
@@ -377,6 +412,7 @@ class ImovelMixin(rx.State, mixin=True):
             "queried_at": "",
             "coordinates": f"{lat:.4f}, {lon:.4f}",
         }
+        self._clear_property_results()
         self.imovel_geojson = geojson
         self.build_zones()
         self.frame_geometry(self.imovel_geojson)

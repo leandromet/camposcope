@@ -426,6 +426,11 @@ class SpotCoverageMixin(rx.State, mixin=True):
     spot_running: bool = False
     spot_error: str = ""
     spot_summary: Dict[str, Any] = {}
+    #: Constraint C3: the coverage summary is a result like any other, so it
+    #: keeps its Provenance (services.spot.coverage returns one) instead of
+    #: discarding it — an export that shows SPOT dates must say how they were
+    #: read.
+    spot_provenance: Dict[str, Any] = {}
 
     @rx.event(background=True)
     async def run_spot_coverage(self):
@@ -440,6 +445,7 @@ class SpotCoverageMixin(rx.State, mixin=True):
             self.spot_running = True
             self.spot_error = ""
             self.spot_summary = {}
+            self.spot_provenance = {}
         if not zones_geojson.get("features"):
             async with self:
                 self.spot_running = False
@@ -454,7 +460,7 @@ class SpotCoverageMixin(rx.State, mixin=True):
             return
 
         try:
-            summary, _prov = spot.coverage(geom)
+            summary, prov = spot.coverage(geom)
         except Exception as exc:                       # noqa: BLE001
             logger.exception("SPOT coverage failed")
             async with self:
@@ -467,6 +473,7 @@ class SpotCoverageMixin(rx.State, mixin=True):
         async with self:
             self.spot_running = False
             self.spot_summary = summary
+            self.spot_provenance = prov.to_dict()
 
 
 class ValidacaoMixin(rx.State, mixin=True):

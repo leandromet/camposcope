@@ -45,6 +45,67 @@ def basemap_spec(key: str, *, z_index: int = 0) -> Optional[Dict[str, Any]]:
     }
 
 
+# --------------------------------------------------------------------------- #
+# Image builders — one per layer, shared by the tile specs below and by the
+# report's maps (services/report_maps.py, doc/13 §6), so the screen and the
+# PDF draw the same pixels with the same palette. ``visualize=True`` returns
+# the already-visualised RGB image a thumbnail needs; the specs pass the raw
+# image plus its vis dict to ``get_tile_url`` instead (same result).
+# --------------------------------------------------------------------------- #
+
+
+def spot_image(key: str = "spot_2008_visual", *, visualize: bool = False):
+    """The SPOT 2008 mosaic (``ds.EE_BASEMAPS[key]``) as an ``ee.Image``."""
+    import ee
+
+    conf = ds.EE_BASEMAPS[key]
+    img = ee.Image(conf["asset"])
+    return img.visualize(**conf["vis"]) if visualize else img
+
+
+def mapbiomas_year_image(year: int, *, visualize: bool = False):
+    """MapBiomas land cover for one year (default collection)."""
+    import ee
+
+    asset = mb.MAPBIOMAS_COLLECTIONS[mb.MAPBIOMAS_DEFAULT_COLLECTION]
+    img = ee.Image(asset).select(mb.band_for_year(year))
+    return img.visualize(**mb.MAPBIOMAS_VIS) if visualize else img
+
+
+HANSEN_TREECOVER_VIS = ds.HANSEN_GFC["treecover_vis"]
+HANSEN_CHANGE_VIS = {"min": 1, "max": 2,
+                     "palette": [ds.HANSEN_GFC["loss_color"].lstrip("#"),
+                                 ds.HANSEN_GFC["gain_color"].lstrip("#")]}
+
+
+def hansen_treecover_image(*, threshold: int = HANSEN_TREECOVER_THRESHOLD,
+                           visualize: bool = False):
+    """Tree cover in 2000, masked at the canopy threshold."""
+    import ee
+
+    treecover = ee.Image(ds.HANSEN_GFC["asset"]).select("treecover2000")
+    img = treecover.updateMask(treecover.gte(threshold))
+    return img.visualize(**HANSEN_TREECOVER_VIS) if visualize else img
+
+
+def hansen_change_image(from_year: int, *,
+                        threshold: int = HANSEN_TREECOVER_THRESHOLD,
+                        visualize: bool = False):
+    """Loss since ``from_year`` (1) and undated gain (2), one band — see
+    :func:`hansen_change_spec` for the gating rules."""
+    import ee
+
+    year_start = ds.HANSEN_GFC["loss_year_start"]
+    gfc = ee.Image(ds.HANSEN_GFC["asset"])
+    forest2000 = gfc.select("treecover2000").gte(threshold)
+    code = from_year - year_start + 1
+    loss = (gfc.select("loss").eq(1).And(forest2000)
+            .And(gfc.select("lossyear").gte(code)))
+    gain = gfc.select("gain").eq(1)
+    img = ee.Image(0).where(gain, 2).where(loss, 1).selfMask().rename("change")
+    return img.visualize(**HANSEN_CHANGE_VIS) if visualize else img
+
+
 def ee_basemap_spec(key: str, *, z_index: int = 1) -> Optional[Dict[str, Any]]:
     """Mint an Earth Engine basemap (the SPOT 2008 mosaics).
 
@@ -59,8 +120,7 @@ def ee_basemap_spec(key: str, *, z_index: int = 1) -> Optional[Dict[str, Any]]:
         return None
 
     def build():
-        import ee
-        return ee.Image(conf["asset"])
+        return spot_image(key)
 
     try:
         url = get_tile_url(f"basemap:{key}", build, conf["vis"])
@@ -89,12 +149,10 @@ def mapbiomas_year_spec(
                        mb.MAPBIOMAS_YEAR_START, mb.MAPBIOMAS_YEAR_END)
         return None
 
-    asset = mb.MAPBIOMAS_COLLECTIONS[mb.MAPBIOMAS_DEFAULT_COLLECTION]
     cache_key = f"mapbiomas:{mb.MAPBIOMAS_DEFAULT_COLLECTION}:{year}"
 
     def build():
-        import ee
-        return ee.Image(asset).select(mb.band_for_year(year))
+        return mapbiomas_year_image(year)
 
     try:
         url = get_tile_url(cache_key, build, mb.MAPBIOMAS_VIS)
@@ -119,13 +177,10 @@ def hansen_treecover_spec(
     cache_key = f"hansen_tc:{threshold}"
 
     def build():
-        import ee
-        gfc = ee.Image(ds.HANSEN_GFC["asset"])
-        treecover = gfc.select("treecover2000")
-        return treecover.updateMask(treecover.gte(threshold))
+        return hansen_treecover_image(threshold=threshold)
 
     try:
-        url = get_tile_url(cache_key, build, ds.HANSEN_GFC["treecover_vis"])
+        url = get_tile_url(cache_key, build, HANSEN_TREECOVER_VIS)
     except Exception as exc:                       # noqa: BLE001
         logger.warning("Hansen treecover layer failed: %s", exc)
         return None
@@ -160,20 +215,10 @@ def hansen_change_spec(
     cache_key = f"hansen_change:{from_year}:{threshold}"
 
     def build():
-        import ee
-        gfc = ee.Image(ds.HANSEN_GFC["asset"])
-        forest2000 = gfc.select("treecover2000").gte(threshold)
-        code = from_year - year_start + 1
-        loss = (gfc.select("loss").eq(1).And(forest2000)
-               .And(gfc.select("lossyear").gte(code)))
-        gain = gfc.select("gain").eq(1)
-        return ee.Image(0).where(gain, 2).where(loss, 1).selfMask().rename("change")
+        return hansen_change_image(from_year, threshold=threshold)
 
-    vis = {"min": 1, "max": 2,
-          "palette": [ds.HANSEN_GFC["loss_color"].lstrip("#"),
-                     ds.HANSEN_GFC["gain_color"].lstrip("#")]}
     try:
-        url = get_tile_url(cache_key, build, vis)
+        url = get_tile_url(cache_key, build, HANSEN_CHANGE_VIS)
     except Exception as exc:                       # noqa: BLE001
         logger.warning("Hansen change layer failed: %s", exc)
         return None
@@ -362,6 +407,8 @@ def fire_frequency_spec(
 
 
 __all__ = [
+    "spot_image", "mapbiomas_year_image", "hansen_treecover_image",
+    "hansen_change_image", "HANSEN_TREECOVER_VIS", "HANSEN_CHANGE_VIS",
     "basemap_spec", "ee_basemap_spec", "ibge_vegetation_spec",
     "mapbiomas_year_spec", "hansen_treecover_spec", "hansen_change_spec",
     "biomass_year_spec", "fire_frequency_spec", "landscape_patches_spec",

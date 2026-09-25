@@ -18,6 +18,7 @@ Read in order; each document is self-contained but assumes the one before it.
 | 10 | [open-decisions.md](10-open-decisions.md) | Decision record — what was chosen and what is still open |
 | 11 | [search-and-navigation.md](11-search-and-navigation.md) | Finding a property: codes, coordinates, municípios, addresses; the biome overlay |
 | 12 | [spot-2008.md](12-spot-2008.md) | The SPOT 2008 mosaic and the Forest Code's 22 July 2008 reference date |
+| 13 | [pdf-report.md](13-pdf-report.md) | The laid-out PDF/HTML property report, the shared `report_kit`, and the C4 guard on generated text |
 
 Alongside them: `geoserver_car_getcap_wfs.xml` / `geoserver_car_getcap_wms.xml` — the raw
 capabilities dumps that [05](05-sicar-geoserver.md) is derived from, and

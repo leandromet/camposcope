@@ -18,6 +18,7 @@ alternatives stay.
 | D11 | Geocoding provider | **Nominatim, sparingly; last of four resolvers** | 1 |
 | D12 | Municípios | **Local IBGE table for the list, EE asset for the geometry** | 1 |
 | D13 | Biome / domain overlay | **Port it, as navigation — not as an input** | 2 |
+| D14 | Laid-out report | **PDF + HTML from one model, shared `report_kit` (vendored from Naturametrics), charts rasterised in the browser, EE-only maps, C4 guard test** | 6 |
 | **O1** | Minimum year gap for a Sankey pair | *open* — 5 years proposed | 4 |
 | **O2** | Deployment target | *open* | 7 |
 | ~~O3~~ | ~~Municipality list source~~ | **settled by D12** | — |
@@ -218,3 +219,34 @@ for its IFN points.
 That is why the layer is documented under [11 — search and navigation](11-search-and-navigation.md)
 rather than under data sources: it helps people find where they are, and it is not an input
 to any number the app reports.
+
+## D14 — Laid-out report: PDF and HTML from one content model
+
+**Chosen (2026-09-24).**
+
+- The property dossier becomes a document in two formats, PDF and HTML, rendered from **one
+  content model** by a shared `report_kit`. The kit is built on reportlab and **vendored byte for
+  byte from Naturametrics**, where the canonical copy lives; a sha256 manifest test guards it.
+- Chart images are rasterised **in the browser** (`Plotly.toImage`), so the image still carries no
+  Chromium or kaleido.
+- Maps are Earth Engine thumbnails only, with outlines drawn as vectors.
+- Images are screen quality: 150 dpi at the size of their slot on the page.
+- The disclosure opens page 1, and a **C4 guard test** scans every generated sentence for
+  verdict vocabulary.
+- Plan and full contract: [13-pdf-report.md](13-pdf-report.md).
+
+*Rejected:*
+
+- kaleido + Chromium: about 300 MB and a fragile render path.
+- matplotlib re-draws: the charts would no longer match the screen.
+- Printing to PDF in Chromium, or WeasyPrint: system packages.
+- Google or Esri tiles inside a redistributed PDF.
+- An LLM for the explanatory text: not reproducible, and able to phrase a verdict C4 forbids.
+
+**Cost:**
+
+- `reportlab` and `pillow` in the image.
+- About four `getThumbURL` calls per report, with no reducers (C6).
+- The HTML report is rewritten on the model.
+
+It also closes a live C4 gap: the disclosure was missing from both the HTML and the ODS exports.

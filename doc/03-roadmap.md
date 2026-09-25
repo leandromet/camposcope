@@ -173,6 +173,26 @@ pasture→soy trajectory in Cobertura.
 **Done test:** an export opened a week later still says which datasets, which scales, which
 day the cadastre was read, and that the CAR is self-declared.
 
+### Phase 6 addendum — Laid-out report (PDF + HTML), planned 2026-09-24
+
+Full plan: [13-pdf-report.md](13-pdf-report.md); decision **D14**.
+
+- **Fix first:**
+  - The C4 disclosure goes into the HTML report and the ODS `metadados` tab.
+  - The sources list matches the report's language.
+  - `_gather()` adds overlaps, computed area and difference, and the SPOT summary with its
+    provenance.
+- **Kit:** vendor `report_kit/` from Naturametrics.
+- **Layers:** split `mapbiomas_year_image`, `hansen_change_image` and `spot_image` out of their
+  specs.
+- **Report code:** `services/report.py` becomes a model builder, with the templates in
+  `services/report_text.py`.
+- **UI:** a "Relatório / Report" block with PDF and HTML buttons, and chart capture in the
+  browser.
+- **Tests:** a C4 guard test on every generated sentence.
+
+**Done test:** [13](13-pdf-report.md) §11.
+
 ## Phase 7 — Beyond v1 (not committed)
 
 Listed so they are not mistaken for oversights:

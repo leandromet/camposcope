@@ -137,3 +137,45 @@ def test_provenance_with_a_still_proxied_geometry_does_not_crash_to_dict():
     # every sibling run_* handler now call this on the way into export).
     d = prov.to_dict()
     assert d["geometry"]["type"] == "Polygon"
+
+
+# --- constraint C4: the disclosure is in every export (doc/13 §1) ----------- #
+
+def test_workbook_metadados_carries_the_car_disclosure(tmp_path):
+    from camposcope.config.sicar import DISCLOSURE_PT
+    data, _ = exports.imovel_workbook(IMOVEL, ZONES, _history_rows(),
+                                      history_provenance=_prov())
+    meta = _read_back(data, tmp_path)["metadados"]
+    values = meta.astype(str).values.ravel().tolist()
+    assert DISCLOSURE_PT in values
+
+
+def test_square_workbook_carries_the_square_disclosure_not_the_car_one(tmp_path):
+    from camposcope.config.sicar import DISCLOSURE_PT
+    from camposcope.translations import get_translations
+    square = {**IMOVEL, "kind": "square", "cod_imovel": ""}
+    data, _ = exports.imovel_workbook(square, ZONES, _history_rows(),
+                                      history_provenance=_prov())
+    values = _read_back(data, tmp_path)["metadados"].astype(str).values.ravel().tolist()
+    assert get_translations("pt")["square_disclosure"] in values
+    assert DISCLOSURE_PT not in values
+
+
+def test_gbif_workbook_carries_the_disclosure(tmp_path):
+    from camposcope.config.sicar import DISCLOSURE_PT
+    from camposcope.services import gbif_export
+    data, _ = gbif_export.build_ods([], [["  código do imóvel", "X"]], DISCLOSURE_PT)
+    values = _read_back(data, tmp_path)["metadados"].astype(str).values.ravel().tolist()
+    assert DISCLOSURE_PT in values
+
+
+def test_spot_summary_and_provenance_reach_the_workbook(tmp_path):
+    spot = {"has_coverage": True, "covered_pct": 100.0, "date_min": "2008-05-14",
+            "date_max": "2008-07-03", "pre_cutoff_pct": 100.0, "cutoff": "2008-07-22"}
+    spot_prov = {**_prov(), "name": "spot_2008_coverage", "dataset_id": "GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL"}
+    data, _ = exports.imovel_workbook(IMOVEL, ZONES, _history_rows(),
+                                      history_provenance=_prov(),
+                                      spot_summary=spot, spot_provenance=spot_prov)
+    values = " ".join(map(str, _read_back(data, tmp_path)["metadados"].astype(str).values.ravel()))
+    assert "imageado antes de 2008-07-22" in values
+    assert "GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL" in values

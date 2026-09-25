@@ -165,3 +165,44 @@ DATA_SOURCES_EN = [
      "Esri World Imagery; OpenStreetMap contributors; Google.",
      "https://www.openstreetmap.org/copyright"),
 ]
+
+#: The attribution block of doc/04-data-sources.md §13, which every export
+#: carries in full, one entry per line, in the report's language. Verbatim
+#: legal/credit text: exempt from the report's C4 vocabulary scan
+#: (tests/test_report_c4.py), like the DISCLOSURE_* constants.
+ATTRIBUTION_BLOCK_PT = [
+    "Cadastro Ambiental Rural (CAR) — Serviço Florestal Brasileiro, via "
+    "geoserver.car.gov.br.",
+    "**Os dados do CAR são autodeclaratórios e não constituem prova de "
+    "propriedade, regularidade ou posse.**",
+    "MapBiomas Coleção 10.1 (CC BY-SA 4.0) · Hansen Global Forest Change, "
+    "Hansen/UMD/Google/USGS/NASA (CC BY 4.0) · ESA CCI Biomass v6.0, Santoro & "
+    "Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat",
+    "Google LLC, Brazil Forest Imagery Dataset 2008, criado a partir de imagens "
+    "SPOT de aproximadamente 2008",
+    "IBGE — biomas e domínios morfoclimáticos 1:250.000, malhas territoriais e "
+    "localidades · Funai — Terras Indígenas (poligonais e portarias) · "
+    "MMA/ICMBio — Cadastro Nacional de Unidades de Conservação (CNUC)",
+    "Busca de lugares © colaboradores do OpenStreetMap (ODbL) · Processado no "
+    "Google Earth Engine.",
+]
+ATTRIBUTION_BLOCK_EN = [
+    "Rural Environmental Registry (CAR) — Brazilian Forest Service, via "
+    "geoserver.car.gov.br.",
+    "**CAR data is self-declared and does not constitute proof of ownership, "
+    "compliance or possession.**",
+    "MapBiomas Collection 10.1 (CC BY-SA 4.0) · Hansen Global Forest Change, "
+    "Hansen/UMD/Google/USGS/NASA (CC BY 4.0) · ESA CCI Biomass v6.0, Santoro & "
+    "Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat",
+    "Google LLC, Brazil Forest Imagery Dataset 2008, created from circa-2008 "
+    "SPOT images",
+    "IBGE — biomes and morphoclimatic domains 1:250,000, territorial meshes and "
+    "localities · Funai — Indigenous Lands (polygons and ordinances) · "
+    "MMA/ICMBio — National Registry of Conservation Units (CNUC)",
+    "Place search © OpenStreetMap contributors (ODbL) · Processed in Google "
+    "Earth Engine.",
+]
+
+
+def attribution_block(lang: str = "pt") -> list:
+    return list(ATTRIBUTION_BLOCK_EN if lang == "en" else ATTRIBUTION_BLOCK_PT)

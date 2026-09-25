@@ -5,11 +5,13 @@ rather than a sidebar section, same reason: the sidebar already carries the
 search panel and results tabs, and this sits beside "Como citar" in the
 header instead. Camposcope has no multi-property selection (see
 ``services/exports.py``'s own docstring), so unlike Naturametrics there is
-only one section here, not two.
+only one section here, not two: the workbook, then the laid-out report
+(PDF/HTML, ``_report_block``, doc/13 §7).
 """
 
 from __future__ import annotations
 
+import plotly.graph_objects as go
 import reflex as rx
 
 from ..state import AppState
@@ -53,6 +55,83 @@ def _status() -> rx.Component:
             rx.fragment(),
         ),
         spacing="2", width="100%",
+    )
+
+
+def _plotly_preload() -> rx.Component:
+    """A hidden 1×1 chart: ``window.Plotly`` only exists once an ``rx.plotly``
+    has mounted (its bundle loads lazily), and the PDF's charts are
+    rasterised in this browser by ``Plotly.toImage`` (doc/13 §2.7)."""
+    return rx.box(
+        rx.plotly(data=go.Figure(), width="1px", height="1px"),
+        aria_hidden="true",
+        style={"position": "absolute", "width": "1px", "height": "1px",
+               "overflow": "hidden", "opacity": 0, "pointerEvents": "none"},
+    )
+
+
+def _report_block() -> rx.Component:
+    """The shared "Relatório / Report" block (doc/13 §2.9, §7)."""
+    return rx.vstack(
+        rx.text(AppState.tr["report_section_title"], size="2", weight="medium"),
+        rx.text(AppState.tr["report_section_desc"], size="1",
+                color="var(--gray-11)", style={"lineHeight": "1.4"}),
+        _check(AppState.tr["report_check_maps_label"],
+               AppState.tr["report_check_maps_detail"],
+               AppState.exp_report_maps, AppState.toggle_exp_report_maps),
+        _check(AppState.tr["report_check_figures_label"],
+               AppState.tr["report_check_figures_detail"],
+               AppState.exp_report_figures, AppState.toggle_exp_report_figures),
+        _check(AppState.tr["report_check_tables_label"],
+               AppState.tr["report_check_tables_detail"],
+               AppState.exp_report_tables, AppState.toggle_exp_report_tables),
+        _check(AppState.tr["report_check_appendix_label"],
+               AppState.tr["report_check_appendix_detail"],
+               AppState.exp_report_appendix, AppState.toggle_exp_report_appendix),
+        rx.hstack(
+            rx.button(
+                rx.icon("file-text", size=14),
+                AppState.tr["report_pdf_button"],
+                on_click=AppState.start_report("pdf"),
+                disabled=AppState.report_disabled,
+                size="2", color_scheme="grass", flex="1",
+            ),
+            rx.button(
+                rx.icon("file-code", size=14),
+                AppState.tr["report_html_button"],
+                on_click=AppState.start_report("html"),
+                disabled=AppState.report_disabled,
+                size="2", variant="soft", color_scheme="grass",
+            ),
+            spacing="2", width="100%",
+        ),
+        rx.cond(
+            AppState.report_busy,
+            rx.hstack(rx.spinner(size="1"), rx.text(AppState.report_stage, size="1"),
+                      spacing="2", align="center", width="100%"),
+            rx.cond(
+                AppState.report_disabled_reason != "",
+                rx.hstack(rx.icon("info", size=13, color="var(--gray-10)"),
+                          rx.text(AppState.report_disabled_reason, size="1",
+                                  color="var(--gray-11)"),
+                          spacing="2", align="center", width="100%"),
+                rx.fragment(),
+            ),
+        ),
+        rx.cond(
+            AppState.report_error != "",
+            rx.callout(AppState.report_error, icon="triangle-alert",
+                       color_scheme="red", size="1", width="100%"),
+            rx.fragment(),
+        ),
+        rx.cond(
+            AppState.report_result != "",
+            rx.callout(AppState.report_result, icon="circle-check",
+                       color_scheme="grass", size="1", width="100%"),
+            rx.fragment(),
+        ),
+        _plotly_preload(),
+        spacing="3", align_items="start", width="100%", position="relative",
     )
 
 
@@ -103,28 +182,7 @@ def export_dialog() -> rx.Component:
                     ),
 
                     rx.divider(),
-                    rx.text(AppState.tr["report_section_title"], size="2",
-                           weight="medium"),
-                    rx.text(AppState.tr["report_section_desc"], size="1",
-                           color="var(--gray-11)", style={"lineHeight": "1.4"}),
-                    _check(
-                        AppState.tr["check_report_figures_label"],
-                        AppState.tr["check_report_figures_detail"],
-                        AppState.exp_report_figures, AppState.toggle_exp_report_figures,
-                    ),
-                    _check(
-                        AppState.tr["check_report_tables_label"],
-                        AppState.tr["check_report_tables_detail"],
-                        AppState.exp_report_tables, AppState.toggle_exp_report_tables,
-                    ),
-                    rx.button(
-                        rx.icon("file-text", size=14),
-                        AppState.tr["download_report_button"],
-                        on_click=AppState.download_imovel_report,
-                        disabled=(~AppState.has_imovel | AppState.export_busy
-                                 | ~AppState.export_report_any),
-                        size="2", variant="soft", color_scheme="grass", width="100%",
-                    ),
+                    _report_block(),
 
                     rx.divider(),
                     _status(),
