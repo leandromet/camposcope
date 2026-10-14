@@ -44,6 +44,7 @@ import reflex as rx
 
 from ...state._proxy import plain  # noqa: F401  (re-exported for sibling mixins)
 from ..config import pmbc as vocab
+from ...services import address
 from ..services import bc_lookup, geocode, municipalities, pmbc, protected_areas
 from ..services.geocode import GeocodeError
 from ..services.pmbc import PmbcError
@@ -67,6 +68,9 @@ class CanadaParcelMixin(rx.State, mixin=True):
 
     area_hits: List[Dict[str, Any]] = []
     place_hits: List[Dict[str, Any]] = []
+    #: ``[lat, lon]`` of the chosen geocoded place, drawn as a pin — see the
+    #: Brazil page's ``SearchMixin.search_pin``.
+    search_pin: List[float] = []
     #: More than one parcel stacked over a clicked point — see
     #: ``canada/services/pmbc.py``'s module docstring for why this is rare
     #: rather than routine here, unlike the Brazil page's overlap chooser.
@@ -116,7 +120,30 @@ class CanadaParcelMixin(rx.State, mixin=True):
 
     @rx.var
     def map_overlays(self) -> Dict[str, Any]:
-        return self.zones_geojson or {"type": "FeatureCollection", "features": []}
+        base = self.zones_geojson or {"type": "FeatureCollection", "features": []}
+        if len(self.search_pin) != 2:
+            return base
+        lat, lon = self.search_pin
+        return {
+            "type": "FeatureCollection",
+            "features": list(base.get("features") or []) + [{
+                "type": "Feature",
+                "properties": {"role": "search_pin"},
+                "geometry": {"type": "Point", "coordinates": [lon, lat]},
+            }],
+        }
+
+    @rx.var
+    def place_attribution(self) -> str:
+        """Credit exactly the sources the listed places came from (OSM, and
+        the BC register's Open Government Licence when it contributed)."""
+        return address.attributions(self.place_hits)
+
+    @rx.var
+    def can_search_as_place(self) -> bool:
+        """Escape hatch under a municipality reading — "Princeton" is a town
+        and a street name."""
+        return self.echo_kind == "area" and bool(self.query.strip())
 
     @rx.var(cache=True, deps=["language"], auto_deps=False)
     def disclosure(self) -> str:
@@ -151,6 +178,8 @@ class CanadaParcelMixin(rx.State, mixin=True):
         kind, payload = resolution.kind, resolution.payload
         if kind == "pid":
             return f"{msgs['echo_pid']} {payload if isinstance(payload, str) else payload}"
+        if kind == "postal":
+            return f"{msgs['echo_postal']} {payload}"
         if kind == "coordenada":
             return f"{msgs['echo_coordenada']} {payload.lat:.4f}, {payload.lon:.4f}"
         if kind == "area":
@@ -183,6 +212,9 @@ class CanadaParcelMixin(rx.State, mixin=True):
         if kind == "pid":
             return self.__class__.load_by_identifier(resolution.payload)
 
+        if kind == "postal":
+            return self.__class__.search_postal_code(resolution.payload)
+
         if kind == "coordenada":
             coord = resolution.payload
             return self.__class__.select_at_point(coord.lat, coord.lon)
@@ -195,10 +227,25 @@ class CanadaParcelMixin(rx.State, mixin=True):
             return
 
         # kind == "lugar" — the only branch that touches a third party.
+        return self.__class__.search_as_place
+
+    @rx.event(background=True)
+    async def search_as_place(self):
+        """Geocode the query as a place name or street address — the last
+        resolver, and the "search as an address" link under an area match."""
         async with self:
+            raw = self.query.strip()
+            if not raw:
+                return
+            lang = getattr(self, "language", "en")
+            self.search_error = ""
+            self.area_hits = []
+            self.place_hits = []
             self.searching_place = True
+            self.echo = self._echo_text(geocode.Resolution("lugar", "", raw))
+            self.echo_kind = "lugar"
         try:
-            places = geocode.search_places(raw, limit=5)
+            places = geocode.search_places(raw, limit=6)
         except GeocodeError as exc:
             async with self:
                 self.searching_place = False
@@ -210,26 +257,58 @@ class CanadaParcelMixin(rx.State, mixin=True):
             if not places:
                 self.search_error = get_translations(lang)[
                     "erro_lugar_nao_encontrado"].format(query=raw)
-            self.place_hits = [
-                {"label": p.label, "lat": p.lat, "lon": p.lon,
-                 "bounds": p.bounds or []}
-                for p in places
-            ]
+            self.place_hits = [p.to_hit() for p in places]
+        if len(places) == 1:
+            return self.__class__.choose_place(0)
+
+    @rx.event(background=True)
+    async def search_postal_code(self, code: str):
+        """A postal code → its centroid, pinned. Not found is said plainly,
+        with the way forward (the street address)."""
+        async with self:
+            self.searching_place = True
+            self.search_error = ""
+            self.place_hits = []
+            lang = getattr(self, "language", "en")
+        try:
+            places = geocode.search_postal(code)
+        except GeocodeError as exc:
+            async with self:
+                self.searching_place = False
+                self.search_error = str(exc)
+            return
+        async with self:
+            self.searching_place = False
+            self.place_hits = [p.to_hit() for p in places]
+            if not places:
+                self.search_error = get_translations(lang)[
+                    "erro_postal_nao_encontrado"].format(code=code)
+        if places:
+            return self.__class__.choose_place(0)
 
     def choose_place(self, index: int) -> None:
-        """Frame the map on a geocoded place. **Selects no parcel.**"""
+        """Frame the map on a geocoded place and pin it. **Selects no parcel.**
+
+        Address- and postcode-level hits get a centre + zoom (``fit_bounds``
+        is capped at z12, too far out to see the parcel fabric, which only
+        draws from z12); towns and regions keep their bounding box.
+        """
         try:
             place = self.place_hits[int(index)]
         except (IndexError, ValueError, TypeError):
             return
-        self.place_hits = []
-        if place.get("bounds"):
+        precision = place.get("precision", "lugar")
+        if place.get("bounds") and precision not in address.POINT_PRECISIONS:
             self.fit_bounds = place["bounds"]
         else:
             self.center = [place["lat"], place["lon"]]
-            self.zoom = 14
-        self.query = place["label"]
-        self.echo = "place — click a parcel on the map to analyse it"
+            self.zoom = address.ZOOM_BY_PRECISION.get(precision, 14)
+        self.search_pin = [place["lat"], place["lon"]]
+        title = place.get("title") or place["label"]
+        subtitle = place.get("subtitle") or ""
+        self.query = f"{title}, {subtitle}" if subtitle else title
+        msgs = get_translations(getattr(self, "language", "en"))
+        self.echo = f"{msgs['echo_lugar']} — {msgs['search_place_hint']}"
         self.echo_kind = "lugar"
 
     @rx.event(background=True)
@@ -256,6 +335,7 @@ class CanadaParcelMixin(rx.State, mixin=True):
         self.search_error = ""
         self.area_hits = []
         self.place_hits = []
+        self.search_pin = []
 
     # --- gestures --------------------------------------------------------
     @rx.event(background=True)

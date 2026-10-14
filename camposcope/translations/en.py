@@ -14,7 +14,7 @@ TRANSLATIONS_EN: dict[str, str] = {
 
     # --- search panel ----------------------------------------------------- #
     "search_title": "Search",
-    "search_placeholder": "CAR code, coordinate, município, territory or place…",
+    "search_placeholder": "CAR code, CEP, address, coordinate, municipality…",
     "search_read_as": "read as:",
     "search_button": "Search",
     "search_button_busy": "Searching…",
@@ -24,7 +24,7 @@ TRANSLATIONS_EN: dict[str, str] = {
         "A territory only frames the map and switches its layer on. Click a "
         "property to analyse it."
     ),
-    "search_places_heading": "Places",
+    "search_places_heading": "Places and addresses",
     "search_places_note": (
         "A place only frames the map. Click on a property to analyse it."
     ),
@@ -40,6 +40,109 @@ TRANSLATIONS_EN: dict[str, str] = {
     "echo_municipio": "municipality",
     "echo_territorio": "territory",
     "echo_lugar": "place",
+    "echo_cep": "CEP (postcode)",
+    "search_as_place": "Search as an address or place instead",
+    "search_place_hint": "click the property on the map to analyse it",
+    "precision_endereco": "address",
+    "precision_rua": "street",
+    "precision_cep": "postcode",
+    "precision_bairro": "neighbourhood",
+    "precision_cidade": "town",
+    "precision_regiao": "region",
+    "precision_lugar": "place",
+    "erro_cep_nao_encontrado": (
+        "CEP {cep} not found. Try the street address or the municipality name."
+    ),
+
+    # --- quick start (components/quickstart.py) ------------------------- #
+    "qs_title": "Get started in 30 seconds",
+    "qs_step1_lead": "Search",
+    "qs_step1_body": (
+        "a CAR code, CEP (postcode), address, coordinate, municipality or "
+        "Indigenous land — or just pan the map."
+    ),
+    "qs_step2_lead": "Click a property",
+    "qs_step2_body": (
+        "to select it. Where registrations overlap, you choose which one."
+    ),
+    "qs_step3_lead": "Read the results",
+    "qs_step3_body": (
+        "in the map's panel: land cover since 1985, forest loss, biomass and "
+        "fire."
+    ),
+    "qs_step4_lead": "Export",
+    "qs_step4_body": "a PDF report or the data from the Export button.",
+    "qs_more": (
+        "There is much more: buffer rings, year-to-year comparisons, 2008 "
+        "imagery checks and species records."
+    ),
+    "qs_got_it": "Got it",
+    "qs_full_howto": "See the full how-to",
+    "qs_close_aria": "Close the quick start",
+
+    # --- full how-to (components/help.py) ------------------------------- #
+    "help_trigger": "How to use",
+    "help_dialog_title": "How to use Camposcope",
+    "help_dialog_desc": (
+        "From a rural property to an analysis of its landscape — and what "
+        "this page cannot claim."
+    ),
+    "help_step1_title": "Find the place",
+    "help_step1_body": (
+        "The search box takes a CAR code, a CEP (postcode), a street address, "
+        "a coordinate (decimal, degrees-minutes-seconds or a Google Maps "
+        "link), a municipality, an Indigenous land or a protected area. "
+        "Before acting it shows how it read your text («read as»). When a "
+        "name is also a municipality, use «Search as an address or place "
+        "instead». A place only frames the map and drops a blue pin — it "
+        "never selects a property."
+    ),
+    "help_step2_title": "Select a property",
+    "help_step2_body": (
+        "Click the map. If more than one registration covers the point — "
+        "overlaps are common in the CAR — you choose which one to analyse; "
+        "nothing is decided for you. Outside any property the analysis uses "
+        "a 500 ha reference square. Choosing a municipality lists its "
+        "registered properties in the panel."
+    ),
+    "help_step3_title": "Read the registration card",
+    "help_step3_body": (
+        "Condition, status and declared area are shown exactly as SICAR "
+        "publishes them. The CAR is self-declared: Camposcope issues no "
+        "compliance verdict and does not rank the property."
+    ),
+    "help_step4_title": "Pick the zone",
+    "help_step4_body": (
+        "The property and three rings — 500 m, 2 km and 5 km — measured "
+        "outward from the declared boundary. Charts show the active zone; "
+        "switch it to compare the property with its surroundings."
+    ),
+    "help_step5_title": "Go through the results tabs",
+    "help_step5_body": (
+        "Cover (MapBiomas since 1985), Transitions between two years, Forest "
+        "(Hansen loss up to 2008, 2008 to registration, and after), Biomass, "
+        "Landscape, Fire, Validation and GBIF. The map shows the active "
+        "tab's layer with its own legend."
+    ),
+    "help_step6_title": "Turn on reference layers",
+    "help_step6_body": (
+        "In the Layers panel: base map, biomes, Indigenous lands and "
+        "protected areas."
+    ),
+    "help_step7_title": "Export and share",
+    "help_step7_body": (
+        "«Export» builds a PDF or HTML report and the data spreadsheets; "
+        "every chart downloads as a PNG and every table as a CSV from the "
+        "icon beside it. To share a property, add ?car=<code> to the page "
+        "address."
+    ),
+    "help_step8_title": "Cite",
+    "help_step8_body": (
+        "«How to cite» in the header gives the reference for the app and for "
+        "every dataset."
+    ),
+    "help_show_quickstart": "Show the quick start again",
+    "help_close": "Close",
     "municipio_browser_title": "Properties in this municipality",
     "municipio_browser_total": "records",
     "municipio_browser_prev": "‹ previous",

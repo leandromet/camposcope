@@ -148,6 +148,7 @@ def header() -> rx.Component:
     from ..state import AppState
     from .citation import cite_dialog
     from .exports import export_dialog
+    from .help import como_usar_dialog
 
     return rx.hstack(
         rx.hstack(
@@ -181,6 +182,7 @@ def header() -> rx.Component:
             href=AppState.canada_href,
         ),
         export_dialog(),
+        como_usar_dialog(),
         cite_dialog(),
         rx.segmented_control.root(
             rx.segmented_control.item("🇧🇷 PT", value="pt"),

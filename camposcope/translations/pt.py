@@ -16,7 +16,7 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- search panel (components/search.py) ---------------------------- #
     "search_title": "Busca",
-    "search_placeholder": "código CAR, coordenada, município, território ou lugar…",
+    "search_placeholder": "código CAR, CEP, endereço, coordenada, município…",
     "search_read_as": "lido como:",
     "search_button": "Buscar",
     "search_button_busy": "Buscando…",
@@ -26,7 +26,7 @@ TRANSLATIONS_PT: dict[str, str] = {
         "Um território apenas enquadra o mapa e liga a camada correspondente. "
         "Clique sobre um imóvel para analisá-lo."
     ),
-    "search_places_heading": "Lugares",
+    "search_places_heading": "Lugares e endereços",
     "search_places_note": (
         "Um lugar apenas enquadra o mapa. Clique sobre um imóvel para "
         "analisá-lo."
@@ -43,6 +43,108 @@ TRANSLATIONS_PT: dict[str, str] = {
     "echo_municipio": "município",
     "echo_territorio": "território",
     "echo_lugar": "lugar",
+    "echo_cep": "CEP",
+    "search_as_place": "Buscar como endereço ou lugar",
+    "search_place_hint": "clique no imóvel no mapa para analisá-lo",
+    "precision_endereco": "endereço",
+    "precision_rua": "rua",
+    "precision_cep": "CEP",
+    "precision_bairro": "bairro",
+    "precision_cidade": "cidade",
+    "precision_regiao": "região",
+    "precision_lugar": "lugar",
+    "erro_cep_nao_encontrado": (
+        "CEP {cep} não encontrado. Tente o endereço ou o nome do município."
+    ),
+
+    # --- quick start (components/quickstart.py) ------------------------- #
+    "qs_title": "Comece em 30 segundos",
+    "qs_step1_lead": "Busque",
+    "qs_step1_body": (
+        "um código CAR, CEP, endereço, coordenada, município ou terra "
+        "indígena — ou simplesmente navegue pelo mapa."
+    ),
+    "qs_step2_lead": "Clique em um imóvel",
+    "qs_step2_body": (
+        "para selecioná-lo. Se houver registros sobrepostos, você escolhe qual."
+    ),
+    "qs_step3_lead": "Leia os resultados",
+    "qs_step3_body": (
+        "no painel do mapa: cobertura do solo desde 1985, perda de floresta, "
+        "biomassa e fogo."
+    ),
+    "qs_step4_lead": "Exporte",
+    "qs_step4_body": "um relatório PDF ou os dados, pelo botão Exportar.",
+    "qs_more": (
+        "Há muito mais: anéis de entorno, comparação entre anos, validação "
+        "com imagens de 2008 e registros de espécies."
+    ),
+    "qs_got_it": "Entendi",
+    "qs_full_howto": "Ver o guia completo",
+    "qs_close_aria": "Fechar o início rápido",
+
+    # --- full how-to (components/help.py) ------------------------------- #
+    "help_trigger": "Como usar",
+    "help_dialog_title": "Como usar o Camposcope",
+    "help_dialog_desc": (
+        "Do imóvel rural à análise da sua paisagem — e o que esta página não "
+        "pode afirmar."
+    ),
+    "help_step1_title": "Encontre o lugar",
+    "help_step1_body": (
+        "A busca aceita código CAR, CEP, endereço, coordenada (decimal, graus-"
+        "minutos-segundos ou um link do Google Maps), município, terra "
+        "indígena ou unidade de conservação. Antes de agir, ela mostra como "
+        "leu o texto («lido como»). Quando um nome é também município, use "
+        "«Buscar como endereço ou lugar». Um lugar apenas enquadra o mapa e "
+        "marca um alfinete azul — não seleciona imóvel."
+    ),
+    "help_step2_title": "Selecione um imóvel",
+    "help_step2_body": (
+        "Clique no mapa. Se mais de um registro cobre o ponto — sobreposições "
+        "são comuns no CAR —, você escolhe qual analisar; nada é decidido por "
+        "você. Fora de qualquer imóvel, a análise usa um quadrado de "
+        "referência de 500 ha. Ao escolher um município, a lista dos seus "
+        "imóveis aparece no painel."
+    ),
+    "help_step3_title": "Leia a ficha cadastral",
+    "help_step3_body": (
+        "Condição, status e área declarada aparecem exatamente como no SICAR. "
+        "O CAR é autodeclaratório: o Camposcope não emite parecer de "
+        "conformidade nem classifica o imóvel."
+    ),
+    "help_step4_title": "Escolha a zona",
+    "help_step4_body": (
+        "O imóvel e três anéis — 500 m, 2 km e 5 km — medidos para fora do "
+        "limite declarado. Os gráficos mostram a zona ativa; troque-a para "
+        "comparar o imóvel com o seu entorno."
+    ),
+    "help_step5_title": "Percorra as abas de resultados",
+    "help_step5_body": (
+        "Cobertura (MapBiomas desde 1985), Transições entre dois anos, "
+        "Floresta (perda Hansen até 2008, de 2008 ao registro e depois), "
+        "Biomassa, Paisagem, Fogo, Validação e GBIF. O mapa mostra a camada "
+        "da aba ativa, com sua própria legenda."
+    ),
+    "help_step6_title": "Ligue as camadas de referência",
+    "help_step6_body": (
+        "No painel Camadas: mapa base, biomas, terras indígenas e unidades de "
+        "conservação."
+    ),
+    "help_step7_title": "Exporte e compartilhe",
+    "help_step7_body": (
+        "«Exportar» gera um relatório PDF ou HTML e as planilhas de dados; "
+        "cada gráfico baixa como PNG e cada tabela como CSV, pelo ícone ao "
+        "lado. Para compartilhar um imóvel, acrescente ?car=<código> ao "
+        "endereço da página."
+    ),
+    "help_step8_title": "Cite",
+    "help_step8_body": (
+        "«Como citar» no cabeçalho traz a referência do aplicativo e de cada "
+        "conjunto de dados."
+    ),
+    "help_show_quickstart": "Mostrar o início rápido de novo",
+    "help_close": "Fechar",
     "municipio_browser_title": "Imóveis no município",
     "municipio_browser_total": "registros",
     "municipio_browser_prev": "‹ anterior",

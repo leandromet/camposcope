@@ -8,6 +8,7 @@ from ..components.cadastro import cadastral_card, zones_panel
 from ..components.layout import ACCENT, BORDER, MUTED, _info_icon, header, section
 from ..components.map.leaflet_map import leaflet_map
 from ..components.map_legend import map_legend
+from ..components.quickstart import quickstart_card
 from ..components.results import results_panel
 from ..components.search import candidate_chooser, municipio_browser, search_panel
 from ..config.datasets import ALL_BASEMAPS, TERRITORIOS
@@ -299,7 +300,9 @@ def _start_hint() -> rx.Component:
     ``pointer_events="none"``: it never needs a dismiss button or risks
     intercepting the very click it is asking for."""
     return rx.cond(
-        ~AppState.has_imovel,
+        # Also gone while the quick-start card is up: on a phone both sit
+        # across the top of the map, and the card already says the same thing.
+        ~AppState.has_imovel & ~(AppState.is_hydrated & AppState.show_quickstart),
         rx.box(
             rx.text(AppState.tr["start_hint"], size="2", weight="medium",
                     color="white"),
@@ -680,6 +683,7 @@ def _map() -> rx.Component:
         ),
         map_legend(),
         _start_hint(),
+        quickstart_card(AppState, accent=ACCENT, desktop_from=2),
         rx.box(
             _drag_handle(drawer_id="results-drawer",
                         handle_id="results-drag-handle", snap=False),

@@ -14,7 +14,8 @@ from ..state import CanadaState as S
 from .layout import BORDER, MUTED, section
 
 _ECHO_COLOR = {
-    "pid": "jade", "coordenada": "blue", "area": "amber", "lugar": "gray",
+    "pid": "jade", "postal": "cyan", "coordenada": "blue", "area": "amber",
+    "lugar": "gray",
     "erro": "red",
 }
 
@@ -31,6 +32,9 @@ def _echo_line() -> rx.Component:
                     S.echo_kind, *[(k, v) for k, v in _ECHO_COLOR.items()],
                     "gray"),
                 variant="soft",
+                # A place echo carries a hint ("clique no imóvel…") longer
+                # than the sidebar; a badge does not wrap by default.
+                style={"whiteSpace": "normal", "height": "auto", "maxWidth": "100%"},
             ),
             spacing="2", align="center", width="100%", wrap="wrap",
         ),
@@ -58,6 +62,15 @@ def _search_field() -> rx.Component:
             spacing="1", width="100%",
         ),
         _echo_line(),
+        rx.cond(
+            S.can_search_as_place,
+            rx.link(
+                rx.hstack(rx.icon("map-pin", size=12),
+                          rx.text(S.tr["search_as_place"], size="1"),
+                          spacing="1", align="center"),
+                on_click=S.search_as_place, cursor="pointer", underline="hover",
+            ),
+        ),
         rx.button(
             rx.cond(S.searching | S.searching_place, S.tr["search_button_busy"],
                    S.tr["search_button"]),
@@ -96,6 +109,25 @@ def _area_hits() -> rx.Component:
     )
 
 
+#: Precision → badge colour; same vocabulary as the Brazil page's search.
+_PRECISION_COLOR = {
+    "endereco": "grass", "rua": "grass", "cep": "cyan", "bairro": "amber",
+    "cidade": "amber", "regiao": "gray", "lugar": "gray",
+}
+
+
+def _precision_badge(precision) -> rx.Component:
+    return rx.badge(
+        rx.match(precision,
+                 *[(k, S.tr[f"precision_{k}"]) for k in _PRECISION_COLOR],
+                 S.tr["precision_lugar"]),
+        size="1", variant="soft", flex_shrink="0",
+        color_scheme=rx.match(precision,
+                              *[(k, v) for k, v in _PRECISION_COLOR.items()],
+                              "gray"),
+    )
+
+
 def _place_hits() -> rx.Component:
     return rx.cond(
         S.place_hits,
@@ -105,12 +137,19 @@ def _place_hits() -> rx.Component:
             rx.foreach(
                 S.place_hits,
                 lambda p, i: _result_row(
-                    rx.text(p["label"], size="1"),
+                    rx.hstack(
+                        rx.text(p["title"], size="1", weight="medium"),
+                        rx.spacer(),
+                        _precision_badge(p["precision"]),
+                        spacing="2", align="start", width="100%",
+                    ),
+                    rx.cond(p["subtitle"],
+                            rx.text(p["subtitle"], size="1", color=MUTED)),
                     on_click=S.choose_place(i),
                 ),
             ),
             rx.text(S.tr["search_places_note"], size="1", color=MUTED),
-            rx.text(S.tr["search_places_attribution"], size="1", color=MUTED,
+            rx.text(S.place_attribution, size="1", color=MUTED,
                    padding_bottom="2px"),
             spacing="1", width="100%",
         ),

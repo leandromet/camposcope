@@ -85,6 +85,27 @@ class CanadaUIMixin(rx.State, mixin=True):
     def set_help_open(self, value: bool) -> None:
         self.help_open = value
 
+    #: "1" once this browser dismissed the quick-start card — browser storage,
+    #: a per-viewer convenience (see the Brazil page's ``UIMixin``). Its own
+    #: key: the Canada card says different things and deserves its own first
+    #: read.
+    quickstart_seen: str = rx.LocalStorage("", name="camposcope_quickstart_ca_v1")
+
+    @rx.var
+    def show_quickstart(self) -> bool:
+        return self.quickstart_seen != "1"
+
+    def dismiss_quickstart(self) -> None:
+        self.quickstart_seen = "1"
+
+    def open_full_howto(self) -> None:
+        self.quickstart_seen = "1"
+        self.help_open = True
+
+    def reset_quickstart(self) -> None:
+        self.quickstart_seen = ""
+        self.help_open = False
+
     def set_cite_open(self, value: bool) -> None:
         self.cite_open = value
 

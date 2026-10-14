@@ -35,12 +35,12 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- search panel ------------------------------------------------------ #
     "search_title": "Busca",
-    "search_placeholder": "PID, coordenada, município ou lugar…",
+    "search_placeholder": "endereço, código postal, PID, coordenada, município…",
     "search_read_as": "lido como:",
     "search_button": "Buscar",
     "search_button_busy": "Buscando…",
     "search_areas_heading": "Municípios e distritos regionais",
-    "search_places_heading": "Lugares",
+    "search_places_heading": "Lugares e endereços",
     "search_places_note": "Um lugar apenas enquadra o mapa. Clique sobre "
         "uma parcela para analisá-la.",
     "search_places_attribution": "Busca de lugares © colaboradores do "
@@ -51,6 +51,47 @@ TRANSLATIONS_PT: dict[str, str] = {
     "echo_coordenada": "coordenada",
     "echo_area": "área",
     "echo_lugar": "lugar",
+    "echo_postal": "código postal",
+    "search_as_place": "Buscar como endereço ou lugar",
+    "search_place_hint": "clique em um lote no mapa para analisá-lo",
+    "precision_endereco": "endereço",
+    "precision_rua": "rua",
+    "precision_cep": "código postal",
+    "precision_bairro": "bairro",
+    "precision_cidade": "cidade",
+    "precision_regiao": "região",
+    "precision_lugar": "lugar",
+    "erro_postal_nao_encontrado": (
+        "Código postal {code} não encontrado. Tente o endereço."
+    ),
+
+    # --- quick start (components/quickstart.py) ------------------------- #
+    "qs_title": "Comece em 30 segundos",
+    "qs_step1_lead": "Busque",
+    "qs_step1_body": (
+        "um endereço, código postal, PID, coordenada ou município da "
+        "Colúmbia Britânica — ou simplesmente navegue pelo mapa."
+    ),
+    "qs_step2_lead": "Clique em um lote",
+    "qs_step2_body": (
+        "na Colúmbia Britânica, ou em qualquer lugar do Canadá, para "
+        "selecioná-lo. Se houver lotes sobrepostos, você escolhe qual."
+    ),
+    "qs_step3_lead": "Leia os resultados",
+    "qs_step3_body": (
+        "no painel do mapa: histórico do inventário agrícola, perda e idade "
+        "da floresta, biomassa e fogo."
+    ),
+    "qs_step4_lead": "Exporte",
+    "qs_step4_body": "gráficos, tabelas e dados pelo botão Exportar.",
+    "qs_more": (
+        "Há muito mais: anéis de entorno, métricas de paisagem, validação da "
+        "cobertura e registros de espécies."
+    ),
+    "qs_got_it": "Entendi",
+    "qs_full_howto": "Ver o guia completo",
+    "qs_close_aria": "Fechar o início rápido",
+    "help_show_quickstart": "Mostrar o início rápido de novo",
     "area_browser_title": "Parcelas nesta área",
     "area_browser_total": "parcelas",
     "area_browser_prev": "‹ anterior",

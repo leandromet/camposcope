@@ -28,6 +28,39 @@ class UIMixin(rx.State, mixin=True):
     #: One transient message. Cadastral and Earth Engine failures each render in
     #: their own place (doc/08-ui-ux.md §6); this is for everything else.
     toast: str = ""
+    #: The header's "Como usar" dialog — controlled, because the quick-start
+    #: card opens it, and because Dialog.Close's asChild cloning never reaches
+    #: a button Reflex has extracted into its own component (see
+    #: naturametrics/components/help.py for the trace).
+    help_open: bool = False
+    #: "1" once this browser dismissed the quick-start card. Browser storage,
+    #: not state: it is a per-viewer convenience that has to survive a reload
+    #: and must never follow a user to someone else's screen.
+    quickstart_seen: str = rx.LocalStorage("", name="camposcope_quickstart_br_v1")
+
+    @rx.var
+    def show_quickstart(self) -> bool:
+        return self.quickstart_seen != "1"
+
+    @rx.event
+    def set_help_open(self, value: bool) -> None:
+        self.help_open = value
+
+    @rx.event
+    def dismiss_quickstart(self) -> None:
+        self.quickstart_seen = "1"
+
+    @rx.event
+    def open_full_howto(self) -> None:
+        """The quick-start card's last line: hand over to the full guide."""
+        self.quickstart_seen = "1"
+        self.help_open = True
+
+    @rx.event
+    def reset_quickstart(self) -> None:
+        """From the full guide's footer — bring the card back."""
+        self.quickstart_seen = ""
+        self.help_open = False
 
     @rx.var(cache=True)
     def tr(self) -> Dict[str, str]:

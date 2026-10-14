@@ -1,7 +1,8 @@
 """Resolving what the user typed, on the Canada page.
 
-Four resolvers, tried in a fixed order and stopping at the first match: a parcel
-identifier, a coordinate, a BC municipality or regional district, a place name.
+Five resolvers, tried in a fixed order and stopping at the first match: a parcel
+identifier, a postal code, a coordinate, a BC municipality or regional
+district, a place name or street address.
 The order is the Brazil page's and so is the reasoning — the first three are
 exact and local, only the fourth is a guess against someone else's public
 service, so most searches never reach a geocoder at all.
@@ -24,13 +25,11 @@ from __future__ import annotations
 
 import logging
 import re
-import threading
-import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import requests
-
+from ...services import address
+from ...services.address import Place
 from ...config.settings import (
     GEOCODER_ENABLED,
     GEOCODER_TIMEOUT_READ,
@@ -187,126 +186,63 @@ def _validated(lat: float, lon: float, source: str) -> Coordinate:
 
 
 # --------------------------------------------------------------------------- #
-# Place names
+# Place names, street addresses and postal codes
 # --------------------------------------------------------------------------- #
-@dataclass(frozen=True)
-class Place:
-    """A geocoded place. Frames the map; never selects a parcel."""
-
-    label: str
-    lat: float
-    lon: float
-    #: ``[[south, west], [north, east]]`` — framing a bbox is honest about
-    #: uncertainty in a way a single pin is not.
-    bounds: Optional[List[List[float]]]
-    attribution: str = "© OpenStreetMap contributors (ODbL)"
-
-
-#: Nominatim's policy caps us at ~1 request/second and forbids bulk use, so
-#: requests serialise through here exactly as the parcel service's do.
-_LOCK = threading.Lock()
-_cache: Dict[str, List[Place]] = {}
-_cache_lock = threading.Lock()
-_session: Optional[requests.Session] = None
+#: The client lives in ``camposcope/services/address.py`` (shared with the
+#: Brazil page and the sibling apps); this configures it for Canada.
+_geocoder = address.AddressGeocoder(
+    url=GEOCODER_URL,
+    user_agent=GEOCODER_USER_AGENT,
+    accept_language="en-CA,en",
+    countrycodes=GEOCODER_COUNTRY_CODES,
+    enabled=GEOCODER_ENABLED,
+    timeout=(PMBC_TIMEOUT_CONNECT, GEOCODER_TIMEOUT_READ),
+    # ``countrycodes=ca`` alone still lets through Nominatim's occasional
+    # cross-border mismatch (a "Vancouver" candidate in Washington State), and
+    # framing the map there would put the user somewhere this page cannot
+    # answer about. The analysis chain answers anywhere in Canada, so a
+    # Manitoba result is exactly as usable as one in the Fraser Valley.
+    keep=bc_lookup.in_canada,
+    viewbox=CANADA_BBOX,
+)
 
 
-def _get_session() -> requests.Session:
-    global _session
-    if _session is None:
-        s = requests.Session()
-        s.headers.update({
-            "User-Agent": GEOCODER_USER_AGENT,
-            "Accept": "application/json",
-            "Accept-Language": "en-CA,en",
-        })
-        _session = s
-    return _session
+def search_places(query: str, *, limit: int = 6) -> List[Place]:
+    """Geocode a place name or street address. **The last resort, never the
+    first try.**
 
-
-def search_places(query: str, *, limit: int = 5) -> List[Place]:
-    """Geocode a place name. **The last resort, never the first try.**
-
-    Results outside Canada are dropped rather than shown: ``countrycodes=ca``
-    alone still lets through Nominatim's occasional cross-border mismatch (a
-    "Vancouver" candidate in Washington State, say), and framing the map
-    there would put the user somewhere this page cannot answer about, with
-    nothing on screen to say why. Nowhere near as narrow a filter as the BC-
-    only one this function used to apply: the analysis chain a place-search
-    result feeds into (``select_at_point``'s parcel → protected-area →
-    synthetic-square tiers) now answers anywhere in the country, so a result
-    in Manitoba is exactly as usable as one in the Fraser Valley.
+    A query that starts with a civic number asks DataBC's Address Geocoder
+    first — BC's authoritative address register, far better than OSM on the
+    rural roads most parcels front — and OSM second; outside BC the register
+    returns nothing usable and only OSM answers. Either way the result frames
+    the map and selects no parcel: a street address resolves to a point on a
+    road, and the parcel it fronts would be a guess.
     """
-    q = (query or "").strip()
-    if not q:
-        return []
     if not GEOCODER_ENABLED:
         raise GeocodeError("Place search is disabled in this installation.")
-
-    key = f"{q.lower()}:{limit}"
-    with _cache_lock:
-        hit = _cache.get(key)
-        if hit is not None:
-            return hit
-
-    params = {
-        "q": q,
-        "format": "jsonv2",
-        # Over-fetch, because the BC filter below discards some of what comes
-        # back and the user should still get `limit` usable results.
-        "limit": limit * 3,
-        "countrycodes": GEOCODER_COUNTRY_CODES,
-        # Bias toward Canada. A hint, not a filter — Nominatim will still
-        # return matches outside the box, which is why the filter below
-        # exists too.
-        "viewbox": f"{CA_WEST},{CA_NORTH},{CA_EAST},{CA_SOUTH}",
-    }
-
-    with _LOCK:
-        try:
-            r = _get_session().get(
-                GEOCODER_URL, params=params,
-                timeout=(PMBC_TIMEOUT_CONNECT, GEOCODER_TIMEOUT_READ),
-            )
-        except requests.RequestException as exc:
-            raise GeocodeError(f"Could not reach the place-search service: {exc}")
-        # One request per second is the policy; hold the lock for it rather than
-        # trusting callers to pace themselves.
-        time.sleep(1.0)
-
-    if r.status_code != 200:
-        raise GeocodeError(f"The place-search service responded HTTP "
-                           f"{r.status_code}.")
-
+    bc = (_geocoder.search_bc_address(query)
+          if address.looks_like_street_address(query) else [])
+    if any(p.precision == "endereco" for p in bc):
+        # The register matched the civic number itself: OSM's road-level rows
+        # for the same street would only bury the one answer.
+        return bc[:limit]
     try:
-        payload = r.json()
-    except ValueError as exc:
-        raise GeocodeError("Unexpected response from the place-search "
-                           "service.") from exc
+        osm = _geocoder.search(query, limit=limit)
+    except address.AddressError as exc:
+        if bc:
+            return bc[:limit]
+        raise GeocodeError(f"Could not reach the place-search service: {exc}")
+    return address.merge(bc, osm, limit=limit)
 
-    places: List[Place] = []
-    for item in payload:
-        try:
-            lat, lon = float(item["lat"]), float(item["lon"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if not bc_lookup.in_canada(lat, lon):
-            continue
-        bbox = item.get("boundingbox")
-        bounds = None
-        if bbox and len(bbox) == 4:
-            try:
-                s, n, w, e = (float(v) for v in bbox)
-                bounds = [[s, w], [n, e]]
-            except (TypeError, ValueError):
-                bounds = None
-        places.append(Place(label=item.get("display_name", q),
-                            lat=lat, lon=lon, bounds=bounds))
-        if len(places) >= limit:
-            break
 
-    with _cache_lock:
-        _cache[key] = places
-    return places
+def search_postal(code: str) -> List[Place]:
+    """A postal code (``V1Y 2B3``) → its centroid."""
+    if not GEOCODER_ENABLED:
+        raise GeocodeError("Place search is disabled in this installation.")
+    try:
+        return _geocoder.search_ca_postal(code)
+    except address.AddressError as exc:
+        raise GeocodeError(f"Could not reach the place-search service: {exc}")
 
 
 # --------------------------------------------------------------------------- #
@@ -321,7 +257,7 @@ class Resolution:
     quietly resolving somewhere plausible and wrong.
     """
 
-    kind: str        # "pid" | "coordenada" | "area" | "lugar" | "vazio"
+    kind: str        # "pid" | "postal" | "coordenada" | "area" | "lugar" | "vazio"
     echo: str        # human-readable "read as …"
     payload: Any = None
 
@@ -356,6 +292,13 @@ def resolve(text: str) -> Resolution:
         # card shows and what a deep link carries.
         return Resolution("pid", f"parcel {raw.upper()}", raw.upper())
 
+    # 1b — postal code. Recognised locally (the letter-digit pattern is
+    # strict enough that no word or coordinate matches it); only acting on it
+    # needs a lookup.
+    postal = address.parse_ca_postal(raw)
+    if postal:
+        return Resolution("postal", f"postal code {postal}", postal)
+
     # 2 — coordinate. Exact and local. A ValueError here is a real message.
     coord = parse_coordinates(raw)
     if coord is not None:
@@ -377,5 +320,5 @@ def resolve(text: str) -> Resolution:
 
 __all__ = [
     "Coordinate", "Place", "Resolution", "GeocodeError",
-    "parse_coordinates", "search_places", "resolve",
+    "parse_coordinates", "search_places", "search_postal", "resolve",
 ]

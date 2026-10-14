@@ -6,6 +6,7 @@ from __future__ import annotations
 import reflex as rx
 
 from ...components.map.leaflet_map import leaflet_map
+from ...components.quickstart import quickstart_card
 from ..components.layout import ACCENT, BORDER, _info_icon, header
 from ..components.map_legend import map_legend
 from ..components.parcel_card import parcel_card, zones_panel
@@ -220,7 +221,7 @@ def _start_hint() -> rx.Component:
     anything is selected (``S.has_parcel`` — a real parcel, a protected
     area, or the 500 ha fallback square, see ``state/_parcel.py``)."""
     return rx.cond(
-        ~S.has_parcel,
+        ~S.has_parcel & ~(S.is_hydrated & S.show_quickstart),
         rx.box(
             rx.text(S.tr["start_hint"], size="2", weight="medium",
                     color="white"),
@@ -457,6 +458,7 @@ def _map() -> rx.Component:
         ),
         map_legend(),
         _start_hint(),
+        quickstart_card(S, accent=ACCENT, desktop_from=2),
         rx.box(
             _drag_handle(drawer_id="ca-results-drawer",
                         handle_id="ca-results-drag-handle", snap=False),

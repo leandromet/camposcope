@@ -64,14 +64,28 @@ class ZonesMixin(rx.State, mixin=True):
     def zone_count(self) -> int:
         return len(self.zones)
 
-    @rx.var
+    @rx.var(cache=True, deps=["zones_geojson", "search_pin"], auto_deps=False)
     def map_overlays(self) -> Dict[str, Any]:
         """A FeatureCollection the Leaflet component draws above the tiles.
 
         Each feature carries a ``role`` property, which is what the hook styles
-        on: the property boundary reads differently from a ring.
+        on: the property boundary reads differently from a ring. The search
+        pin (``SearchMixin.search_pin``) rides along as one more feature —
+        explicit ``deps`` because it is read through ``getattr`` from another
+        mixin, which the auto-dependency scan cannot see.
         """
-        return self.zones_geojson or {"type": "FeatureCollection", "features": []}
+        base = self.zones_geojson or {"type": "FeatureCollection", "features": []}
+        pin = getattr(self, "search_pin", None) or []
+        if len(pin) != 2:
+            return base
+        return {
+            "type": "FeatureCollection",
+            "features": list(base.get("features") or []) + [{
+                "type": "Feature",
+                "properties": {"role": "search_pin"},
+                "geometry": {"type": "Point", "coordinates": [pin[1], pin[0]]},
+            }],
+        }
 
     def build_zones(self) -> None:
         """Rebuild every zone from the currently selected property.

@@ -10,7 +10,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "nav_subtitle": "Rural property analysis from the ParcelMap BC parcel fabric",
     "go_to_brazil": "Brazil",
     "language_label": "Language",
-    "start_hint": "Click Somewhere in Canada to start",
+    "start_hint": "Click anywhere in Canada to start",
     "nav_toggle_layers_aria": "Show layers",
     "drawer_title": "Layers",
     "drawer_close_aria": "Close",
@@ -30,12 +30,12 @@ TRANSLATIONS_EN: dict[str, str] = {
 
     # --- search panel ------------------------------------------------------ #
     "search_title": "Search",
-    "search_placeholder": "PID, coordinate, municipality, or place…",
+    "search_placeholder": "address, postal code, PID, coordinate, municipality…",
     "search_read_as": "read as:",
     "search_button": "Search",
     "search_button_busy": "Searching…",
     "search_areas_heading": "Municipalities & regional districts",
-    "search_places_heading": "Places",
+    "search_places_heading": "Places and addresses",
     "search_places_note": "A place only frames the map. Click a parcel to "
         "analyse it.",
     "search_places_attribution": "Place search © OpenStreetMap contributors "
@@ -46,6 +46,47 @@ TRANSLATIONS_EN: dict[str, str] = {
     "echo_coordenada": "coordinate",
     "echo_area": "area",
     "echo_lugar": "place",
+    "echo_postal": "postal code",
+    "search_as_place": "Search as an address or place instead",
+    "search_place_hint": "click a parcel on the map to analyse it",
+    "precision_endereco": "address",
+    "precision_rua": "street",
+    "precision_cep": "postal code",
+    "precision_bairro": "neighbourhood",
+    "precision_cidade": "town",
+    "precision_regiao": "region",
+    "precision_lugar": "place",
+    "erro_postal_nao_encontrado": (
+        "Postal code {code} not found. Try the street address instead."
+    ),
+
+    # --- quick start (components/quickstart.py) ------------------------- #
+    "qs_title": "Get started in 30 seconds",
+    "qs_step1_lead": "Search",
+    "qs_step1_body": (
+        "a street address, postal code, PID, coordinate or BC municipality — "
+        "or just pan the map."
+    ),
+    "qs_step2_lead": "Click a parcel",
+    "qs_step2_body": (
+        "in BC, or anywhere in Canada, to select it. Where parcels overlap, "
+        "you choose which one."
+    ),
+    "qs_step3_lead": "Read the results",
+    "qs_step3_body": (
+        "in the map's panel: crop-inventory history, forest loss and stand "
+        "age, biomass and fire."
+    ),
+    "qs_step4_lead": "Export",
+    "qs_step4_body": "the charts, tables and data from the Export button.",
+    "qs_more": (
+        "There is much more: buffer rings, landscape metrics, land-cover "
+        "validation and species records."
+    ),
+    "qs_got_it": "Got it",
+    "qs_full_howto": "See the full how-to",
+    "qs_close_aria": "Close the quick start",
+    "help_show_quickstart": "Show the quick start again",
     "area_browser_title": "Parcels in this area",
     "area_browser_total": "parcels",
     "area_browser_prev": "‹ previous",

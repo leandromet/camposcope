@@ -22,7 +22,7 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
-from ..services import geocode, municipios, territorios
+from ..services import address, geocode, municipios, territorios
 from ..services.geocode import GeocodeError
 from ..translations import get_translations
 
@@ -44,6 +44,22 @@ class SearchMixin(rx.State, mixin=True):
     municipio_hits: List[Dict[str, Any]] = []
     territorio_hits: List[Dict[str, Any]] = []
     place_hits: List[Dict[str, Any]] = []
+    #: ``[lat, lon]`` of the last geocoded place the user chose, drawn as a pin
+    #: (``ZonesMixin.map_overlays``). A pin, because an address framed only by
+    #: a viewport leaves the user hunting for which building it meant.
+    search_pin: List[float] = []
+
+    @rx.var
+    def place_attribution(self) -> str:
+        """Credit exactly the sources the listed places came from."""
+        return address.attributions(self.place_hits)
+
+    @rx.var
+    def can_search_as_place(self) -> bool:
+        """The escape hatch: a query a local resolver claimed (a município, a
+        territory) may still have been meant as an address — "São José" is
+        dozens of municípios and a street in every one of them."""
+        return self.echo_kind in ("municipio", "territorio") and bool(self.query.strip())
 
     @rx.var
     def has_results(self) -> bool:
@@ -65,6 +81,8 @@ class SearchMixin(rx.State, mixin=True):
         kind, payload = resolution.kind, resolution.payload
         if kind == "codigo":
             return f"{msgs['echo_codigo']} {payload}"
+        if kind == "cep":
+            return f"{msgs['echo_cep']} {address.format_cep(payload)}"
         if kind == "coordenada":
             return f"{msgs['echo_coordenada']} {payload.lat:.4f}, {payload.lon:.4f}"
         if kind == "municipio":
@@ -131,6 +149,9 @@ class SearchMixin(rx.State, mixin=True):
                 self.code_input = resolution.payload
             return self.__class__.search_by_code
 
+        if kind == "cep":
+            return self.__class__.search_cep_code(resolution.payload)
+
         if kind == "coordenada":
             coord = resolution.payload
             return self.__class__.select_at_point(coord.lat, coord.lon)
@@ -161,10 +182,29 @@ class SearchMixin(rx.State, mixin=True):
             return
 
         # kind == "lugar" — the only branch that touches a third party.
+        return self.__class__.search_as_place
+
+    @rx.event(background=True)
+    async def search_as_place(self):
+        """Geocode the query as a place name or street address.
+
+        Reached two ways: as the last resolver, and from the "search as an
+        address" link under a município/território match — the user saying
+        the local reading was not what they meant.
+        """
         async with self:
+            raw = self.query.strip()
+            if not raw:
+                return
+            self.search_error = ""
+            self.municipio_hits = []
+            self.territorio_hits = []
+            self.place_hits = []
             self.searching_place = True
+            self.echo = self._echo_text(geocode.Resolution("lugar", "", raw))
+            self.echo_kind = "lugar"
         try:
-            places = geocode.search_places(raw, limit=5)
+            places = geocode.search_places(raw, limit=6)
         except GeocodeError as exc:
             async with self:
                 self.searching_place = False
@@ -177,15 +217,38 @@ class SearchMixin(rx.State, mixin=True):
                 self.search_error = get_translations(self.lang)[
                     "erro_lugar_nao_encontrado"
                 ].format(query=raw)
-            self.place_hits = [
-                {
-                    "label": p.label,
-                    "lat": p.lat,
-                    "lon": p.lon,
-                    "bounds": p.bounds or [],
-                }
-                for p in places
-            ]
+            self.place_hits = [p.to_hit() for p in places]
+        # One unambiguous street-level hit is an answer, not a choice.
+        if len(places) == 1:
+            return self.__class__.choose_place(0)
+
+    @rx.event(background=True)
+    async def search_cep_code(self, digits: str):
+        """A CEP: OSM's postcode centroid, labelled with ViaCEP's street and
+        bairro; failing both, the município ViaCEP names — framed exactly as
+        if the user had typed it."""
+        async with self:
+            self.searching_place = True
+            self.search_error = ""
+        try:
+            places, info = geocode.search_cep(digits)
+        except GeocodeError as exc:
+            async with self:
+                self.searching_place = False
+                self.search_error = str(exc)
+            return
+
+        async with self:
+            self.searching_place = False
+            self.place_hits = [p.to_hit() for p in places]
+            if not places and not (info and info.get("ibge")):
+                self.search_error = get_translations(self.lang)[
+                    "erro_cep_nao_encontrado"
+                ].format(cep=address.format_cep(digits))
+        if places:
+            return self.__class__.choose_place(0)
+        if info and info.get("ibge", "").isdigit():
+            return self.__class__.choose_municipio(int(info["ibge"]))
 
     # --- acting on a result ----------------------------------------------
     @rx.event(background=True)
@@ -266,20 +329,31 @@ class SearchMixin(rx.State, mixin=True):
 
     @rx.event
     def choose_place(self, index: int) -> None:
-        """Frame the map on a geocoded place. **Selects no property.**"""
+        """Frame the map on a geocoded place and pin it. **Selects no
+        property.**
+
+        A street address or postcode has a bounding box a few metres wide, and
+        ``fit_bounds`` is capped at z12 (see leaflet_map.js) — so those go to a
+        centre + zoom chosen by precision instead, close enough to see the
+        properties around the pin. A town or a region keeps its box: a bbox is
+        honest about uncertainty in a way a single pin is not.
+        """
         try:
             place = self.place_hits[int(index)]
         except (IndexError, ValueError, TypeError):
             return
-        self.place_hits = []
-        if place.get("bounds"):
-            # A bbox is honest about uncertainty in a way a single pin is not.
+        precision = place.get("precision", "lugar")
+        if place.get("bounds") and precision not in address.POINT_PRECISIONS:
             self.fit_bounds = place["bounds"]
         else:
             self.center = [place["lat"], place["lon"]]
-            self.zoom = 13
-        self.query = place["label"]
-        self.echo = "lugar — clique no mapa para escolher um imóvel"
+            self.zoom = address.ZOOM_BY_PRECISION.get(precision, 14)
+        self.search_pin = [place["lat"], place["lon"]]
+        title = place.get("title") or place["label"]
+        subtitle = place.get("subtitle") or ""
+        self.query = f"{title}, {subtitle}" if subtitle else title
+        msgs = get_translations(getattr(self, "lang", "pt"))
+        self.echo = f"{msgs['echo_lugar']} — {msgs['search_place_hint']}"
         self.echo_kind = "lugar"
 
     @rx.event
@@ -291,3 +365,4 @@ class SearchMixin(rx.State, mixin=True):
         self.municipio_hits = []
         self.territorio_hits = []
         self.place_hits = []
+        self.search_pin = []
