@@ -103,6 +103,7 @@ def section(title: str, *children, info=None, **props) -> rx.Component:
 
 
 def header() -> rx.Component:
+    from ...components.suite_links import suite_links
     from .help import header_actions
 
     return rx.hstack(
@@ -127,6 +128,8 @@ def header() -> rx.Component:
             flex_shrink="1",
         ),
         rx.spacer(),
+        suite_links("camposcope", region="canada", language=S.language,
+                    accent=ACCENT),
         rx.link(
             rx.button(
                 rx.text("🇧🇷", font_size="0.95rem"),

@@ -149,6 +149,7 @@ def header() -> rx.Component:
     from .citation import cite_dialog
     from .exports import export_dialog
     from .help import como_usar_dialog
+    from .suite_links import suite_links
 
     return rx.hstack(
         rx.hstack(
@@ -171,6 +172,8 @@ def header() -> rx.Component:
             min_width="0", overflow="hidden", flex_shrink="1",
         ),
         rx.spacer(),
+        suite_links("camposcope", region="brazil", language=AppState.lang,
+                    accent=ACCENT),
         rx.link(
             rx.button(
                 rx.text("🇨🇦", font_size="0.95rem"),
