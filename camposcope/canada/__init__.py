@@ -13,7 +13,7 @@ The substitutions, one for one:
 Brazil                  Canada / British Columbia
 ======================  ==========================================
 CAR / SICAR             ParcelMap BC parcel fabric (LTSA)
-MapBiomas Coll. 10.1    AAFC Annual Crop Inventory (2009–2025)
+MapBiomas Coll. 11      AAFC Annual Crop Inventory (2009–2025)
 SPOT 2008 validation    NTEMS VLCE2 vs. the ACI, same year
 MapBiomas Fogo Coll. 5  MODIS MCD64A1 burned area (2001–2025)
 IBGE biomes             Ecozones of Canada (National Ecological

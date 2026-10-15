@@ -158,7 +158,7 @@ def fetch_report_maps(*, imovel: Dict[str, Any], zones: List[Dict[str, Any]],
             comp = MapComposition(view=context, overlays=[data], vectors=vec,
                                   legend=_mapbiomas_legend(history_rows, year_mb, lang)
                                   + legend,
-                                  attribution=f"MapBiomas Coleção 10.1 · {year_mb}")
+                                  attribution=f"MapBiomas Coleção 11 · {year_mb}")
             return MapFigure(comp, rt.t("cap_map_mapbiomas", lang, year=year_mb,
                                         radius=outer_radius)), ""
         if key == "hansen":

@@ -49,7 +49,7 @@ DATA_SOURCES = [
      "geoserver.car.gov.br. Dados autodeclaratórios; não constituem prova de "
      "propriedade, posse ou regularidade ambiental.",
      "https://www.car.gov.br"),
-    ("MapBiomas — Coleção 10.1",
+    ("MapBiomas — Coleção 11",
      "Projeto MapBiomas — Mapeamento Anual de Cobertura e Uso da Terra no "
      "Brasil. Licença CC-BY-SA. Base das abas «Cobertura» e «Transições».",
      "https://mapbiomas.org"),
@@ -111,7 +111,7 @@ DATA_SOURCES_EN = [
      "geoserver.car.gov.br. Self-declared data; does not constitute proof of "
      "ownership, possession or environmental compliance.",
      "https://www.car.gov.br"),
-    ("MapBiomas — Collection 10.1",
+    ("MapBiomas — Collection 11",
      "MapBiomas Project — Annual Land Use and Land Cover Mapping in Brazil. "
      "CC-BY-SA license. Basis of the «Cobertura» and «Transições» tabs.",
      "https://mapbiomas.org"),
@@ -175,7 +175,7 @@ ATTRIBUTION_BLOCK_PT = [
     "geoserver.car.gov.br.",
     "**Os dados do CAR são autodeclaratórios e não constituem prova de "
     "propriedade, regularidade ou posse.**",
-    "MapBiomas Coleção 10.1 (CC BY-SA 4.0) · Hansen Global Forest Change, "
+    "MapBiomas Coleção 11 (CC BY-SA 4.0) · Hansen Global Forest Change, "
     "Hansen/UMD/Google/USGS/NASA (CC BY 4.0) · ESA CCI Biomass v6.0, Santoro & "
     "Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat",
     "Google LLC, Brazil Forest Imagery Dataset 2008, criado a partir de imagens "
@@ -191,7 +191,7 @@ ATTRIBUTION_BLOCK_EN = [
     "geoserver.car.gov.br.",
     "**CAR data is self-declared and does not constitute proof of ownership, "
     "compliance or possession.**",
-    "MapBiomas Collection 10.1 (CC BY-SA 4.0) · Hansen Global Forest Change, "
+    "MapBiomas Collection 11 (CC BY-SA 4.0) · Hansen Global Forest Change, "
     "Hansen/UMD/Google/USGS/NASA (CC BY 4.0) · ESA CCI Biomass v6.0, Santoro & "
     "Cartus 2025 (CC BY 4.0) · Copernicus Sentinel-2 · USGS Landsat",
     "Google LLC, Brazil Forest Imagery Dataset 2008, created from circa-2008 "

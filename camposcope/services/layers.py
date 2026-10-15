@@ -164,7 +164,7 @@ def mapbiomas_year_spec(
 
     return {
         "id": cache_key, "url": url, "opacity": opacity, "z_index": z_index,
-        "attribution": "MapBiomas Coleção 10.1", "max_native_zoom": 15,
+        "attribution": "MapBiomas Coleção 11", "max_native_zoom": 15,
     }
 
 
@@ -320,7 +320,7 @@ def landscape_patches_spec(
 
     return {
         "id": cache_key, "url": url, "opacity": opacity, "z_index": z_index,
-        "attribution": ("MapBiomas Coleção 10.1 — fragmentos "
+        "attribution": ("MapBiomas Coleção 11 — fragmentos "
                         "(connectedComponents, 8-vizinhos), recorte da "
                         "área de análise"),
         "max_native_zoom": 15,

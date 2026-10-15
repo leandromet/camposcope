@@ -1,7 +1,7 @@
 """Charts.
 
 The signature view is the land-cover trajectory: one stacked column per year,
-1985–2024, coloured with the **official MapBiomas palette**
+1985–2025, coloured with the **official MapBiomas palette**
 (doc/08-ui-ux.md §5). Ported in spirit from Naturametrics'
 ``components/charts.py``: same stack ordering, same styling — the one addition
 is the property's own registration-date marker on the axis
@@ -109,7 +109,7 @@ def _style(
         bargap=0.06,
         template="plotly_white",
         # b=84/height=400, not the old b=36/height=340: a property can show up
-        # to a dozen-plus MapBiomas classes across 1985-2024, and this legend
+        # to a dozen-plus MapBiomas classes across 1985-2025, and this legend
         # (orientation="h") wraps to as many rows as it needs to fit its own
         # *width* — which on a ~360px phone is 2-3x narrower than the desktop
         # drawer this was tuned against, so it wraps to several more rows

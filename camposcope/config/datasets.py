@@ -7,6 +7,8 @@ with its licence and its caveat.
 
 from __future__ import annotations
 
+from . import mapbiomas_legend as _legend
+
 import os
 
 from typing import Any, Dict
@@ -55,20 +57,17 @@ BASEMAPS: Dict[str, Dict[str, Any]] = {
 }
 
 # --------------------------------------------------------------------------- #
-# MapBiomas Collection 10.1 — doc/04 §2
+# MapBiomas Collection 11 — doc/04 §2 (asset and years from the shared legend)
 # --------------------------------------------------------------------------- #
-#: One image, forty bands. That shape is what makes the batched reducer possible
+#: One image, one band per year. That shape is what makes the batched reducer possible
 #: (doc/06-ee-layers.md §2) — do not "simplify" it into an ImageCollection.
 MAPBIOMAS_LULC = {
-    "asset": (
-        "projects/mapbiomas-public/assets/brazil/lulc/collection10_1/"
-        "mapbiomas_brazil_collection10_1_coverage_v1"
-    ),
-    "year_start": 1985,
-    "year_end": 2024,
+    "asset": _legend.COLLECTIONS[_legend.DEFAULT_COLLECTION],
+    "year_start": _legend.YEARS[_legend.DEFAULT_COLLECTION][0],
+    "year_end": _legend.YEARS[_legend.DEFAULT_COLLECTION][1],
     "band_template": "classification_{year}",
     "scale_m": 30,
-    "attribution": "MapBiomas Collection 10.1 (CC BY-SA 4.0)",
+    "attribution": "MapBiomas Collection 11 (CC BY-SA 4.0)",
 }
 
 # --------------------------------------------------------------------------- #

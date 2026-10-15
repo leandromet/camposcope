@@ -98,7 +98,7 @@ TEMPLATES: Dict[str, Dict[str, str]] = {
         "no_data": "Sem dados para esta zona.",
         "figure_capture_failed": "o navegador não gerou a imagem ({detail})",
         # intros (what the dataset is)
-        "intro_cobertura": ("MapBiomas Coleção 10.1: classificação anual da "
+        "intro_cobertura": ("MapBiomas Coleção 11: classificação anual da "
                             "cobertura e do uso da terra, 30 m, {start}–{end}."),
         "intro_transicoes": ("Área que passou de cada classe MapBiomas em "
                              "{year_a} para cada classe em {year_b}, na zona "
@@ -320,7 +320,7 @@ TEMPLATES: Dict[str, Dict[str, str]] = {
         "maps_failed_reason": "Earth Engine did not respond: {detail}",
         "no_data": "No data for this zone.",
         "figure_capture_failed": "the browser did not produce the image ({detail})",
-        "intro_cobertura": ("MapBiomas Collection 10.1: annual land use and "
+        "intro_cobertura": ("MapBiomas Collection 11: annual land use and "
                             "cover classification, 30 m, {start}–{end}."),
         "intro_transicoes": ("Area that went from each MapBiomas class in "
                              "{year_a} to each class in {year_b}, in the zone "

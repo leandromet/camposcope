@@ -195,7 +195,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     ),
     "tab_cobertura": "Cobertura",
     "tab_cobertura_hint": (
-        "Histórico de uso e cobertura da terra, 1985–2024, por classe "
+        "Histórico de uso e cobertura da terra, 1985–2025, por classe "
         "MapBiomas — a mesma série do gráfico principal."
     ),
     "tab_transicoes": "Transições",
@@ -277,7 +277,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "cobertura_running": "Calculando trajetória MapBiomas…",
     "cobertura_empty": "Selecione um imóvel para ver a trajetória de uso da terra.",
     "cobertura_attribution": (
-        "MapBiomas Coleção 10.1 (CC BY-SA 4.0) · escala 30 m · reduceRegions "
+        "MapBiomas Coleção 11 (CC BY-SA 4.0) · escala 30 m · reduceRegions "
         "em lote por zona."
     ),
 
@@ -322,7 +322,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "paisagem_col_evenness": "Equitabilidade",
     "paisagem_empty": "Métricas ainda não calculadas.",
     "paisagem_attribution": (
-        "MapBiomas Coleção 10.1 — métricas de fragmentação (NP, PD, LPI, ED, "
+        "MapBiomas Coleção 11 — métricas de fragmentação (NP, PD, LPI, ED, "
         "Meff) por zona, escala 30 m."
     ),
     "connectivity_hint": (
@@ -364,7 +364,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "transicoes_de": "De",
     "transicoes_para": "Para",
     "transicoes_maiores": "Maiores transições",
-    "transicoes_min_gap_note_prefix": "MapBiomas Coleção 10.1 · pares de anos com menos de",
+    "transicoes_min_gap_note_prefix": "MapBiomas Coleção 11 · pares de anos com menos de",
     "transicoes_min_gap_note_suffix": (
         "anos de diferença são recusados — nesse intervalo, a maior parte "
         "das \"transições\" é ruído de classificação, não mudança real."

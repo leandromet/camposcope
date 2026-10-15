@@ -1,7 +1,7 @@
 """MapBiomas land-cover history for a property's zones (doc/06-ee-layers.md §2).
 
-This is the performance-critical path. MapBiomas Collection 10.1 ships all 40
-years as 40 **bands of one image**, so the whole "40 years × N zones" matrix is
+This is the performance-critical path. MapBiomas Collection 11 ships all 41
+years as 41 **bands of one image**, so the whole "41 years × N zones" matrix is
 a *single* ``reduceRegions`` call — not to ration Earth Engine calls (the
 Partner tier makes that unnecessary) but because one round trip beats forty.
 
@@ -98,7 +98,7 @@ def land_cover_history(
 
     Returns a long-format frame — ``zone_key, zone_label, year, class_id,
     pixels, area_ha`` — plus the provenance record that must travel with it
-    (constraint C3). Long format rather than wide-by-year: 40 years × ~15
+    (constraint C3). Long format rather than wide-by-year: 41 years × ~15
     classes × N zones is a natural long table, and wide-by-year breaks the
     moment the year range changes.
     """

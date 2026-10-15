@@ -193,7 +193,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     ),
     "tab_cobertura": "Cover",
     "tab_cobertura_hint": (
-        "Land-use and land-cover history, 1985–2024, by MapBiomas class — "
+        "Land-use and land-cover history, 1985–2025, by MapBiomas class — "
         "the same series as the main chart."
     ),
     "tab_transicoes": "Transitions",
@@ -273,7 +273,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "cobertura_running": "Computing MapBiomas trajectory…",
     "cobertura_empty": "Select a property to see its land-cover trajectory.",
     "cobertura_attribution": (
-        "MapBiomas Collection 10.1 (CC BY-SA 4.0) · 30 m scale · batched "
+        "MapBiomas Collection 11 (CC BY-SA 4.0) · 30 m scale · batched "
         "reduceRegions per zone."
     ),
 
@@ -317,7 +317,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "paisagem_col_evenness": "Evenness",
     "paisagem_empty": "Metrics not computed yet.",
     "paisagem_attribution": (
-        "MapBiomas Collection 10.1 — fragmentation metrics (NP, PD, LPI, ED, "
+        "MapBiomas Collection 11 — fragmentation metrics (NP, PD, LPI, ED, "
         "Meff) per zone, 30 m scale."
     ),
     "connectivity_hint": (
@@ -345,7 +345,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "transicoes_de": "From",
     "transicoes_para": "To",
     "transicoes_maiores": "Largest transitions",
-    "transicoes_min_gap_note_prefix": "MapBiomas Collection 10.1 · year pairs less than",
+    "transicoes_min_gap_note_prefix": "MapBiomas Collection 11 · year pairs less than",
     "transicoes_min_gap_note_suffix": (
         "years apart are refused — at that interval most \"transitions\" "
         "are classification noise, not real change."
