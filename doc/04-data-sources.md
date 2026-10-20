@@ -55,7 +55,7 @@ one is what makes the charts recognisable to anyone who has seen a MapBiomas map
 | | |
 |---|---|
 | **Asset** | `UMD/hansen/global_forest_change_2025_v1_13` |
-| **Bands used** | `treecover2000`, `lossyear` (1–24 → 2001–2024), `gain` |
+| **Bands used** | `treecover2000`, `lossyear` (1–25 → 2001–2025, v1.13), `gain` |
 | **Resolution** | ~30 m |
 | **Licence** | CC BY 4.0 — Hansen/UMD/Google/USGS/NASA |
 

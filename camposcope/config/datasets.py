@@ -76,7 +76,7 @@ MAPBIOMAS_LULC = {
 HANSEN_GFC = {
     "asset": "UMD/hansen/global_forest_change_2025_v1_13",
     "loss_year_start": 2001,
-    "loss_year_end": 2024,          # lossyear band: 1..24 → 2001..2024
+    "loss_year_end": 2025,          # lossyear band: 1..25 → 2001..2025 (v1.13)
     "treecover_vis": {"min": 0, "max": 100,
                       "palette": ["ffffff", "d9f0a3", "78c679", "238443", "004529"]},
     "loss_color": "#d4271e",
