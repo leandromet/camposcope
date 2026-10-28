@@ -7,22 +7,22 @@
 
 <section class="rp-abertura">
   <div class="rp-chapeu">CAR · uso da terra · passo a passo</div>
-  <h1>Como ler um imóvel rural no Camposcope, uma camada de cada vez</h1>
-  <p class="rp-linha-fina">Um código do Cadastro Ambiental Rural abre um polígono, três anéis de vizinhança e quarenta
-    anos de satélite. Esta demonstração abre um imóvel de verdade e mostra, na ordem em que o aplicativo apresenta,
-    de onde sai cada número, o que ele quer dizer e o que ele não diz.</p>
-  <p class="rp-cred" id="abertura-exemplo">Carregando o imóvel de exemplo no SICAR e no Earth Engine…</p>
+  <h1>Como ler um imóvel rural no Camposcope, camada por camada</h1>
+  <p class="rp-linha-fina">Basta um código do Cadastro Ambiental Rural para o Camposcope desenhar o imóvel, traçar três
+    faixas de vizinhança e buscar quarenta anos de imagens de satélite. Aqui, um imóvel de verdade é aberto na mesma ordem
+    em que aparece no aplicativo, com a origem de cada número, o que ele significa e até onde ele vai.</p>
+  <p class="rp-cred" id="abertura-exemplo">Buscando o imóvel de exemplo no SICAR e no Earth Engine…</p>
   <div class="rp-numeros" aria-live="polite">
-    <div><b data-campo="n-declarada">—</b><small>área declarada pelo detentor <span class="selo declarado">declarado</span></small></div>
-    <div><b data-campo="n-calculada">—</b><small>área do polígono, calculada aqui <span class="selo real">real</span></small></div>
-    <div><b data-campo="n-uso">—</b><small data-campo="n-uso-rot">maior uso no último ano do MapBiomas</small></div>
-    <div><b data-campo="n-perda">—</b><small>perda de floresta desde 2001 (Hansen) <span class="selo real">real</span></small></div>
+    <div><b data-campo="n-declarada">—</b><small>área informada pelo detentor <span class="selo declarado">declarado</span></small></div>
+    <div><b data-campo="n-calculada">—</b><small>área medida no polígono <span class="selo real">real</span></small></div>
+    <div><b data-campo="n-uso">—</b><small data-campo="n-uso-rot">principal uso no último ano do MapBiomas</small></div>
+    <div><b data-campo="n-perda">—</b><small>de floresta perdida desde 2001 (Hansen) <span class="selo real">real</span></small></div>
   </div>
   <p class="rp-legenda-selos">
-    <span class="selo real">real</span> calculado agora, a partir de dado de satélite ou de geometria.
-    <span class="selo declarado">declarado</span> informado pelo próprio detentor ao CAR, publicado sem conferência.
-    <span class="selo estimado">estimado</span> produto modelado, com erro conhecido e maior que o do mapa de uso.
-    <span class="selo ausente">ausente</span> camada que não respondeu nesta visita.
+    <span class="selo real">real</span> calculado a partir de imagem de satélite ou da própria geometria.
+    <span class="selo declarado">declarado</span> informado pelo detentor no CAR e publicado sem conferência.
+    <span class="selo estimado">estimado</span> produto de modelo, com margem de erro maior que a do mapa de uso.
+    <span class="selo ausente">ausente</span> camada que não respondeu desta vez.
   </p>
 </section>
 
@@ -31,131 +31,129 @@
 
     <article class="rp-passo" data-passo="busca" data-camada="busca" data-mapa="grande" data-bloco="busca" data-titulo="Busca → imóvel" data-selo="real">
       <div class="num">1</div>
-      <h2>Um código, um polígono</h2>
-      <p>Tudo começa na caixa de busca. Ela aceita um código CAR, uma coordenada, um município ou um nome de lugar,
-        e tenta nessa ordem. O código é o caminho direto: as duas letras do começo escolhem a camada do estado no
-        GeoServer do SICAR, porque não existe uma camada nacional.</p>
+      <h2>Do código ao polígono</h2>
+      <p>Tudo começa pela caixa de busca, que aceita código do CAR, coordenada, município ou nome de lugar, nessa ordem.
+        O código é o caminho mais curto: as duas letras iniciais indicam o estado, e é na camada desse estado que o
+        GeoServer do SICAR procura o imóvel. Não existe uma camada única para o país.</p>
       <p id="t-busca"></p>
-      <p class="como"><b>No aplicativo:</b> caixa <b>Busca</b> no topo da barra lateral, ou um link direto
-        <code>/?car=</code>. Clicar no mapa também seleciona o imóvel sob o ponto.</p>
+      <p class="como"><b>No aplicativo:</b> caixa <b>Busca</b>, no alto da barra lateral, ou um link direto com
+        <code>/?car=</code>. Um clique no mapa também seleciona o imóvel que estiver ali.</p>
     </article>
 
     <article class="rp-passo" data-passo="declarado" data-camada="declarado" data-mapa="meio" data-bloco="imovel" data-titulo="Detalhes do cadastro" data-selo="declarado">
       <div class="num">2</div>
-      <h2>O cadastro é autodeclarado, e a tela diz isso</h2>
-      <p>O polígono, a área e a situação foram informados pelo detentor do imóvel. O Camposcope mostra esses campos
-        <b>como vêm</b>: não colore a condição, não transforma status em selo verde ou vermelho. O CAR não prova
-        propriedade, posse nem regularidade ambiental.</p>
+      <h2>O que o cadastro diz, e quem diz</h2>
+      <p>Polígono, área e situação foram informados pelo próprio detentor do imóvel. Por isso o Camposcope mostra esses
+        campos tal como chegam: não pinta a condição de verde ou vermelho nem transforma o status em selo. O CAR não
+        comprova propriedade, posse ou regularidade ambiental.<button type="button" class="rp-nota" data-nota="1" aria-label="nota 1">1</button></p>
       <p id="t-declarado"></p>
-      <p>Registros sobrepostos são o estado normal de um cadastro declaratório. Eles aparecem listados, com a área de
-        sobreposição, e nunca são fundidos num polígono só.</p>
-      <p class="como"><b>No aplicativo:</b> painel <b>Imóvel → Detalhes do cadastro</b>; os vizinhos sobrepostos
+      <p>Cadastros que se sobrepõem são comuns num sistema autodeclaratório. O aplicativo lista cada um, com a área em
+        comum, e não junta os polígonos num só.</p>
+      <p class="como"><b>No aplicativo:</b> painel <b>Imóvel → Detalhes do cadastro</b>. Os vizinhos sobrepostos
         aparecem quando o clique cai em mais de um registro.</p>
     </article>
 
     <article class="rp-passo" data-passo="zonas" data-camada="zonas" data-mapa="grande" data-bloco="zonas" data-titulo="Zonas de análise" data-selo="real">
       <div class="num">3</div>
-      <h2>Três anéis, medidos a partir da borda</h2>
-      <p>Um imóvel sozinho não diz se a sua história é comum ou rara na região. Por isso cada análise roda também em
-        três anéis: até 500 m, de 500 m a 2 km e de 2 km a 5 km. Eles são medidos <b>para fora da divisa</b>, não a
-        partir de um centro, e cada anel exclui o imóvel e os anéis menores, de modo que as áreas não se repetem.</p>
+      <h2>Três faixas a partir da divisa</h2>
+      <p>Olhado sozinho, um imóvel não diz se a sua história é comum ou rara na região. Por isso cada análise também roda
+        em três faixas ao redor: até 500 m, de 500 m a 2 km e de 2 km a 5 km. Elas partem <b>da divisa</b>, e não de um
+        ponto central, e uma não invade a outra, de modo que nenhuma área é contada duas vezes.<button type="button" class="rp-nota" data-nota="2" aria-label="nota 2">2</button></p>
       <p id="t-zonas"></p>
-      <p class="como"><b>No aplicativo:</b> seção <b>Zonas</b> na barra lateral, e os botões
+      <p class="como"><b>No aplicativo:</b> seção <b>Zonas</b> da barra lateral e os botões
         <b>Imóvel / 0–500 m / 500 m–2 km / 2–5 km</b> acima de cada gráfico.</p>
     </article>
 
     <article class="rp-passo" data-passo="cobertura" data-camada="cobertura" data-mapa="meio" data-bloco="cobertura" data-titulo="Cobertura · MapBiomas" data-selo="real">
       <div class="num">4</div>
-      <h2>Quarenta anos num gráfico só</h2>
-      <p>Cada coluna é um ano do MapBiomas, de 1985 até o mais recente, e mostra quantos hectares do imóvel estavam
-        em cada classe. A linha laranja é a data de inscrição no CAR: a única data do gráfico que pertence ao imóvel,
-        e não ao satélite.</p>
+      <h2>Quarenta anos num só gráfico</h2>
+      <p>Cada coluna é um ano do MapBiomas, de 1985 ao mais recente, com os hectares do imóvel em cada classe de uso. A
+        linha laranja marca a inscrição no CAR, a única data do gráfico que é do imóvel, e não do satélite.</p>
       <p id="t-cobertura"></p>
-      <p class="como"><b>No aplicativo:</b> aba <b>Cobertura</b>. O mapa acompanha a aba: o ano escolhido no seletor
-        aparece por cima da imagem.</p>
+      <p class="como"><b>No aplicativo:</b> aba <b>Cobertura</b>. O mapa acompanha a aba e mostra o ano escolhido no seletor.</p>
     </article>
 
     <article class="rp-passo" data-passo="vizinhanca" data-camada="vizinhanca" data-mapa="meio" data-bloco="cobertura,zonas" data-titulo="Vegetação nativa por zona" data-selo="real">
       <div class="num">5</div>
-      <h2>O imóvel contra a vizinhança</h2>
-      <p>A mesma conta, agora como parte da área que ainda é vegetação nativa (floresta, savana e campos), em cada
-        zona. Se o imóvel e os anéis caem juntos, a conversão foi regional. Se o imóvel se separa da vizinhança,
-        a história é dele.</p>
+      <h2>O imóvel e a vizinhança</h2>
+      <p>A mesma série, agora como a fatia de cada zona que ainda é vegetação nativa (floresta, savana e campo). Se o
+        imóvel e as faixas caem juntos, a mudança foi da região inteira. Se o imóvel se descola da vizinhança, a história
+        é dele.</p>
       <p id="t-vizinhanca"></p>
       <p class="como"><b>No aplicativo:</b> aba <b>Cobertura</b> com a chave <b>percentual</b>, trocando a zona.
-        O mapa mostra aqui o primeiro ano da série, para comparar com o passo anterior.</p>
+        Aqui o mapa mostra o primeiro ano da série, para comparar com o passo anterior.</p>
     </article>
 
     <article class="rp-passo" data-passo="transicoes" data-camada="transicoes" data-mapa="pequeno" data-bloco="transicoes" data-titulo="Transições · Sankey" data-selo="real">
       <div class="num">6</div>
       <h2>De onde veio cada hectare</h2>
-      <p>O gráfico de colunas diz quanto havia de cada classe; o diagrama de fluxo diz <b>o que virou o quê</b>,
-        pixel a pixel, entre o primeiro e o último ano. A faixa clara que liga uma classe a ela mesma é o que não mudou.</p>
+      <p>O gráfico de colunas mostra quanto havia de cada classe. O diagrama de fluxo mostra <b>o que virou o quê</b>,
+        pixel a pixel, entre o primeiro e o último ano. A faixa clara que liga uma classe a ela mesma é o que ficou como estava.<button type="button" class="rp-nota" data-nota="3" aria-label="nota 3">3</button></p>
       <p id="t-transicoes"></p>
-      <p class="como"><b>No aplicativo:</b> aba <b>Transições</b>, com escolha dos dois anos (ou de várias etapas)
-        e comparação lado a lado no mapa.</p>
+      <p class="como"><b>No aplicativo:</b> aba <b>Transições</b>, onde dá para escolher os dois anos (ou várias etapas)
+        e comparar os mapas lado a lado.</p>
     </article>
 
     <article class="rp-passo" data-passo="floresta" data-camada="floresta" data-mapa="meio" data-bloco="floresta" data-titulo="Floresta · Hansen/GLAD" data-selo="real">
       <div class="num">7</div>
-      <h2>Perda de floresta, em três períodos</h2>
-      <p>O Hansen/GLAD marca, a cada ano desde 2001, os pixels de 30 m em que a cobertura de árvores sumiu. O
-        Camposcope separa essa perda em três períodos que importam para a lei: <b>até 2008</b> (o marco do Código
-        Florestal), <b>de 2008 até a inscrição no CAR</b> e <b>depois da inscrição</b>.</p>
+      <h2>Perda de floresta em três tempos</h2>
+      <p>Desde 2001, o Hansen/GLAD marca a cada ano os pixels de 30 m que perderam a cobertura de árvores. O Camposcope
+        divide essa perda em três períodos que contam para a lei: <b>até 2008</b>, o marco do Código Florestal;
+        <b>de 2008 até a inscrição no CAR</b>; e <b>depois da inscrição</b>.</p>
       <p id="t-floresta"></p>
-      <p>Repare que o Hansen não tem mês: o corte de 22 de julho de 2008 cai na virada do ano, e o ganho de floresta é
-        um único sinal sem data.</p>
-      <p class="como"><b>No aplicativo:</b> aba <b>Floresta</b>. No mapa, vermelho é perda desde 2008.</p>
+      <p>Uma ressalva: o Hansen não registra o mês. O corte de 22 de julho de 2008 vira a virada do ano, e o ganho de
+        floresta é um sinal só, sem data.</p>
+      <p class="como"><b>No aplicativo:</b> aba <b>Floresta</b>. No mapa, o vermelho é a perda desde 2008.</p>
     </article>
 
     <article class="rp-passo" data-passo="biomassa" data-camada="biomassa" data-mapa="meio" data-bloco="biomassa" data-titulo="Biomassa · ESA CCI" data-selo="estimado">
       <div class="num">8</div>
-      <h2>Biomassa: um produto modelado, com erro maior</h2>
-      <p>A biomassa acima do solo vem do ESA CCI, em pixels de 100 m e só em dez anos entre 2007 e 2022. Não é uma
-        medição no imóvel: é um modelo de radar e lidar calibrado em escala global, e o erro por pixel é grande.
-        Serve para ver tendência e comparar zonas, não para inventário de carbono.</p>
+      <h2>Biomassa: um modelo, com erro maior</h2>
+      <p>A biomassa acima do solo vem do ESA CCI, em pixels de 100 m e para apenas dez anos entre 2007 e 2022. Não é uma
+        medição feita no imóvel: é um modelo de radar e lidar calibrado em escala global, com erro grande em cada pixel.
+        Serve para ver tendência e comparar zonas, não para fazer inventário de carbono.</p>
       <p id="t-biomassa"></p>
       <p class="como"><b>No aplicativo:</b> aba <b>Biomassa</b>, em megagramas por hectare (Mg/ha) por zona.</p>
     </article>
 
     <article class="rp-passo" data-passo="fogo" data-camada="fogo" data-mapa="meio" data-bloco="fogo" data-titulo="Fogo · MapBiomas Fogo" data-selo="real">
       <div class="num">9</div>
-      <h2>Quarenta anos de fogo</h2>
-      <p>O MapBiomas Fogo marca, ano a ano, as cicatrizes de queimada em pixels de 30 m. Cada coluna é a parte do imóvel
-        que queimou naquele ano. No mapa, a cor é quantas vezes cada pixel queimou desde 1985.</p>
+      <h2>Quarenta anos de queimadas</h2>
+      <p>O MapBiomas Fogo mapeia, ano a ano, as cicatrizes de queimada em pixels de 30 m. Cada coluna mostra a parte do
+        imóvel que queimou naquele ano. No mapa, a cor indica quantas vezes cada pixel queimou desde 1985.</p>
       <p id="t-fogo"></p>
-      <p class="como"><b>No aplicativo:</b> aba <b>Fogo</b>, com o histórico, a frequência e o ano da última queimada por zona.</p>
+      <p class="como"><b>No aplicativo:</b> aba <b>Fogo</b>, com histórico, frequência e ano da última queimada em cada zona.</p>
     </article>
 
     <article class="rp-passo" data-passo="spot" data-camada="spot" data-mapa="grande" data-bloco="validacao" data-titulo="SPOT 2008 · imagem de referência" data-selo="real">
       <div class="num">10</div>
-      <h2>A imagem de 2008 é uma data, não um mapa base</h2>
-      <p>O Código Florestal chama de área rural consolidada o que já estava ocupado em <b>22 de julho de 2008</b>. O
-        mosaico SPOT de 2008 é a única imagem fina (5 a 10 m) perto dessa data, mas cada pixel foi tomado num dia diferente,
-        e em algumas regiões depois do corte, ou nunca.</p>
+      <h2>A imagem de 2008 vale pela data</h2>
+      <p>Para o Código Florestal, é área rural consolidada o que já estava ocupado em <b>22 de julho de 2008</b>. O
+        mosaico SPOT de 2008 é a única imagem detalhada (5 a 10 m) daquela época, mas cada trecho foi fotografado num dia
+        diferente — em algumas regiões, depois do corte, e em outras nunca.</p>
       <p id="t-spot"></p>
-      <p>Por isso o Camposcope mostra a imagem junto com as datas sob o imóvel, e não calcula área consolidada.</p>
+      <p>Por isso o Camposcope mostra a imagem sempre acompanhada das datas e não calcula área consolidada.<button type="button" class="rp-nota" data-nota="4" aria-label="nota 4">4</button></p>
       <p class="como"><b>No aplicativo:</b> camada <b>SPOT 2008</b> e aba <b>Validação</b>, com a comparação deslizante SPOT × MapBiomas 2008.</p>
     </article>
 
     <article class="rp-passo" data-passo="validacao" data-camada="validacao" data-mapa="meio" data-bloco="validacao" data-titulo="Validação · IBGE × MapBiomas" data-selo="real">
       <div class="num">11</div>
       <h2>Dois mapas, duas respostas</h2>
-      <p>O mapa de vegetação do IBGE é feito de polígonos desenhados em escala regional; o MapBiomas classifica cada
-        pixel de 30 m todo ano. Quando os dois discordam, a discordância é informação: em geral o IBGE ainda mostra como
-        floresta o que o MapBiomas já viu virar lavoura.</p>
+      <p>O mapa de vegetação do IBGE é feito de polígonos traçados em escala regional; o MapBiomas classifica cada pixel
+        de 30 m, todo ano. Quando os dois discordam, a diferença também informa: em geral, o IBGE ainda desenha floresta
+        onde o MapBiomas já registrou lavoura.</p>
       <p id="t-validacao"></p>
       <p class="como"><b>No aplicativo:</b> aba <b>Validação</b>, com a matriz IBGE × MapBiomas e a comparação deslizante no mapa.</p>
     </article>
 
     <article class="rp-passo" data-passo="procedencia" data-camada="procedencia" data-mapa="oculto" data-bloco="exportar" data-titulo="Procedência e exportação" data-selo="real">
       <div class="num">12</div>
-      <h2>De onde veio cada número</h2>
-      <p>Cada análise guarda a fonte, a versão, a escala e o momento em que foi calculada. Isso vai junto no relatório
-        em PDF e na planilha exportada: sem isso, um número contestado não se reproduz.</p>
+      <h2>A origem de cada número</h2>
+      <p>Cada análise guarda a fonte, a versão, a escala e o momento do cálculo. Tudo isso acompanha o relatório em PDF e a
+        planilha exportada, porque um número contestado só se sustenta se puder ser refeito.<button type="button" class="rp-nota" data-nota="5" aria-label="nota 5">5</button></p>
       <p id="t-procedencia"></p>
       <p class="como"><b>No aplicativo:</b> botão <b>Baixar dados</b> (planilha ODS com uma aba por tabela) e o
-        <b>relatório em PDF</b> do imóvel, que repete os gráficos desta página.</p>
+        <b>relatório em PDF</b> do imóvel, com os mesmos gráficos desta página.</p>
     </article>
 
   </div>
@@ -204,15 +202,16 @@
 <section class="rp-fim">
   <h2>O que o Camposcope não diz</h2>
   <ul class="rp-limites">
-    <li><b>Não dá veredito de conformidade.</b> Nenhuma tela diz se o imóvel cumpre o Código Florestal, se deve
-      recompor reserva legal ou se o desmatamento foi autorizado. Esse juízo pertence ao órgão ambiental, com o
-      processo em mãos.</li>
-    <li><b>Não calcula área consolidada.</b> A imagem de 2008 e a perda de floresta por período ajudam a ler a
-      história; a classificação jurídica depende de datas que o satélite não tem.</li>
-    <li><b>Não confere o cadastro.</b> Área, condição e situação são do detentor e aparecem como vieram do SICAR.</li>
-    <li><b>Não vê APP nem reserva legal.</b> O SICAR só publica o polígono do imóvel; as camadas internas ficam atrás
-      de captcha, por município. Os anéis desta página são vizinhança, não APP.</li>
-    <li><b>Não enxerga abaixo de 30 m.</b> Em imóveis pequenos, um pixel de borda pesa muito: 1 ha são 11 pixels.</li>
+    <li><b>Não julga se o imóvel está regular.</b> Nenhuma tela diz se ele cumpre o Código Florestal, se precisa
+      recompor reserva legal ou se o desmatamento foi autorizado. Essa avaliação cabe ao órgão ambiental, com o processo
+      em mãos.</li>
+    <li><b>Não calcula área consolidada.</b> A imagem de 2008 e a perda de floresta por período ajudam a contar a
+      história, mas o enquadramento jurídico depende de datas que o satélite não tem.</li>
+    <li><b>Não confere o cadastro.</b> Área, condição e situação são as informadas pelo detentor, tal como vêm do SICAR.</li>
+    <li><b>Não mostra APP nem reserva legal.</b> O SICAR publica só o contorno do imóvel; as camadas internas ficam atrás
+      de captcha, município a município. As faixas desta página são vizinhança, não APP.</li>
+    <li><b>Não enxerga detalhes menores que 30 m.</b> Em imóveis pequenos, cada pixel da borda pesa muito: 1 ha equivale
+      a 11 pixels.</li>
   </ul>
   <p class="rp-fim-extra" id="fim-extra"></p>
   <a class="rp-cta" id="cta-app" href="/">Abrir este imóvel no Camposcope →</a>
@@ -221,6 +220,29 @@
     <a href="?car=PA-1507300-21C38ECC08984928AC36D831A0EBB156">São Félix do Xingu (PA), floresta e pasto</a> ·
     <a href="?car=BA-2911105-2E1062C493B74AC89AF85FAFFB41BAFC">Formosa do Rio Preto (BA), Cerrado e soja</a> ·
     <a href="?">Vera (MT), o imóvel de teste</a>.
-    Troque o código no endereço (<code>?car=</code>) para ler qualquer imóvel. Os números desta página vêm dos mesmos serviços do
-    aplicativo: o exemplo fica guardado com a página, e outro código é calculado na hora.</p>
+    Para ler qualquer imóvel, troque o código no endereço (<code>?car=</code>). Os números vêm dos mesmos serviços do
+    aplicativo: o exemplo desta página fica guardado com ela, e qualquer outro código é calculado na hora.
+    <a href="/walkthrough" lang="en">English version</a>.</p>
+</section>
+
+<section class="rp-notas" aria-label="Notas">
+  <h3>Notas</h3>
+  <ol>
+    <li id="nota-1">As três ferramentas da UmaTerra se distinguem por quem traça o limite que analisam: o Estado (terras
+      indígenas e unidades de conservação), o próprio analista (um ponto no mapa) ou o detentor do imóvel (o CAR). No CAR,
+      o limite é autodeclarado, e a primeira premissa do Camposcope é que <i>o limite é dado a examinar, não insumo a
+      aceitar</i>: a tela mostra área declarada contra área medida, sobreposições e datas, e não decide quem tem razão. <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscrito em preparação, 2026).</span></li>
+    <li id="nota-2">O registro de projeto do Camposcope explica por que não usar círculos em volta do centro, como faz o
+      Naturametrics: <i>“Um imóvel de 40 mil ha e outro de 12 ha nada têm de comparável no centroide; ‘os primeiros 500 m
+      fora da cerca’ querem dizer o mesmo para os dois.”</i> <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscrito em preparação, 2026).</span></li>
+    <li id="nota-3">O aplicativo recusa transições entre anos com menos de cinco anos de distância. Em intervalos curtos, a
+      maior parte das “mudanças” é oscilação de classificação em pixels mistos — erro do mapa, não mudança no chão. <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscrito em preparação, 2026).</span></li>
+    <li id="nota-4">O limite está escrito no registro de projeto: <i>“‘Esta terra já estava aberta na imagem de 2008’ é uma
+      observação. ‘Esta é área consolidada’ é uma classificação jurídica, que depende de fatos que o Camposcope não vê — a
+      data da ocupação, e não a da foto, a situação do imóvel na época, decisões posteriores — e que só a autoridade
+      competente faz.”</i> <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscrito em preparação, 2026).</span></li>
+    <li id="nota-5">Nenhum caminho do código grava um número sem o registro de procedência junto. No Camposcope, esse
+      registro inclui ainda a hora da consulta ao SICAR e o aviso de que o cadastro é autodeclarado, para que a ressalva
+      viaje com cada arquivo exportado. <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscrito em preparação, 2026).</span></li>
+  </ol>
 </section>

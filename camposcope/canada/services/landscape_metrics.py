@@ -143,7 +143,7 @@ def landscape_metrics(
     """Patch/edge/diversity metrics for one ACI year, one row per zone.
 
     Patches are contiguous 8-neighbour regions of equal ACI class. NP/LPI/Meff
-    read off a ``connectedComponents`` image, ED off a native-raster
+    read off patches vectorised per zone (:func:`_vector_patch_stats`), ED off a native-raster
     neighbourhood comparison, and diversity locally from the class histogram.
     """
     if not zones:

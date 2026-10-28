@@ -14,7 +14,7 @@ from .canada.pages.index import canada_index
 from .canada.state import CanadaState
 from .components.layout import ACCENT
 from .config.settings import GA_MEASUREMENT_ID
-from .pages.demonstracao import demonstracao
+from .pages.demonstracao import demonstracao, walkthrough
 from .pages.index import index
 from .state import AppState
 
@@ -153,6 +153,17 @@ app.add_page(
         "Como ler um imóvel rural no Camposcope, uma camada de cada vez: "
         "cadastro, anéis de vizinhança, MapBiomas, Hansen, biomassa, fogo, "
         "SPOT 2008 e validação, com um imóvel real."
+    ),
+)
+
+app.add_page(
+    walkthrough,
+    route="/walkthrough",
+    title="Camposcope — step-by-step walkthrough",
+    description=(
+        "How to read a rural property in Camposcope, one layer at a time: "
+        "registry, neighbourhood bands, MapBiomas, Hansen, biomass, fire, "
+        "SPOT 2008 and validation, on a real property."
     ),
 )
 

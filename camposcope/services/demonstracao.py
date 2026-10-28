@@ -87,7 +87,8 @@ def _historico(df) -> Dict[str, Any]:
         por_zona.setdefault(zona, {})[str(int(classe))] = [round(serie.get(a, 0.0), 3) for a in anos]
         if str(int(classe)) not in classes:
             linha = g.iloc[0]
-            classes[str(int(classe))] = {"nome": str(linha["class_pt"]), "cor": str(linha["color"])}
+            classes[str(int(classe))] = {"nome": str(linha["class_pt"]), "nome_en": str(linha["class_en"]),
+                                         "cor": str(linha["color"])}
     # o mesmo conjunto que o aplicativo chama de vegetação nativa
     # (config/mapbiomas.py: floresta + savana + campos, sem silvicultura)
     return {"anos": anos, "zonas": por_zona, "classes": classes,

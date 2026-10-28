@@ -9,8 +9,8 @@ trip per statistic, over the same ``_zone_feature_collection`` every sibling
 service reduces over.
 
 ``meff_ha`` (effective mesh size, Jaeger 2000) is always computed — it falls
-out of the same connected-components image already built for
-``largest_patch_ha``, at the cost of one extra ``reduceRegions`` call. The
+out of the same vectorised patches already counted for ``largest_patch_ha``
+(:func:`_vector_patch_stats`, one call for patches, largest and Σ size²). The
 pricier true nearest-neighbour distance between fragments lives in
 ``services.connectivity`` instead, behind its own button, for the same
 reason it does upstream: it needs a second Earth Engine round trip
@@ -149,8 +149,8 @@ def landscape_metrics(
     zone (the property, then its rings).
 
     Patches are contiguous 8-neighbour regions of equal MapBiomas class,
-    found with the same ``connectedComponents`` construction Naturametrics
-    uses; NP/LPI/Meff read off it, ED off a native-raster neighbourhood
+    vectorised per zone like Naturametrics (:func:`_vector_patch_stats`, no
+    size cap); NP/LPI/Meff read off them, ED off a native-raster neighbourhood
     comparison. Diversity (Shannon/Simpson/evenness) is computed locally from
     the returned class histogram by :func:`_diversity`.
     """

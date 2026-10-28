@@ -14,3 +14,8 @@ from ..reportagem.kit import pagina
 
 def demonstracao() -> rx.Component:
     return pagina("camposcope")
+
+
+def walkthrough() -> rx.Component:
+    """``/walkthrough`` — the same article in English (camposcope.en.html)."""
+    return pagina("camposcope", lingua="en")

@@ -19,6 +19,23 @@ from .layout import ACCENT
 #: Steps in ``help_step{n}_title`` / ``help_step{n}_body``.
 HELP_STEPS = 8
 
+#: Less invasive guide: step 1 in full, step 2 fading out, the rest opening on
+#: hover, or on focus, which a click or tap gives (tabIndex -1 keeps the list
+#: out of the dialog's autofocus, which would open it at once). The collapse
+#: waits a moment so the Close button does not jump away from the pointer.
+_ABERTO = {"maxHeight": "20em", "opacity": 1, "marginBottom": "1rem",
+           "maskImage": "none", "WebkitMaskImage": "none",
+           "transition": "max-height .35s ease, opacity .25s ease, margin .35s ease"}
+_DESBOTA = "linear-gradient(to bottom, black 15%, transparent 95%)"
+PASSOS_RECOLHIDOS = {
+    "outline": "none",
+    "& > *": {"overflow": "hidden", "marginBottom": "1rem",
+              "transition": "max-height .35s ease .4s, opacity .25s ease .4s, margin .35s ease .4s"},
+    "& > :nth-child(2)": {"maxHeight": "3.6em", "maskImage": _DESBOTA, "WebkitMaskImage": _DESBOTA},
+    "& > :nth-child(n+3)": {"maxHeight": "0", "opacity": 0, "marginBottom": "0"},
+    "&:hover > *, &:focus-within > *, &:focus > *": _ABERTO,
+}
+
 
 def _step(number: int) -> rx.Component:
     tr = AppState.tr
@@ -59,13 +76,16 @@ def como_usar_dialog() -> rx.Component:
             rx.link(
                 rx.callout(tr["help_demo_link"], icon="presentation", size="1",
                            color_scheme="green", width="100%"),
-                href="/demonstracao", underline="none",
+                href=rx.cond(AppState.lang == "en", "/walkthrough", "/demonstracao"),
+                underline="none",
                 display="block", margin_bottom="0.75rem",
             ),
             rx.scroll_area(
                 rx.vstack(
                     *[_step(n) for n in range(1, HELP_STEPS + 1)],
-                    spacing="4", align_items="start", width="100%",
+                    spacing="0", align_items="start", width="100%",
+                    custom_attrs={"tabIndex": "-1"},
+                    style=PASSOS_RECOLHIDOS,
                 ),
                 type="auto", scrollbars="vertical",
                 style={"maxHeight": "60vh", "paddingRight": "1rem"},
