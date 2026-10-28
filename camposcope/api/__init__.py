@@ -28,7 +28,9 @@ from ..canada.services import ecozones
 from ..canada.services import gbif as gbif_ca
 from ..config.settings import BRAZIL_BBOX
 from ..services import biomes
+from ..services import demonstracao
 from ..services import gbif
+from ..services import sicar
 from ..services import territorios
 
 logger = logging.getLogger(__name__)
@@ -217,6 +219,29 @@ async def gbif_ca_geojson(request: Request) -> Response:
     return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
 
+async def demonstracao_json(request: Request) -> Response:
+    """Os números da demonstração em rolagem, dos mesmos serviços da interface.
+
+    ``?car=`` troca o imóvel de exemplo por qualquer outro registro. Um código
+    que o SICAR não conhece responde 404 com a mensagem do serviço, para a
+    página dizer o que faltou em vez de mostrar zeros.
+    """
+    cod = request.query_params.get("car") or demonstracao.EXEMPLO_PADRAO
+    try:
+        payload = await _run_blocking(lambda: demonstracao.pacote(cod))
+    except sicar.SicarError as exc:
+        return JSONResponse({"error": "imóvel não encontrado", "detail": str(exc)},
+                            status_code=404)
+    except ValueError as exc:  # código mal formado, recusado antes de chegar ao SICAR
+        return JSONResponse({"error": "código CAR inválido", "detail": str(exc)},
+                            status_code=400)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Demonstração não pôde ser montada")
+        return JSONResponse({"error": "demonstração indisponível", "detail": str(exc)},
+                            status_code=503)
+    return JSONResponse(payload, headers={"Cache-Control": "public, max-age=600"})
+
+
 async def healthz(request: Request) -> Response:
     return JSONResponse({"status": "ok"})
 
@@ -240,6 +265,7 @@ def register(app) -> None:
                  ecodistricts_geojson, methods=["GET"])
     api.add_route(gbif.GEOJSON_PATH, gbif_geojson, methods=["GET"])
     api.add_route(gbif_ca.GEOJSON_PATH, gbif_ca_geojson, methods=["GET"])
+    api.add_route(demonstracao.ROTA, demonstracao_json, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
     logger.info("Registered backend routes %s, %s, %s, %s, %s, %s, %s, %s, /healthz",
                 biomes.GEOJSON_PATH,

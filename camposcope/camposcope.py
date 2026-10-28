@@ -14,6 +14,7 @@ from .canada.pages.index import canada_index
 from .canada.state import CanadaState
 from .components.layout import ACCENT
 from .config.settings import GA_MEASUREMENT_ID
+from .pages.demonstracao import demonstracao
 from .pages.index import index
 from .state import AppState
 
@@ -123,7 +124,10 @@ app = rx.App(
         # Idle tabs otherwise keep the Reflex WebSocket reconnecting forever,
         # which pins a billed Cloud Run instance with nobody using it — see
         # assets/idle_guard.js and assets/paused.html.
-        rx.el.script(src="/assets/idle_guard.js", defer=True),
+        # Reflex serves the app-root assets/ folder at the site root, so the
+        # file is /idle_guard.js — the old /assets/idle_guard.js fell through
+        # to the SPA's HTML ("Unexpected token '<'") and the guard never ran.
+        rx.el.script(src="/idle_guard.js", defer=True),
     ],
 )
 
@@ -136,6 +140,20 @@ app.add_page(
         "registrado no CAR, a partir do SICAR, MapBiomas e Earth Engine."
     ),
     on_load=AppState.on_load,
+)
+
+# The scrolling walkthrough of one real property (doc in pages/demonstracao.py).
+# Its numbers come over HTTP from /_demonstracao/camposcope.json, so the page
+# has no state of its own and no on_load.
+app.add_page(
+    demonstracao,
+    route="/demonstracao",
+    title="Camposcope — demonstração passo a passo",
+    description=(
+        "Como ler um imóvel rural no Camposcope, uma camada de cada vez: "
+        "cadastro, anéis de vizinhança, MapBiomas, Hansen, biomassa, fogo, "
+        "SPOT 2008 e validação, com um imóvel real."
+    ),
 )
 
 # The Canada page is a self-contained sibling under camposcope/canada/ — its

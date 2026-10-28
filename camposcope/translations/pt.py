@@ -85,6 +85,7 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- full how-to (components/help.py) ------------------------------- #
     "help_trigger": "Como usar",
+    "help_demo_link": "Prefere ver funcionando? Abra a demonstração passo a passo, com um imóvel real →",
     "help_dialog_title": "Como usar o Camposcope",
     "help_dialog_desc": (
         "Do imóvel rural à análise da sua paisagem — e o que esta página não "

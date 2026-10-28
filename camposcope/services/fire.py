@@ -145,7 +145,10 @@ def fire_analysis(zones: Sequence[Zone]) -> Tuple[pd.DataFrame, pd.DataFrame, Pr
     try:
         last_year_stats = (
             last_year_band.reduceRegions(
-                collection=fc, reducer=ee.Reducer.max(),
+                # A single-band reduceRegions names its output after the
+                # reducer ("max"), not the band — without setOutputs every
+                # zone read back None and the year of last fire never showed.
+                collection=fc, reducer=ee.Reducer.max().setOutputs(["fire_last_year"]),
                 scale=FIRE_SCALE_M, tileScale=EE_TILE_SCALE,
             )
             .getInfo()
