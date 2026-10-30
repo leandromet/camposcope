@@ -14,7 +14,7 @@ from .canada.pages.index import canada_index
 from .canada.state import CanadaState
 from .components.layout import ACCENT
 from .config.settings import GA_MEASUREMENT_ID
-from .pages.demonstracao import demonstracao, walkthrough
+from .pages.demonstracao import demonstracao, walkthrough, walkthrough_brasil
 from .pages.index import index
 from .state import AppState
 
@@ -160,6 +160,17 @@ app.add_page(
     walkthrough,
     route="/walkthrough",
     title="Camposcope — step-by-step walkthrough",
+    description=(
+        "How to read a parcel in Camposcope, one layer at a time: ParcelMap BC, "
+        "neighbourhood bands, the AAFC crop inventory, Hansen, biomass, fire "
+        "and the VLCE2 cross-check, on a real orchard parcel in Kelowna."
+    ),
+)
+
+app.add_page(
+    walkthrough_brasil,
+    route="/walkthrough/brazil",
+    title="Camposcope — step-by-step walkthrough (Brazil)",
     description=(
         "How to read a rural property in Camposcope, one layer at a time: "
         "registry, neighbourhood bands, MapBiomas, Hansen, biomass, fire, "

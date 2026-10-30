@@ -39,7 +39,7 @@ def zone_feature_collection(zones: Sequence[Zone]):
     ])
 
 
-def mean_pixel_area(fc, scale: int, tile_scale: int):
+def mean_pixel_area(fc, scale: int, tile_scale: int, like=None):
     """Mean true pixel area (m²) inside each zone.
 
     The area basis every service on this page uses, and the reason none of them
@@ -48,14 +48,25 @@ def mean_pixel_area(fc, scale: int, tile_scale: int):
     far smaller than the classification error, so ``count × mean_pixel_area`` is
     exact for practical purposes — and it costs one cheap round trip that is
     always issued in parallel with the histogram it accompanies.
+
+    **Pass ``like``, the image whose pixels the histogram counts.** The area must
+    be measured on the same grid as the count. ``ee.Image.pixelArea()`` has no
+    projection of its own, so without ``crs`` it is reduced on a lat/long grid,
+    where a "30 m" pixel at 50°N covers 580 m². The ACI (Albers) and VLCE2
+    (Lambert) count true ~900 m² pixels, and pairing those counts with 580 m²
+    understated every Kelowna area by 35% (measured 2026-10-29: a 12.1 ha
+    parcel summed to 7.8 ha). Hansen is natively lat/long, so it matched either way.
     """
     import ee
 
+    # a stacked image carries one projection per band (all the same grid): read the first
+    kwargs = {"crs": like.select(0).projection()} if like is not None else {}
     return ee.Image.pixelArea().reduceRegions(
         collection=fc,
         reducer=ee.Reducer.mean(),
         scale=scale,
         tileScale=tile_scale,
+        **kwargs,
     ).getInfo()
 
 

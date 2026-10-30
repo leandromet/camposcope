@@ -423,6 +423,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     # --- how-to-use dialog -------------------------------------------------------------------- #
     "help_trigger": "Como usar",
     "help_dialog_title": "Como usar esta página",
+    "help_demo_link": "Prefere ver funcionando? Abra a demonstração passo a passo com uma parcela real em Kelowna (em inglês) →",
     "help_dialog_desc": "Sete passos de uma parcela até uma análise, e o "
         "que esta página não pode dizer.",
     "help_step1_title": "1. Encontre uma parcela",

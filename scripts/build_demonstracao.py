@@ -1,9 +1,10 @@
-"""Regrava o exemplo da demonstração (data/demonstracao/camposcope.json).
+"""Regrava os exemplos da demonstração (data/demonstracao/camposcope{,_ca}.json).
 
     python scripts/build_demonstracao.py
 
-Calcula o imóvel de exemplo pelos mesmos serviços da interface
-(services/demonstracao.py::instantaneo) e grava o pacote sem as camadas, com as
+Calcula o imóvel de exemplo (Vera/MT, página em português) e a parcela de
+Kelowna (página em inglês) pelos mesmos serviços da interface
+(services/demonstracao.py e canada/services/demonstracao.py, ::instantaneo) e grava o pacote sem as camadas, com as
 geometrias simplificadas, para a página /demonstracao abrir na hora. Rode de
 novo quando uma coleção mudar (MapBiomas, Hansen) e faça commit do arquivo.
 """
@@ -16,18 +17,23 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from camposcope.canada.services import demonstracao as demonstracao_ca  # noqa: E402
 from camposcope.services import demonstracao  # noqa: E402
 
 
 def main() -> int:
-    dados = demonstracao.instantaneo()
-    if dados["erros"]:
-        print("Análises com erro, nada gravado:", dados["erros"])
-        return 1
-    alvo = demonstracao.ARQUIVO_EXEMPLO
-    alvo.parent.mkdir(parents=True, exist_ok=True)
-    alvo.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"{alvo} — {alvo.stat().st_size // 1024} KB")
+    so = sys.argv[1:]   # "br" ou "ca" para regravar só um deles
+    for chave, modulo in (("br", demonstracao), ("ca", demonstracao_ca)):
+        if so and chave not in so:
+            continue
+        dados = modulo.instantaneo()
+        if dados["erros"]:
+            print(f"[{chave}] análises com erro, nada gravado:", dados["erros"])
+            return 1
+        alvo = modulo.ARQUIVO_EXEMPLO
+        alvo.parent.mkdir(parents=True, exist_ok=True)
+        alvo.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        print(f"{alvo} — {alvo.stat().st_size // 1024} KB")
     return 0
 
 

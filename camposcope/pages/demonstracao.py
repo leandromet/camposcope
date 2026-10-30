@@ -17,5 +17,11 @@ def demonstracao() -> rx.Component:
 
 
 def walkthrough() -> rx.Component:
-    """``/walkthrough`` — the same article in English (camposcope.en.html)."""
+    """``/walkthrough`` — the English walkthrough, on a Kelowna parcel
+    (camposcope_ca.{en.html,js}, numbers from canada/services/demonstracao.py)."""
+    return pagina("camposcope_ca", lingua="en")
+
+
+def walkthrough_brasil() -> rx.Component:
+    """``/walkthrough/brazil`` — the Brazil article in English (camposcope.en.html)."""
     return pagina("camposcope", lingua="en")

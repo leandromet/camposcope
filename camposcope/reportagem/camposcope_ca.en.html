@@ -1,0 +1,228 @@
+<header class="rp-topo">
+  <span class="marca"><a href="/canada?lang=en">Camposcope</a> · walkthrough</span>
+  <span class="rp-exemplo" id="topo-exemplo"></span>
+  <span class="sp"></span>
+  <a href="/canada?lang=en" id="link-app" class="rp-link-forte">open this parcel in the app →</a>
+</header>
+
+<section class="rp-abertura">
+  <div class="rp-chapeu">ParcelMap BC · land use · step by step</div>
+  <h1>How to read a parcel in Camposcope, one layer at a time</h1>
+  <p class="rp-linha-fina">One PID from ParcelMap BC is enough for Camposcope to draw the parcel, ring it with three bands of
+    neighbourhood and pull fifteen years of crop inventory and twenty-five of forest and fire records. This walkthrough opens a
+    real orchard parcel in Kelowna in the order the app presents it, and shows where each number comes from, what it means
+    and where it stops.</p>
+  <p class="rp-cred" id="abertura-exemplo">Fetching the example parcel from ParcelMap BC and Earth Engine…</p>
+  <div class="rp-numeros" aria-live="polite">
+    <div><b data-campo="n-registrada">—</b><small>area in the parcel fabric <span class="selo declarado">registered</span></small></div>
+    <div><b data-campo="n-calculada">—</b><small>area measured from the polygon <span class="selo real">measured</span></small></div>
+    <div><b data-campo="n-uso">—</b><small data-campo="n-uso-rot">main land use in the latest crop inventory</small></div>
+    <div><b data-campo="n-concorda">—</b><small data-campo="n-concorda-rot">where two national maps agree on the parcel</small></div>
+  </div>
+  <p class="rp-legenda-selos">
+    <span class="selo real">measured</span> computed from satellite imagery or from the geometry itself.
+    <span class="selo declarado">registered</span> as the Province publishes it in the parcel fabric.
+    <span class="selo estimado">estimated</span> a modelled product, with a larger error than the land-use map.
+    <span class="selo ausente">missing</span> a layer that did not respond this time.
+  </p>
+</section>
+
+<section class="rp-scrolly">
+  <div class="rp-passos">
+
+    <article class="rp-passo" data-passo="busca" data-camada="busca" data-mapa="grande" data-bloco="busca" data-titulo="Search → parcel" data-selo="real">
+      <div class="num">1</div>
+      <h2>From a PID to a polygon</h2>
+      <p>The search box takes a PID, an address, a municipality or a coordinate. The PID, the nine digits on a tax notice
+        or a title, is the shortest route: Camposcope asks ParcelMap BC, the Province's parcel fabric, for that one parcel.
+        One layer covers the whole province, and the app only ever asks it for one parcel, one point or one municipality at a time.</p>
+      <p id="t-busca"></p>
+      <p class="como"><b>In the app:</b> the <b>Search</b> box on the Canada page, or a direct link with
+        <code>/canada?pid=</code>. Clicking the map also selects the parcel under the click.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="registro" data-camada="registro" data-mapa="meio" data-bloco="parcela" data-titulo="Parcel record" data-selo="declarado">
+      <div class="num">2</div>
+      <h2>What the fabric says, and what it does not</h2>
+      <p>ParcelMap BC is a surveyed fabric, so a parcel's boundary was drawn from legal plans, not traced by its owner. That
+        makes it the opposite of Brazil's self-declared rural registry, and Camposcope still shows its fields exactly as they
+        arrive. It never names an owner: the fabric says only whether the parcel is private, Crown or another kind.<button type="button" class="rp-nota" data-nota="1" aria-label="note 1">1</button></p>
+      <p id="t-registro"></p>
+      <p class="como"><b>In the app:</b> the <b>Parcel</b> card. When a click lands on stacked parcels (strata, air space),
+        the app lists them all and lets you choose.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="zonas" data-camada="zonas" data-mapa="grande" data-bloco="zonas" data-titulo="Analysis zones" data-selo="real">
+      <div class="num">3</div>
+      <h2>Three bands out from the property line</h2>
+      <p>On its own, a parcel cannot tell you whether its history is common or rare in the valley. So every analysis also
+        runs in three bands around it: up to 500 m, 500 m to 2 km, and 2 to 5 km. They are measured <b>outward from the
+        boundary</b>, not from a centre, and none overlaps another, so no area is counted twice.<button type="button" class="rp-nota" data-nota="2" aria-label="note 2">2</button></p>
+      <p id="t-zonas"></p>
+      <p class="como"><b>In the app:</b> the <b>Zones</b> section, and the <b>Parcel / 0–500 m / 500 m–2 km / 2–5 km</b>
+        buttons above every chart.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="cobertura" data-camada="cobertura" data-mapa="meio" data-bloco="cobertura" data-titulo="Land cover · AAFC crop inventory" data-selo="real">
+      <div class="num">4</div>
+      <h2>Fifteen crop inventories in one chart</h2>
+      <p>Agriculture and Agri-Food Canada's Annual Crop Inventory maps every 30 m pixel of the country's farmland, one year
+        at a time, down to the crop: orchards, vineyards, hay, corn. Each column is one year, from 2011, when the inventory
+        first covered all of Canada, to the latest.</p>
+      <p id="t-cobertura"></p>
+      <p class="como"><b>In the app:</b> the <b>Land cover</b> tab. The map follows the tab and shows the year chosen in the selector.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="vizinhanca" data-camada="vizinhanca" data-mapa="meio" data-bloco="cobertura,zonas" data-titulo="Natural vegetation by zone" data-selo="real">
+      <div class="num">5</div>
+      <h2>The parcel against its neighbourhood</h2>
+      <p>The same series, now as the share of each zone that is natural vegetation: forest, wetland, grassland and shrub. If
+        the parcel and the bands move together, the change was regional. If the parcel breaks away from its neighbourhood,
+        the story is its own.</p>
+      <p id="t-vizinhanca"></p>
+      <p class="como"><b>In the app:</b> the <b>Land cover</b> tab with the <b>percent</b> switch, changing zones. Here the
+        map shows the first year of the series, to compare with the previous step.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="transicoes" data-camada="transicoes" data-mapa="pequeno" data-bloco="transicoes" data-titulo="Transitions · Sankey" data-selo="real">
+      <div class="num">6</div>
+      <h2>Where every hectare came from</h2>
+      <p>The column chart says how much of each class there was. The flow diagram says <b>what became what</b>, pixel by
+        pixel, between the first and the last year. The pale band joining a class to itself is what stayed the same.<button type="button" class="rp-nota" data-nota="3" aria-label="note 3">3</button></p>
+      <p id="t-transicoes"></p>
+      <p class="como"><b>In the app:</b> the <b>Transitions</b> tab, where you choose the two years and compare the maps side by side.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="floresta" data-camada="floresta" data-mapa="meio" data-bloco="floresta" data-titulo="Forest · Hansen/GLAD" data-selo="real">
+      <div class="num">7</div>
+      <h2>Twenty-five years of tree-cover loss</h2>
+      <p>Since 2001, Hansen/GLAD has flagged every year the 30 m pixels that lost their tree cover, to logging, fire, pests
+        or building. When the fabric records a parcel's start date, Camposcope splits the loss at it; most older parcels
+        have none, and then the series stays whole, with a note, rather than being split at an invented date.</p>
+      <p id="t-floresta"></p>
+      <p class="como"><b>In the app:</b> the <b>Forest</b> tab, which also shows stand age from the national forest inventory (NTEMS).</p>
+    </article>
+
+    <article class="rp-passo" data-passo="biomassa" data-camada="biomassa" data-mapa="meio" data-bloco="biomassa" data-titulo="Biomass · ESA CCI" data-selo="estimado">
+      <div class="num">8</div>
+      <h2>Biomass: a model, with a larger error</h2>
+      <p>Above-ground biomass comes from ESA CCI, in 100 m pixels and for ten years between 2007 and 2022. It is not a
+        measurement on the parcel: it is a radar-and-lidar model calibrated at global scale, with a large error per pixel.
+        Use it for trends and for comparing zones, not for a carbon inventory.</p>
+      <p id="t-biomassa"></p>
+      <p class="como"><b>In the app:</b> the <b>Biomass</b> tab, in megagrams per hectare (Mg/ha) by zone.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="fogo" data-camada="fogo" data-mapa="meio" data-bloco="fogo" data-titulo="Fire · MODIS burned area" data-selo="real">
+      <div class="num">9</div>
+      <h2>Fire, at a coarser scale</h2>
+      <p>Canada's own burned-area maps are not in Earth Engine, so the fire record comes from NASA's MODIS (MCD64A1), month by
+        month since 2001, in 500 m pixels of about 21 ha. A fire smaller than that does not register, and on a small parcel
+        the app says so instead of reporting a confident zero.</p>
+      <p id="t-fogo"></p>
+      <p class="como"><b>In the app:</b> the <b>Fire</b> tab, with history, frequency and year of the last fire for each zone.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="validacao" data-camada="validacao" data-mapa="meio" data-bloco="validacao" data-titulo="Validation · AAFC × VLCE2" data-selo="real">
+      <div class="num">10</div>
+      <h2>Two maps, two answers</h2>
+      <p>The crop inventory is built to see farms; VLCE2, from the Canadian Forest Service, is built to see forests. Camposcope
+        sets one against the other, grouped into the same broad classes, pixel by pixel. Where they disagree, it is usually
+        because one of them has no word for what is on the ground.</p>
+      <p id="t-validacao"></p>
+      <p class="como"><b>In the app:</b> the <b>Validation</b> tab, with the agreement matrix for each zone.</p>
+    </article>
+
+    <article class="rp-passo" data-passo="procedencia" data-camada="procedencia" data-mapa="oculto" data-bloco="exportar" data-titulo="Provenance and export" data-selo="real">
+      <div class="num">11</div>
+      <h2>Where every number came from</h2>
+      <p>Each analysis keeps its source, version, scale and time of calculation. All of that travels with the PDF report and
+        the exported spreadsheet, because a challenged number only holds if it can be reproduced.<button type="button" class="rp-nota" data-nota="4" aria-label="note 4">4</button></p>
+      <p id="t-procedencia"></p>
+      <p class="como"><b>In the app:</b> the <b>Download data</b> button (an ODS spreadsheet with one sheet per table) and
+        the parcel's <b>PDF report</b>.</p>
+    </article>
+
+  </div>
+
+  <div class="rp-figura" aria-live="polite">
+    <div class="rp-moldura">
+      <div class="rp-barra-janela"><i></i><i></i><i></i><span id="rp-fig-url">camposcope.umaterra.com.br/canada</span></div>
+      <div class="rp-fig-corpo">
+        <nav class="rp-pagina" aria-label="Where it is in the app">
+          <div class="pg-rot">in the app</div>
+          <div class="pg-b" data-bloco="busca">search</div>
+          <div class="pg-b alto" data-bloco="parcela">parcel · record</div>
+          <div class="pg-b" data-bloco="zonas">zones</div>
+          <div class="pg-par"><div class="pg-b" data-bloco="cobertura">land cover</div><div class="pg-b" data-bloco="transicoes">transitions</div></div>
+          <div class="pg-par"><div class="pg-b" data-bloco="floresta">forest</div><div class="pg-b" data-bloco="biomassa">biomass</div></div>
+          <div class="pg-par"><div class="pg-b" data-bloco="fogo">fire</div><div class="pg-b" data-bloco="validacao">validation</div></div>
+          <div class="pg-b" data-bloco="exportar">download · PDF</div>
+        </nav>
+        <div class="rp-fig-principal">
+          <div class="rp-fig-cab"><span id="rp-fig-titulo">Loading…</span><span id="rp-fig-selo" class="selo real">measured</span></div>
+          <div class="rp-fig-area" data-mapa="grande">
+            <div class="rp-mapa-caixa"><div id="rp-mapa"></div><div class="rp-mapa-legenda" id="rp-mapa-legenda"></div></div>
+            <div class="rp-painel">
+              <div id="rp-fig-estado" class="rp-fig-estado">Loading the example parcel…</div>
+              <div class="rp-camada" id="camada-busca"><div id="fig-busca"></div></div>
+              <div class="rp-camada" id="camada-registro"><div id="fig-registro"></div></div>
+              <div class="rp-camada" id="camada-zonas"><div id="fig-zonas"></div></div>
+              <div class="rp-camada" id="camada-cobertura"><div id="fig-cobertura"></div></div>
+              <div class="rp-camada" id="camada-vizinhanca"><div id="fig-vizinhanca"></div></div>
+              <div class="rp-camada" id="camada-transicoes"><div id="fig-transicoes"></div></div>
+              <div class="rp-camada" id="camada-floresta"><div id="fig-floresta"></div></div>
+              <div class="rp-camada" id="camada-biomassa"><div id="fig-biomassa"></div></div>
+              <div class="rp-camada" id="camada-fogo"><div id="fig-fogo"></div></div>
+              <div class="rp-camada" id="camada-validacao"><div id="fig-validacao"></div></div>
+              <div class="rp-camada" id="camada-procedencia"><div id="fig-procedencia"></div></div>
+              <p class="rp-fig-legenda" id="rp-fig-legenda"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="rp-fim">
+  <h2>What Camposcope does not say</h2>
+  <ul class="rp-limites">
+    <li><b>It does not say who owns the land.</b> The fabric publishes the parcel and its owner type, never a name, and
+      Camposcope adds nothing to that. Title belongs to the Land Title and Survey Authority.</li>
+    <li><b>It does not judge land use against zoning or the ALR.</b> No screen says whether a use is permitted; that sits
+      with the municipality and the Agricultural Land Commission.</li>
+    <li><b>It does not date a planting.</b> A class that appears in the crop inventory may be a new orchard or an old one
+      the inventory has learned to see; the satellite record alone cannot tell them apart.</li>
+    <li><b>It cannot see below 30 m, or 500 m for fire.</b> On a 12 ha parcel every edge pixel weighs a lot, and a small
+      fire may not register at all.</li>
+  </ul>
+  <p class="rp-fim-extra" id="fim-extra"></p>
+  <a class="rp-cta" id="cta-app" href="/canada?lang=en">Open this parcel in Camposcope →</a>
+  <a class="rp-cta sec" href="/walkthrough/brazil">The same walkthrough on a Brazilian farm</a>
+  <p class="rp-rodape">To read another parcel, put its PID in the address (<code>?pid=</code>, nine digits). The numbers come
+    from the app's own services: this page's example is stored with it, and any other PID is computed on request.
+    <a href="/demonstracao" lang="pt-BR">Versão em português (com um imóvel do Brasil)</a>.</p>
+</section>
+
+<section class="rp-notas" aria-label="Notes">
+  <h3>Notes</h3>
+  <ol>
+    <li id="nota-1">The three UmaTerra tools differ in who draws the boundary they analyse: the state (Indigenous lands
+      and conservation units), the analyst (a point on the map) or the landholder (Brazil's CAR). Camposcope's first
+      premise is that <i>the boundary is data to be examined, not input to be trusted</i>. A surveyed fabric earns more
+      trust than a self-declared one, and the app still shows registered against measured area rather than assuming they agree.
+      <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscript in preparation, 2026).</span></li>
+    <li id="nota-2">Camposcope's design record explains why it does not use circles around a centre, as Naturametrics
+      does: <i>“A 40 000 ha property and a 12 ha one have nothing comparable about their centroids; ‘the first 500 m outside
+      the fence’ means the same thing for both.”</i>
+      <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscript in preparation, 2026).</span></li>
+    <li id="nota-3">The app refuses transitions between years less than five years apart. Over short gaps, most apparent
+      change is classification flicker in mixed pixels: map error, not change on the ground.
+      <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscript in preparation, 2026).</span></li>
+    <li id="nota-4">No code path writes a number without its provenance record. Every area on this page is a pixel count
+      times the true pixel area, measured on the same grid as the count: Canada spans 41° to 83° N, and a flat 0.09 ha per
+      pixel, or a grid mismatch, drifts by a third at Kelowna's latitude.
+      <span class="rp-pop-fonte">Biondo et al., <i>Registry, coordinate, cadastre</i> (manuscript in preparation, 2026).</span></li>
+  </ol>
+</section>

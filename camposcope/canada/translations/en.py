@@ -406,6 +406,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     # --- how-to-use dialog -------------------------------------------------------------------- #
     "help_trigger": "How to use",
     "help_dialog_title": "How to use this page",
+    "help_demo_link": "Rather see it working? Open the step-by-step walkthrough on a real parcel in Kelowna →",
     "help_dialog_desc": "Seven steps from a parcel to an analysis, and what "
         "this page cannot tell you.",
     "help_step1_title": "1. Find a parcel",

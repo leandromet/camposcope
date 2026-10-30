@@ -24,7 +24,9 @@ from starlette.responses import JSONResponse, Response
 
 from ..canada.config import ecozones as ecozones_cfg
 from ..canada.config.settings import CANADA_BBOX
+from ..canada.services import demonstracao as demonstracao_ca
 from ..canada.services import ecozones
+from ..canada.services import pmbc
 from ..canada.services import gbif as gbif_ca
 from ..config.settings import BRAZIL_BBOX
 from ..services import biomes
@@ -242,6 +244,25 @@ async def demonstracao_json(request: Request) -> Response:
     return JSONResponse(payload, headers={"Cache-Control": "public, max-age=600"})
 
 
+async def demonstracao_ca_json(request: Request) -> Response:
+    """The Canada walkthrough's numbers (Kelowna), from the Canada page's services.
+
+    ``?pid=`` swaps the example for any ParcelMap BC parcel; a PID the fabric
+    does not know answers 404 with the service's message.
+    """
+    pid = request.query_params.get("pid") or demonstracao_ca.EXEMPLO_PADRAO
+    try:
+        payload = await _run_blocking(lambda: demonstracao_ca.pacote(pid))
+    except (pmbc.PmbcError, LookupError) as exc:
+        return JSONResponse({"error": "parcel not found", "detail": str(exc)}, status_code=404)
+    except ValueError as exc:
+        return JSONResponse({"error": "invalid PID", "detail": str(exc)}, status_code=400)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Canada walkthrough could not be built")
+        return JSONResponse({"error": "walkthrough unavailable", "detail": str(exc)}, status_code=503)
+    return JSONResponse(payload, headers={"Cache-Control": "public, max-age=600"})
+
+
 async def healthz(request: Request) -> Response:
     return JSONResponse({"status": "ok"})
 
@@ -266,6 +287,7 @@ def register(app) -> None:
     api.add_route(gbif.GEOJSON_PATH, gbif_geojson, methods=["GET"])
     api.add_route(gbif_ca.GEOJSON_PATH, gbif_ca_geojson, methods=["GET"])
     api.add_route(demonstracao.ROTA, demonstracao_json, methods=["GET"])
+    api.add_route(demonstracao_ca.ROTA, demonstracao_ca_json, methods=["GET"])
     api.add_route("/healthz", healthz, methods=["GET"])
     logger.info("Registered backend routes %s, %s, %s, %s, %s, %s, %s, %s, /healthz",
                 biomes.GEOJSON_PATH,

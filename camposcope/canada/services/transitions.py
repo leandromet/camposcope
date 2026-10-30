@@ -134,7 +134,7 @@ def compute_transitions(
 
     with ThreadPoolExecutor(max_workers=2) as ex:
         f_hist = ex.submit(hist_call)
-        f_area = ex.submit(mean_pixel_area, fc, EE_DEFAULT_SCALE_M, EE_TILE_SCALE)
+        f_area = ex.submit(mean_pixel_area, fc, EE_DEFAULT_SCALE_M, EE_TILE_SCALE, combined)
         hist, areas = f_hist.result(), f_area.result()
 
     px_area = px_area_by_zone(areas)

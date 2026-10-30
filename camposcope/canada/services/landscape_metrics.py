@@ -167,8 +167,9 @@ def landscape_metrics(
     edge_reduced = edge.reduceRegions(
         collection=fc, reducer=ee.Reducer.mean(),
         scale=scale, tileScale=tile_scale)
+    # on the ACI's own grid, like the counts (ee_zones.mean_pixel_area explains why)
     area_reduced = ee.Image.pixelArea().reduceRegions(
-        collection=fc, reducer=ee.Reducer.mean(),
+        collection=fc, reducer=ee.Reducer.mean(), crs=image.projection(),
         scale=scale, tileScale=tile_scale)
 
     hist_info = reduced.getInfo()
