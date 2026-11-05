@@ -182,7 +182,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     ),
     "square_coordinate": "Ponto central",
     "square_disclosure": (
-        "Este limite não é um registro do CAR nem de espécie alguma — é um "
+        "Este limite não é um registro do CAR nem registro oficial de qualquer tipo — é um "
         "quadrado de tamanho fixo desenhado ao redor de uma coordenada, "
         "para manter a análise possível mesmo sem cadastro."
     ),
@@ -300,8 +300,8 @@ TRANSLATIONS_PT: dict[str, str] = {
 
     # --- Biomassa tab ------------------------------------------------------ #
     "biomassa_intro": (
-        "Biomassa acima do solo, dez anos: 2007, 2010 e anual a partir de "
-        "2015. O intervalo entre eles é uma lacuna real da fonte, não um "
+        "Biomassa acima do solo, em dez anos de referência: 2007, 2010 e "
+        "anual a partir de 2015. O intervalo entre eles é uma lacuna real da fonte, não um "
         "dado ausente — não interpolado."
     ),
     "biomassa_col_ano": "Ano",
@@ -333,7 +333,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "connectivity_run_button": "Calcular conectividade (mais lento)",
     "connectivity_empty": "Ainda não calculada — clique para rodar.",
     "connectivity_n_fragments": "Fragmentos",
-    "connectivity_enn_mean": "Dist. média viz. mais próx. (m)",
+    "connectivity_enn_mean": "Dist. média ao vizinho mais próx. (m)",
     "connectivity_enn_median": "Mediana (m)",
     "connectivity_degraded": (
         "Uma ou mais zonas tinham mais fragmentos de floresta do que o "
@@ -544,7 +544,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "report_section_title": "Relatório",
     "report_section_desc": (
         "Um documento diagramado: identificação, aviso do CAR, mapas, "
-        "gráficos e tabelas com explicações curtas. Idioma = o da interface. "
+        "gráficos e tabelas com explicações curtas. Idioma: o da interface. "
         "Abas não calculadas aparecem como «não calculado»."
     ),
     "report_check_maps_label": "Mapas",

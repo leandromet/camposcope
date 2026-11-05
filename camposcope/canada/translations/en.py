@@ -205,7 +205,7 @@ TRANSLATIONS_EN: dict[str, str] = {
         "record for what changed.",
     "cobertura_out_of_range": "The Annual Crop Inventory has no coverage "
         "this far north — this is expected above roughly 54–58°N, not a "
-        "failure. The Floresta, Biomassa and Fogo tabs still answer.",
+        "failure. The Forest, Biomass and Fire tabs still work.",
     "cobertura_attribution": "Agriculture and Agri-Food Canada — Annual "
         "Crop Inventory · 30 m",
 
@@ -216,8 +216,8 @@ TRANSLATIONS_EN: dict[str, str] = {
     "transicoes_de": "From",
     "transicoes_para": "To",
     "transicoes_maiores": "Largest transitions",
-    "transicoes_min_gap_note_prefix": "Years closer than",
-    "transicoes_min_gap_note_suffix": "apart are refused — between "
+    "transicoes_min_gap_note_prefix": "Year pairs less than",
+    "transicoes_min_gap_note_suffix": "years apart are refused — between "
         "consecutive years most inventory 'transitions' are crop rotation, "
         "not a land-use change.",
 
@@ -314,8 +314,8 @@ TRANSLATIONS_EN: dict[str, str] = {
         "(2009–2025) — darker red burned more often.",
     "fogo_aci_years_detected": "Years with burn detected",
     "fogo_aci_last_year": "Most recent burnt year",
-    "fogo_aci_empty": "No Cobertura data yet for this zone — visit the "
-        "Cobertura tab, or wait for it to finish loading. The burnt-area "
+    "fogo_aci_empty": "No Cover data yet for this zone — visit the "
+        "Cover tab, or wait for it to finish loading. The burnt-area "
         "class comes from that same fetch, at no extra cost.",
     "fogo_aci_note": "The crop inventory's own burnt-area class (2009–2025, "
         "national from 2011), 30 m — seven times finer than MODIS, but a "
@@ -421,22 +421,22 @@ TRANSLATIONS_EN: dict[str, str] = {
     "help_step3_body": "The parcel plus concentric rings out to 5 km, "
         "measured outward from the boundary — every analysis below runs "
         "over all of them at once.",
-    "help_step4_title": "4. Cover, Transitions, Floresta, Biomassa",
+    "help_step4_title": "4. Cover, Transitions, Forest, Biomass",
     "help_step4_body": "The Annual Crop Inventory trajectory, its "
         "year-to-year transitions, Hansen forest loss/gain plus NTEMS stand "
         "age, and ESA CCI biomass — each tab computes on request.",
-    "help_step5_title": "5. Paisagem and Fogo",
+    "help_step5_title": "5. Landscape and Fire",
     "help_step5_body": "Fragmentation metrics for every zone at once, plus "
         "an opt-in fragment-distance metric; MODIS burned-area history — "
         "coarse at 463 m, flagged when a zone is too small for it to "
         "resolve.",
-    "help_step6_title": "6. Validação",
+    "help_step6_title": "6. Validation",
     "help_step6_body": "The crop inventory checked against an independent "
         "land-cover product for the same year, at a coarse group level. "
         "Disagreement is not a verdict either way.",
     "help_step7_title": "7. Export",
     "help_step7_body": "Every chart downloads as a PNG, every table as a "
-        "CSV, from the icon beside it — for a paper's own reprocessing "
+        "CSV, from the icon beside it — for your own reprocessing "
         "rather than a screenshot.",
     "help_limitations_title": "What this page cannot tell you",
     "help_limit_1": "ParcelMap BC shows legal boundaries, never ownership — "
@@ -444,7 +444,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "help_limit_2": "Parcel search covers British Columbia only; the "
         "land-cover, forest, biomass and fire layers cover all of Canada.",
     "help_limit_3": "The Annual Crop Inventory has no data north of "
-        "roughly 54–58°N — an empty Cobertura tab up there is the dataset, "
+        "roughly 54–58°N — an empty Cover tab up there is the dataset, "
         "not a failure.",
     "help_limit_4": "This page issues no verdict about compliance, land "
         "use, or which of two disagreeing datasets is correct.",

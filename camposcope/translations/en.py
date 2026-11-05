@@ -150,19 +150,19 @@ TRANSLATIONS_EN: dict[str, str] = {
     "municipio_browser_next": "next ›",
 
     # --- cadastral card ----------------------------------------------------- #
-    "cadastro_title": "Rural Property",
+    "cadastro_title": "Rural property",
     "cadastro_codigo": "Code",
-    "cadastro_municipio": "Município",
+    "cadastro_municipio": "Municipality",
     "cadastro_area_declarada": "Declared area",
     "cadastro_area_calculada": "Computed area (geometry)",
     "cadastro_area_disagreement_prefix": (
         "The declared area and the geometry's area differ by"
     ),
     "cadastro_area_disagreement_suffix": "Both are shown as they are.",
-    "cadastro_modulos_fiscais": "Módulos fiscais",
+    "cadastro_modulos_fiscais": "Fiscal modules",
     "cadastro_tipo": "Type",
     "cadastro_status": "Status",
-    "cadastro_condicao": "Condição",
+    "cadastro_condicao": "Condition",
     "cadastro_registrado_em": "Registered on",
     "cadastro_atualizado_em": "Updated on",
     "cadastro_nao_informada": "not informed",
@@ -295,7 +295,7 @@ TRANSLATIONS_EN: dict[str, str] = {
 
     # --- Biomass tab ------------------------------------------------------- #
     "biomassa_intro": (
-        "Above-ground biomass, ten years: 2007, 2010, then annual from 2015. "
+        "Above-ground biomass for ten reference years: 2007, 2010, then annual from 2015. "
         "The gap between them is a real gap in the source, not missing data "
         "— not interpolated."
     ),
@@ -451,7 +451,7 @@ TRANSLATIONS_EN: dict[str, str] = {
         "This point is outside the Brazilian territory covered by CAR."
     ),
     "erro_lugar_nao_encontrado": (
-        "No place found for “{query}”. Try a município, a "
+        "No place found for “{query}”. Try a municipality, a "
         "coordinate, or a CAR code."
     ),
     "erro_zonas": "Could not build the zones: {detail}",
@@ -490,7 +490,7 @@ TRANSLATIONS_EN: dict[str, str] = {
         "and year of last fire occurrence."
     ),
     "fogo_col_ano": "Year",
-    "fogo_col_cicatrizes": "Fire Scars (%)",
+    "fogo_col_cicatrizes": "Fire scars (%)",
     "fogo_col_frequencia": "Frequency",
     "fogo_historio_anos": "Years with fire",
     "fogo_frequencia_ocorrencias": "Frequency (occurrences)",
@@ -527,7 +527,7 @@ TRANSLATIONS_EN: dict[str, str] = {
     "report_section_title": "Report",
     "report_section_desc": (
         "A laid-out document: identification, the CAR notice, maps, charts "
-        "and tables with short explanations. Language = the interface's. "
+        "and tables with short explanations. Language: the interface's. "
         "Tabs not yet calculated are listed as «not run»."
     ),
     "report_check_maps_label": "Maps",

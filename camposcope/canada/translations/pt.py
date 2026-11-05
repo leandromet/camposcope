@@ -53,7 +53,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "echo_lugar": "lugar",
     "echo_postal": "código postal",
     "search_as_place": "Buscar como endereço ou lugar",
-    "search_place_hint": "clique em um lote no mapa para analisá-lo",
+    "search_place_hint": "clique em uma parcela no mapa para analisá-la",
     "precision_endereco": "endereço",
     "precision_rua": "rua",
     "precision_cep": "código postal",
@@ -72,14 +72,14 @@ TRANSLATIONS_PT: dict[str, str] = {
         "um endereço, código postal, PID, coordenada ou município da "
         "Colúmbia Britânica — ou simplesmente navegue pelo mapa."
     ),
-    "qs_step2_lead": "Clique em um lote",
+    "qs_step2_lead": "Clique em uma parcela",
     "qs_step2_body": (
         "na Colúmbia Britânica, ou em qualquer lugar do Canadá, para "
-        "selecioná-lo. Se houver lotes sobrepostos, você escolhe qual."
+        "selecioná-la. Se houver parcelas sobrepostas, você escolhe qual."
     ),
     "qs_step3_lead": "Leia os resultados",
     "qs_step3_body": (
-        "no painel do mapa: histórico do inventário agrícola, perda e idade "
+        "no painel do mapa: histórico do inventário de culturas, perda e idade "
         "da floresta, biomassa e fogo."
     ),
     "qs_step4_lead": "Exporte",
@@ -121,8 +121,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "parcel_non_land_suffix": ") não tem cobertura da terra própria — é "
         "uma parcela legal ou de infraestrutura, não um pedaço de terreno.",
     "parcel_neighbours": "Parcelas sobrepostas",
-    "parcel_neighbours_note": "Raro numa malha agrimensada — geralmente uma "
-        "parcela de espaço aéreo ou condomínio empilhada sobre o mesmo "
+    "parcel_neighbours_note": "Raro em uma malha cadastral — geralmente uma "
+        "parcela de espaço aéreo ou de condomínio sobreposta ao mesmo "
         "terreno.",
     "zones_title": "Zonas",
     "zones_note": "Anéis medidos para fora a partir do limite da parcela.",
@@ -132,7 +132,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     # --- cartão de área protegida (sem parcela, mas há um parque) --------- #
     "park_title": "Área protegida",
     "park_no_parcel_note": "Nenhuma parcela aqui — este ponto cai dentro "
-        "de uma área protegida, então esse limite é a área de análise.",
+        "de uma área protegida, então este limite é a área de análise.",
     "park_name": "Nome",
     "park_designation": "Designação",
     "park_designation_type": "Nível de designação",
@@ -145,8 +145,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "park_area_disagreement_prefix": "A área informada e a área da "
         "geometria diferem em",
     "park_area_disagreement_suffix": "Ambas são exibidas como informadas.",
-    "park_disclosure": "Do World Database on Protected Areas (WDPA), "
-        "UNEP-WCMC/IUCN. Um registro de conservação, não um título de "
+    "park_disclosure": "Fonte: World Database on Protected Areas (WDPA), "
+        "UNEP-WCMC/IUCN. É um registro de conservação, não um título de "
         "terra: não traz nomes de proprietários e nada diz sobre acesso "
         "público.",
 
@@ -160,7 +160,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "coord_clicked": "Clicado em",
     "coord_centroid": "Centroide",
     "square_disclosure": "Este limite não é um registro legal ou "
-        "administrativo de espécie alguma — é um quadrado de tamanho fixo "
+        "administrativo de nenhum tipo — é um quadrado de tamanho fixo "
         "desenhado ao redor de uma coordenada, para monitoramento "
         "consistente de terra sem limite registrado ou protegido próprio.",
 
@@ -171,15 +171,15 @@ TRANSLATIONS_PT: dict[str, str] = {
     "layers_parcel_wms": "Malha de parcelas (contexto)",
     "layers_parcel_wms_note": "Todas as parcelas do ParcelMap BC, "
         "desenhadas pelo servidor — visível a partir do zoom 12.",
-    "layers_ecozones": "Marco ecológico",
+    "layers_ecozones": "Divisão ecológica",
     "layers_ecozone_level_ecozone": "Ecozona",
     "layers_ecozone_level_ecoregion": "Ecorregião",
     "layers_ecozone_level_ecodistrict": "Ecodistrito",
     "layers_ecozones_note": "Apenas orientação — limites aproximados que "
-        "não decidem nada. Ecozonas são amplas (quinze cobrem todo o "
-        "Canadá); ecorregião e ecodistrito são níveis mais finos do mesmo "
-        "marco — ecodistrito não tem nome próprio, apenas a ecorregião e "
-        "ecozona em que se encontra.",
+        "não decidem nada. As ecozonas são amplas (quinze cobrem todo o "
+        "Canadá); ecorregião e ecodistrito são níveis mais finos da mesma "
+        "divisão — o ecodistrito não tem nome próprio, só a ecorregião e a "
+        "ecozona a que pertence.",
     "legend_title": "Legenda",
     "legend_collapse_aria": "Recolher a legenda",
     "legend_expand_aria": "Expandir a legenda",
@@ -210,13 +210,13 @@ TRANSLATIONS_PT: dict[str, str] = {
     "cobertura_percentual": "Percentual",
     "cobertura_running": "Buscando a trajetória do inventário de culturas…",
     "cobertura_empty": "Ainda sem dados — selecione uma parcela.",
-    "cobertura_degraded": "Este resultado foi repetido em escala mais "
-        "grosseira após uma falha do Earth Engine. É utilizável, mas veja o "
-        "registro de proveniência para o que mudou.",
+    "cobertura_degraded": "Este resultado foi refeito em escala mais "
+        "grosseira após uma falha do Earth Engine. Ele é utilizável, mas "
+        "consulte o registro de proveniência para saber o que mudou.",
     "cobertura_out_of_range": "O Inventário Anual de Culturas não tem "
         "cobertura tão ao norte — isso é esperado acima de "
-        "aproximadamente 54–58°N, não uma falha. As abas Floresta, "
-        "Biomassa e Fogo continuam respondendo.",
+        "cerca de 54–58°N, não uma falha. As abas Floresta, "
+        "Biomassa e Fogo continuam funcionando.",
     "cobertura_attribution": "Agriculture and Agri-Food Canada — Annual "
         "Crop Inventory · 30 m",
 
@@ -227,8 +227,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "transicoes_de": "De",
     "transicoes_para": "Para",
     "transicoes_maiores": "Maiores transições",
-    "transicoes_min_gap_note_prefix": "Anos com diferença menor que",
-    "transicoes_min_gap_note_suffix": "são recusados — entre anos "
+    "transicoes_min_gap_note_prefix": "Pares de anos com menos de",
+    "transicoes_min_gap_note_suffix": "anos de diferença são recusados — entre anos "
         "consecutivos, a maior parte das 'transições' do inventário é "
         "rotação de lavoura, não mudança de uso da terra.",
 
@@ -236,13 +236,13 @@ TRANSLATIONS_PT: dict[str, str] = {
     "tab_floresta": "Floresta",
     "floresta_split_start_date": "Dividido na data de início",
     "floresta_split_undivided": "Não dividido",
-    "floresta_before_parcel": "Antes da parcela existir",
+    "floresta_before_parcel": "Antes de a parcela existir",
     "floresta_after_parcel": "Depois da criação da parcela",
     "floresta_undivided_total": "Perda total (não dividida)",
     "floresta_ganho_sem_data": "Ganho (sem data)",
     "floresta_no_start_date_note": "O registro desta parcela não traz data "
         "de início, então a perda é mostrada como uma única série não "
-        "dividida, em vez de dividida numa âncora inventada.",
+        "dividida, em vez de dividida em uma data de referência inventada.",
     "floresta_col_ano": "Ano",
     "floresta_col_perda": "Perda (ha)",
     "floresta_col_periodo": "Período",
@@ -255,8 +255,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "floresta_age_unit": "anos",
     "floresta_age_forested_pct": "Fração florestal da zona",
     "floresta_age_note": "As idades são as publicadas, referentes a 2019 — "
-        "não são avançadas até hoje. Mascaradas aos pixels florestais: uma "
-        "fração florestal baixa significa que os números de idade "
+        "não foram atualizadas até hoje. Calculadas apenas sobre os pixels "
+        "florestais: uma fração florestal baixa significa que as idades "
         "descrevem só uma pequena parte desta zona.",
     "floresta_age_attribution": "NRCan / NFIS — idade da floresta NTEMS "
         "Canadá (2019) · 30 m",
@@ -268,17 +268,17 @@ TRANSLATIONS_PT: dict[str, str] = {
     "biomassa_col_total_mg": "Total (Mg)",
     "biomassa_attribution": "ESA CCI Biomass v6.0 — Santoro & Cartus "
         "(2025) · 100 m",
-    "biomassa_canada_note": "A recuperação é mais fraca sobre terreno com "
+    "biomassa_canada_note": "A estimativa é menos precisa em terreno com "
         "cobertura de neve persistente e vegetação esparsa do norte do que "
-        "sobre floresta temperada fechada.",
+        "em floresta temperada fechada.",
 
     # --- Paisagem ----------------------------------------------------------------- #
     "tab_paisagem": "Paisagem",
     "paisagem_ano": "Ano",
     "paisagem_empty": "Ainda sem dados.",
     "paisagem_legend_note": "A contagem de fragmentos segue as próprias "
-        "distinções de classe do ACI, que resolvem lavouras finamente e "
-        "floresta grosseiramente — comparável entre esta parcela e seus "
+        "distinções de classe do ACI, que distinguem lavouras com detalhe e "
+        "floresta de forma grosseira — comparável entre esta parcela e seus "
         "anéis, não entre uma paisagem agrícola e uma florestada.",
     "paisagem_col_zona": "Zona",
     "paisagem_col_area": "Área (ha)",
@@ -292,11 +292,11 @@ TRANSLATIONS_PT: dict[str, str] = {
     "paisagem_col_evenness": "Equitabilidade",
     "paisagem_attribution": "AAFC Annual Crop Inventory · 30 m",
     "connectivity_hint": "Distância média entre fragmentos florestais — "
-        "uma segunda chamada ao Earth Engine mais uma busca local, por isso "
-        "roda sob demanda.",
+        "exige uma segunda consulta ao Earth Engine e uma busca local, por "
+        "isso roda sob demanda.",
     "connectivity_run_button": "Obter distância entre fragmentos",
-    "connectivity_degraded": "Mais fragmentos que o limite em uma ou mais "
-        "zonas — a distância considerou apenas os primeiros retornados.",
+    "connectivity_degraded": "Uma ou mais zonas têm mais fragmentos do que o "
+        "limite — a distância considerou apenas os primeiros retornados.",
     "connectivity_empty": "Ainda sem resultado.",
     "connectivity_n_fragments": "Fragmentos",
     "connectivity_enn_mean": "Distância média (m)",
@@ -316,7 +316,7 @@ TRANSLATIONS_PT: dict[str, str] = {
     "fogo_current_year_prefix": "O ano de ",
     "fogo_current_year_suffix": " ainda está em andamento — o MODIS continua "
         "publicando novos meses ao longo do ano, então esta barra (com "
-        "hachuras no gráfico) é um total corrente, não uma temporada "
+        "hachuras no gráfico) é um total parcial, não uma temporada "
         "encerrada.",
     "fogo_source_modis": "MODIS · 500 m",
     "fogo_source_aci": "AAFC · 30 m",
@@ -352,8 +352,8 @@ TRANSLATIONS_PT: dict[str, str] = {
     "validacao_agreement_label": "Concordância em nível de grupo",
     "validacao_area_label": "Área comparada",
     "validacao_no_verdict": "Discordância entre dois produtos "
-        "independentes não é erro de nenhum dos dois — isto informa onde "
-        "eles diferem e não diz nada sobre qual está certo.",
+        "independentes não é erro de nenhum dos dois — isto mostra onde "
+        "eles diferem, sem dizer qual está certo.",
     "validacao_group_note": "Comparado em nível de grupo, não de classe: o "
         "ACI resolve lavouras e não tem detalhe de tipo florestal, o VLCE2 "
         "o inverso. Uma taxa de concordância em nível de classe não teria "
@@ -398,24 +398,24 @@ TRANSLATIONS_PT: dict[str, str] = {
     "erro_fora_canada": "Esse ponto está fora do Canadá. Esta página cobre "
         "o Canadá; use a página do Brasil para coordenadas sul-americanas.",
     "erro_coordenada_invertida": "Parece uma coordenada invertida — "
-        "trocando latitude e longitude o ponto cairia dentro do Canadá, mas "
-        "nesta ordem não cai. A latitude vem primeiro.",
+        "se você trocar latitude e longitude, o ponto cai dentro do Canadá; "
+        "na ordem atual, não. A latitude vem primeiro.",
     "erro_zonas": "Não foi possível construir as zonas: {detail}",
     "erro_camada_aba": "A camada do mapa desta aba não pôde ser carregada.",
-    "erro_trajetoria_aci": "A trajetória do inventário de culturas falhou: "
+    "erro_trajetoria_aci": "Não foi possível obter a trajetória do inventário de culturas: "
         "{detail}",
     "erro_aci_sem_classes": "Sem dados do inventário de culturas nesta "
         "zona — isso é esperado ao norte da cobertura do inventário.",
     "erro_lugar_nao_encontrado": "Nenhum lugar encontrado para “{query}”.",
-    "erro_transicao": "As transições falharam: {detail}",
-    "erro_perda_florestal": "A mudança florestal falhou: {detail}",
-    "erro_idade_floresta": "A idade do povoamento falhou: {detail}",
-    "erro_biomassa": "A biomassa falhou: {detail}",
-    "erro_fogo": "A análise de área queimada falhou: {detail}",
-    "erro_paisagem": "As métricas de paisagem falharam: {detail}",
-    "erro_connectivity": "A conectividade entre fragmentos falhou: "
-        "{detail}",
-    "erro_validacao": "A comparação de validação falhou: {detail}",
+    "erro_transicao": "Não foi possível calcular as transições: {detail}",
+    "erro_perda_florestal": "Não foi possível calcular a mudança florestal: {detail}",
+    "erro_idade_floresta": "Não foi possível obter a idade do povoamento: {detail}",
+    "erro_biomassa": "Não foi possível calcular a biomassa: {detail}",
+    "erro_fogo": "Não foi possível calcular a área queimada: {detail}",
+    "erro_paisagem": "Não foi possível calcular as métricas de paisagem: {detail}",
+    "erro_connectivity": "Não foi possível calcular a conectividade entre "
+        "fragmentos: {detail}",
+    "erro_validacao": "Não foi possível calcular a comparação de validação: {detail}",
 
     # --- misc ------------------------------------------------------------------------------- #
     "zona_parcela": "Parcela",
@@ -431,14 +431,14 @@ TRANSLATIONS_PT: dict[str, str] = {
         "010-322-060), clique no mapa, ou busque um município — a caixa de "
         "busca mostra como leu o que você digitou antes de agir.",
     "help_step2_title": "2. Leia o cartão da parcela",
-    "help_step2_body": "Todo campo da malha é mostrado literalmente — "
+    "help_step2_body": "Cada campo da malha é exibido como no original — "
         "situação, classe, tipo de titular, número do plano. O ParcelMap BC "
         "é um registro de limites, não de propriedade: não traz nomes de "
         "proprietários.",
     "help_step3_title": "3. Confira as zonas",
     "help_step3_body": "A parcela mais anéis concêntricos até 5 km, "
-        "medidos para fora a partir do limite — toda análise abaixo roda "
-        "sobre todas elas de uma vez.",
+        "medidos para fora a partir do limite — todas as análises abaixo "
+        "são feitas sobre todas elas de uma vez.",
     "help_step4_title": "4. Cobertura, Transições, Floresta, Biomassa",
     "help_step4_body": "A trajetória do Inventário Anual de Culturas, suas "
         "transições ano a ano, perda/ganho florestal do Hansen mais a idade "
@@ -465,7 +465,7 @@ TRANSLATIONS_PT: dict[str, str] = {
         "as camadas de cobertura da terra, floresta, biomassa e fogo cobrem "
         "todo o Canadá.",
     "help_limit_3": "O Inventário Anual de Culturas não tem dados ao norte "
-        "de aproximadamente 54–58°N — uma aba Cobertura vazia ali é o "
+        "de aproximadamente 54–58°N — uma aba Cobertura vazia nessa região reflete o "
         "conjunto de dados, não uma falha.",
     "help_limit_4": "Esta página não emite nenhum veredito sobre "
         "conformidade, uso da terra, ou qual de dois conjuntos de dados "
