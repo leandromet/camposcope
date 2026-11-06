@@ -36,7 +36,7 @@ class UIMixin(rx.State, mixin=True):
     #: "1" once this browser dismissed the quick-start card. Browser storage,
     #: not state: it is a per-viewer convenience that has to survive a reload
     #: and must never follow a user to someone else's screen.
-    quickstart_seen: str = rx.LocalStorage("", name="camposcope_quickstart_br_v1")
+    quickstart_seen: str = rx.SessionStorage("", name="camposcope_quickstart_br_v1")
 
     @rx.var
     def show_quickstart(self) -> bool:

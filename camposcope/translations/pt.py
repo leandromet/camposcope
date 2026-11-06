@@ -9,9 +9,14 @@ sees.
 from __future__ import annotations
 
 TRANSLATIONS_PT: dict[str, str] = {
+    "region_usa": "EUA",
+    "region_canada": "Canadá",
+    "region_brazil": "Brasil",
+    "go_to_usa": "Ir para os EUA",
+    "go_to_brazil": "Ir para o Brasil",
     # --- header --------------------------------------------------------- #
     "app_name": "Camposcope - Earth Engine para o CAR",
-    "go_to_canada": "Canadá",
+    "go_to_canada": "Ir para o Canadá",
     "start_hint": "Clique em algum local do Brasil para começar",
 
     # --- search panel (components/search.py) ---------------------------- #

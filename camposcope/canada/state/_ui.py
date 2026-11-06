@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import reflex as rx
 
+from ...components.lang_pref import detect_language_event, store_script
 from ..config.settings import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 from ..translations import get_translations
 
@@ -46,10 +47,19 @@ class CanadaUIMixin(rx.State, mixin=True):
     #: field — same role as the Brazil page's ``toast``.
     toast: str = ""
 
-    def set_language(self, lang: str | list[str]) -> None:
+    def set_language(self, lang: str | list[str]):
         raw = lang[0] if isinstance(lang, (list, tuple)) and lang else lang
         if raw in SUPPORTED_LANGUAGES:
             self.language = raw
+            return rx.call_script(store_script(raw))
+
+    def detect_language(self):
+        """On load: the language this page opens in (see components/lang_pref.py)."""
+        return detect_language_event(type(self), SUPPORTED_LANGUAGES)
+
+    def apply_detected_language(self, lang: str):
+        if lang in SUPPORTED_LANGUAGES:
+            self.language = lang
 
     def adopt_lang_param(self) -> None:
         """Honour ``?lang=`` on page load.
@@ -89,7 +99,7 @@ class CanadaUIMixin(rx.State, mixin=True):
     #: a per-viewer convenience (see the Brazil page's ``UIMixin``). Its own
     #: key: the Canada card says different things and deserves its own first
     #: read.
-    quickstart_seen: str = rx.LocalStorage("", name="camposcope_quickstart_ca_v1")
+    quickstart_seen: str = rx.SessionStorage("", name="camposcope_quickstart_ca_v1")
 
     @rx.var
     def show_quickstart(self) -> bool:

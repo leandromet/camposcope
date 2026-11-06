@@ -7,9 +7,14 @@ mirror ``pt.py`` key-for-key while coverage is still being built out, but
 from __future__ import annotations
 
 TRANSLATIONS_EN: dict[str, str] = {
+    "region_usa": "USA",
+    "region_canada": "Canada",
+    "region_brazil": "Brazil",
+    "go_to_usa": "Go to USA",
+    "go_to_brazil": "Go to Brazil",
     # --- header --------------------------------------------------------- #
     "app_name": "Camposcope - Earth Engine for the CAR",
-    "go_to_canada": "Canada",
+    "go_to_canada": "Go to Canada",
     "start_hint": "Click anywhere in Brazil to start",
 
     # --- search panel ----------------------------------------------------- #

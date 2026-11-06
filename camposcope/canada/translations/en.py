@@ -4,11 +4,16 @@ back to this."""
 from __future__ import annotations
 
 TRANSLATIONS_EN: dict[str, str] = {
+    "region_usa": "USA",
+    "region_canada": "Canada",
+    "region_brazil": "Brazil",
+    "go_to_usa": "Go to USA",
+    "go_to_canada": "Go to Canada",
     # --- header ----------------------------------------------------------- #
     "app_name": "Camposcope — Earth Engine for Rural Properties",
     "nav_title_suffix": "Canada",
     "nav_subtitle": "Rural property analysis from the ParcelMap BC parcel fabric",
-    "go_to_brazil": "Brazil",
+    "go_to_brazil": "Go to Brazil",
     "language_label": "Language",
     "start_hint": "Click anywhere in Canada to start",
     "nav_toggle_layers_aria": "Show layers",

@@ -176,7 +176,6 @@ def header() -> rx.Component:
                     accent=ACCENT),
         rx.link(
             rx.button(
-                rx.text("🇨🇦", font_size="0.95rem"),
                 rx.text(AppState.tr["go_to_canada"],
                         display=["none", "none", "block", "block"]),
                 size="1", variant="soft", color_scheme="gray",

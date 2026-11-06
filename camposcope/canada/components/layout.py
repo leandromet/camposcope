@@ -132,7 +132,6 @@ def header() -> rx.Component:
                     accent=ACCENT),
         rx.link(
             rx.button(
-                rx.text("🇧🇷", font_size="0.95rem"),
                 rx.text(S.tr["go_to_brazil"],
                         display=["none", "none", "block", "block"]),
                 size="1", variant="soft", color_scheme="gray",

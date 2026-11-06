@@ -193,7 +193,7 @@ app.add_page(
         "AAFC Annual Crop Inventory, Hansen Global Forest Change and NTEMS "
         "VLCE2, on Earth Engine."
     ),
-    on_load=CanadaState.on_load,
+    on_load=[CanadaState.on_load, CanadaState.detect_language],
 )
 
 # The biome and ecozone polygons are fetched by the browser over HTTP, not

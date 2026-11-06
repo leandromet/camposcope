@@ -8,12 +8,17 @@ anything not (yet) overridden below.
 from __future__ import annotations
 
 TRANSLATIONS_PT: dict[str, str] = {
+    "region_usa": "EUA",
+    "region_canada": "Canadá",
+    "region_brazil": "Brasil",
+    "go_to_usa": "Ir para os EUA",
+    "go_to_canada": "Ir para o Canadá",
     # --- header ----------------------------------------------------------- #
     "app_name": "Camposcope — Earth Engine para Propriedades Rurais",
     "nav_title_suffix": "Canadá",
     "nav_subtitle": "Análise de propriedades rurais a partir da malha "
         "ParcelMap BC",
-    "go_to_brazil": "Brasil",
+    "go_to_brazil": "Ir para o Brasil",
     "language_label": "Idioma",
     "start_hint": "Clique em algum lugar do Canadá para começar",
     "nav_toggle_layers_aria": "Mostrar camadas",
